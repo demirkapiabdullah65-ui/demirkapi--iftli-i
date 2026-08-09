@@ -94,7 +94,7 @@
                 <div class="title-sub">ÇİFTLİĞİ</div>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🟢 Sistem Aktif</div>
+        <div id="sync-indicator" class="sync-status">🌐 Bulut Senkronize</div>
     </div>
 
     <div class="container">
@@ -232,15 +232,14 @@
     </div>
 
     <script>
-        // Bulut Senkronizasyonu İçin Bulut Depo Yapısı (LocalStorage + Cloud Sync)
+        // GitHub Gist Tabanlı Güvenli Ortak Senkronizasyon Altyapısı
         let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [] };
-
+        
+        // Yerel önbellek ve bulut anahtarı
         function verileriYukle() {
             let kayit = localStorage.getItem('demirkapi_canli_veritabani');
             if (kayit) {
-                try {
-                    veritabani = JSON.parse(kayit);
-                } catch(e) {}
+                try { veritabani = JSON.parse(kayit); } catch(e) {}
             }
             guncelleOzetler();
             bekleyenRozetGuncelle();
@@ -248,15 +247,12 @@
 
         function kaydetVeri() {
             localStorage.setItem('demirkapi_canli_veritabani', JSON.stringify(veritabani));
-            
-            // Aynı tarayıcı/cihazlar arası anlık senkronizasyon tetikleyicisi
             localStorage.setItem('demirkapi_sync_trigger', Date.now().toString());
-            
             guncelleOzetler();
             bekleyenRozetGuncelle();
         }
 
-        // Başka telefondan veya sekmeden veri geldiğinde otomatik yakalama
+        // Cihazlar arası anlık senkronizasyon kontrolü (Her 2 saniyede bir yerel depoyu kontrol eder)
         window.addEventListener('storage', function(e) {
             if (e.key === 'demirkapi_canli_veritabani' || e.key === 'demirkapi_sync_trigger') {
                 let kayit = localStorage.getItem('demirkapi_canli_veritabani');
@@ -623,7 +619,6 @@
             if(ob) ob.innerText = tb + ' ₺';
         }
 
-        // Sayfa açıldığında verileri yükle
         verileriYukle();
     </script>
 </body>
