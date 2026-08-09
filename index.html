@@ -11,6 +11,7 @@
             margin: 0;
             padding: 0;
             color: #333;
+            padding-bottom: 70px; /* Alt menü için boşluk */
         }
 
         /* YEŞİL HEADER */
@@ -54,6 +55,7 @@
             font-weight: bold;
             color: #111;
             margin-bottom: 20px;
+            margin-top: 10px;
         }
 
         /* MENÜ KUTULARI GRID */
@@ -61,7 +63,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .menu-card {
@@ -74,7 +76,7 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            transition: transform 0.1s ease;
             border: 1px solid #eee;
         }
 
@@ -97,6 +99,118 @@
         .menu-desc {
             font-size: 12px;
             color: #666;
+        }
+
+        /* GÜNLÜK ÖZET ALANI */
+        .summary-section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #111;
+            margin-bottom: 15px;
+            margin-top: 10px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid #eee;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #111;
+        }
+
+        /* AZALAN STOK UYARI KUTUSU */
+        .alert-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .alert-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+        }
+
+        .alert-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111;
+        }
+
+        .btn-alert-action {
+            background-color: #f3f4f6;
+            color: #111;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ALT SABİT MENÜ ÇUBUĞU */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #166534;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 3px;
         }
 
         /* İŞLEM EKRANLARI (FORM) */
@@ -157,7 +271,6 @@
             margin-bottom: 15px;
         }
 
-        /* ÖZET KUTUSU */
         .summary-box {
             background-color: #f0fdf4;
             border-left: 5px solid #166534;
@@ -218,6 +331,56 @@
                     <div class="menu-title">6. Müşteriler</div>
                     <div class="menu-desc">Müşteri kartları</div>
                 </div>
+                <div class="menu-card" onclick="openScreen('bakiye')">
+                    <div class="menu-icon">💳</div>
+                    <div class="menu-title">7. Müşteri Bakiye</div>
+                    <div class="menu-desc">Bakiye görüntüle</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('raporlar')">
+                    <div class="menu-icon">📊</div>
+                    <div class="menu-title">8. Raporlar</div>
+                    <div class="menu-desc">Satış ve tahsilat</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('ayarlar')">
+                    <div class="menu-icon">⚙️</div>
+                    <div class="menu-title">9. Ayarlar</div>
+                    <div class="menu-desc">Uygulama ayarları</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('gecmis')">
+                    <div class="menu-icon">🧾</div>
+                    <div class="menu-title">İşlem Geçmişi</div>
+                    <div class="menu-desc">Tüm hareketler</div>
+                </div>
+            </div>
+
+            <!-- GÜNLÜK ÖZET -->
+            <div class="summary-section-title">Günlük Özet</div>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Bugünkü Satış</div>
+                    <div class="summary-value">0 ₺</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Bugünkü Tahsilat</div>
+                    <div class="summary-value">0 ₺</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Toplam Stok</div>
+                    <div class="summary-value">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Borçlu Müşteri</div>
+                    <div class="summary-value">0</div>
+                </div>
+            </div>
+
+            <!-- AZALAN STOK UYARISI -->
+            <div class="alert-card">
+                <div class="alert-left">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-text">Azalan Stok</div>
+                </div>
+                <button class="btn-alert-action" onclick="openScreen('stok')">Tümünü Gör</button>
             </div>
         </div>
 
@@ -255,7 +418,7 @@
             </div>
         </div>
 
-        <!-- DİĞER EKRANLAR İÇİN GEÇİCİ ALANLAR -->
+        <!-- DİĞER EKRANLAR -->
         <div id="screen-giris" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📥 Stoğa Ürün Ekle</div>
@@ -269,7 +432,7 @@
         </div>
 
         <div id="screen-borc" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅5️ Ana Menüye Dön</button>
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📒 Borç Takibi</div>
             <div class="card"><p>Borç takip ekranı yakında burada olacak.</p></div>
         </div>
@@ -286,34 +449,64 @@
             <div class="card"><p>Müşteri listesi yakında burada olacak.</p></div>
         </div>
 
+        <div id="screen-bakiye" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">💳 Müşteri Bakiye</div>
+            <div class="card"><p>Bakiye görüntüleme ekranı yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-raporlar" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📊 Raporlar</div>
+            <div class="card"><p>Satış ve tahsilat raporları yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-ayarlar" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">⚙️ Ayarlar</div>
+            <div class="card"><p>Uygulama ayarları yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-gecmis" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🧾 İşlem Geçmişi</div>
+            <div class="card"><p>Tüm hareketler yakında burada olacak.</p></div>
+        </div>
+
+    </div>
+
+    <!-- ALT SABİT MENÜ ÇUBUĞU -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="goHome()">
+            <div class="nav-icon">🏠</div>
+            <span>Ana Sayfa</span>
+        </div>
+        <div class="nav-item" onclick="openScreen('satis')">
+            <div class="nav-icon">🛒</div>
+            <span>Satış</span>
+        </div>
+        <div class="nav-item" onclick="openScreen('stok')">
+            <div class="nav-icon">📦</div>
+            <span>Stok</span>
+        </div>
+        <div class="nav-item" onclick="openScreen('musteriler')">
+            <div class="nav-icon">👥</div>
+            <span>Müşteriler</span>
+        </div>
     </div>
 
     <script>
         function openScreen(screenName) {
-            // Tüm ekranları gizle
-            document.getElementById('screen-menu').classList.add('hidden');
-            document.getElementById('screen-satis').classList.add('hidden');
-            document.getElementById('screen-giris').classList.add('hidden');
-            document.getElementById('screen-tahsilat').classList.add('hidden');
-            document.getElementById('screen-borc').classList.add('hidden');
-            document.getElementById('screen-stok').classList.add('hidden');
-            document.getElementById('screen-musteriler').classList.add('hidden');
-
-            // Seçilen ekranı aç
+            let screens = ['menu', 'satis', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'bakiye', 'raporlar', 'ayarlar', 'gecmis'];
+            screens.forEach(s => {
+                document.getElementById('screen-' + s).classList.add('hidden');
+            });
             document.getElementById('screen-' + screenName).classList.remove('hidden');
             window.scrollTo(0, 0);
         }
 
         function goHome() {
-            // Tüm ekranları gizle, ana menüyü aç
-            document.getElementById('screen-menu').classList.remove('hidden');
-            document.getElementById('screen-satis').classList.add('hidden');
-            document.getElementById('screen-giris').classList.add('hidden');
-            document.getElementById('screen-tahsilat').classList.add('hidden');
-            document.getElementById('screen-borc').classList.add('hidden');
-            document.getElementById('screen-stok').classList.add('hidden');
-            document.getElementById('screen-musteriler').classList.add('hidden');
-            window.scrollTo(0, 0);
+            openScreen('menu');
         }
 
         let toplamIslemSayisi = 0;
@@ -331,7 +524,6 @@
                 document.getElementById('toplam-islem').innerText = toplamIslemSayisi;
                 document.getElementById('toplam-tutar').innerText = toplamPara;
 
-                // Kutuları temizle
                 document.getElementById('satis-musteri').value = '';
                 document.getElementById('satis-miktar').value = '';
                 document.getElementById('satis-fiyat').value = '';
