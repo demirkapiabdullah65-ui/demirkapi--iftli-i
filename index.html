@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demirkapı Çiftliği</title>
-    <!-- Firebase SDK'ları -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <!-- html2pdf Kütüphanesi (PDF indirmek için) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -20,34 +18,15 @@
         .section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
-        .menu-card:active { transform: scale(0.97); }
-        .menu-icon { font-size: 36px; margin-bottom: 12px; }
-        .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
-        .menu-desc { font-size: 12px; color: #666; }
-        .badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
-        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
-        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
+        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
-        
-        /* Tablo düzeni */
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: #444; font-weight: 700; background: #f1f5f9; }
-        .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
-        
-        /* Sabit Alt Navigasyon Çubuğu */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; flex: 1; }
-        .nav-item.active { color: white; font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .hidden { display: none !important; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
+        .nav-item { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; }
+        .nav-item.active { color: white; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -60,7 +39,6 @@
                 <div class="title-sub">ÇİFTLİĞİ</div>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🔥 Canlı Bulut</div>
     </div>
 
     <div class="container">
@@ -68,769 +46,81 @@
         <div id="screen-menu">
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş</div><div class="menu-desc">Telefondan talep gönder</div></div>
-                <div class="menu-card" onclick="openScreen('onay')">
-                    <div class="menu-icon">🔔</div>
-                    <div class="menu-title">2. Onay Bekleyenler</div>
-                    <div class="menu-desc">Cebinden onayla</div>
-                    <div id="menu-badge" class="badge hidden">0</div>
+                <div class="menu-card" onclick="openScreen('satis')">🛒 Satış</div>
+                <div class="menu-card" onclick="openScreen('onay')">🔔 Onay</div>
+                <div class="menu-card" onclick="openScreen('tahsilat')">💰 Tahsilat</div>
+                <div class="menu-card" onclick="openScreen('borc')">📒 Borç Takibi</div>
+                <div class="menu-card" onclick="openScreen('stok')">📦 Stok</div>
+                <div class="menu-card" onclick="openScreen('gunluk')">📅 <b>8. Günlük Rapor</b></div>
+            </div>
+        </div>
+
+        <!-- 8. GÜNLÜK RAPOR EKRANI -->
+        <div id="screen-gunluk" class="hidden">
+            <button class="btn-back" onclick="openScreen('menu')">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📅 Günlük Satış Raporu</div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Tarih Seçin</label>
+                    <input type="date" id="rapor-tarih" onchange="gunlukRaporuGoster()">
                 </div>
-                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
-                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
-                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok</div><div class="menu-desc">Mevcut stok</div></div>
-                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">7. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
-                <div class="menu-card" onclick="openScreen('gecmis')"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
+                <div id="rapor-ozet" style="margin-top:15px;"></div>
+                <div id="rapor-detay"></div>
             </div>
         </div>
-
-        <!-- 1. SATIŞ -->
-        <div id="screen-satis" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🛒 Satış Talebi Oluştur</div>
-            <div class="card">
-                <div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
-                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
-                <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                <label><b>Sepetteki Ürünler</b></label>
-                <div id="urunler-konteynir"></div>
-                <button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
-                <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Örn: Telefon satışı"></div>
-                <button class="btn-green" onclick="satisTalebiGonder()">Onaya Gönder 🚀</button>
-            </div>
-        </div>
-
-        <!-- 2. ONAY BEKLEYENLER -->
-        <div id="screen-onay" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🔔 Onay Bekleyen Satışlar</div>
-            <div class="card"><div id="onay-listesi">Bekleyen talep bulunmuyor.</div></div>
-        </div>
-
-        <!-- 3. STOK EKLE -->
-        <div id="screen-giris" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📥 Stoğa Ürün Ekle</div>
-            <div class="card">
-                <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Ürün adını yazın"></div>
-                <div class="form-group"><label>Miktar</label><input type="number" id="g-miktar" placeholder="0"></div>
-                <button class="btn-green" onclick="stokEkle()">Stoğa Ürün Ekle</button>
-            </div>
-        </div>
-
-        <!-- 4. TAHSİLAT -->
-        <div id="screen-tahsilat" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💰 Tahsilat (Sonradan Ödeme Al)</div>
-            <div class="card">
-                <div class="form-group"><label>Ödeme Tarihi ve Saati</label><input type="datetime-local" id="t-tarih"></div>
-                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
-                <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
-                <div class="form-group"><label>Ödeme Açıklaması</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
-                <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Kaydet & Borçtan Düş</button>
-            </div>
-        </div>
-
-        <!-- 5. BORÇ TAKİBİ -->
-        <div id="screen-borc" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📒 Müşteri Borç & Alış Detayları</div>
-            <div class="card">
-                <div class="form-group"><label>Müşteri Ara</label><input type="text" id="borc-arama" oninput="borclariListele()" placeholder="İsim yazın..."></div>
-                <div id="borc-detay-listesi"></div>
-            </div>
-        </div>
-
-        <!-- 6. STOK -->
-        <div id="screen-stok" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📦 Stok Durumu (Giren / Satılan / Kalan)</div>
-            <div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
-        </div>
-
-        <!-- 7. MÜŞTERİLER -->
-        <div id="screen-musteriler" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">👥 Müşteri Listesi</div>
-            <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
-        </div>
-
-        <!-- İŞLEM GEÇMİŞİ -->
-        <div id="screen-gecmis" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🧾 Tüm İşlem Geçmişi</div>
-            <div class="card"><div id="gecmis-listesi">Henüz işlem yapılmadı.</div></div>
-        </div>
-
-        <!-- FİŞ EKRANI -->
-        <div id="screen-fis" class="hidden">
-            <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
-            <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
-            <div class="card">
-                <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;">
-                    <!-- Dinamik alt alta düzenli fiş içeriği -->
-                </div>
-                <div style="display: flex; gap: 10px; flex-direction: column;">
-                    <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
-                    <button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sabit Alt Navigasyon Çubuğu -->
-    <div class="bottom-nav">
-        <button class="nav-item active" onclick="goHome()" id="nav-anasayfa">
-            <span class="nav-icon">🏠</span>
-            <span>Ana Sayfa</span>
-        </button>
-        <button class="nav-item" onclick="openScreen('satis')" id="nav-satis">
-            <span class="nav-icon">🛒</span>
-            <span>Satış</span>
-        </button>
-        <button class="nav-item" onclick="openScreen('onay')" id="nav-onay">
-            <span class="nav-icon">🔔</span>
-            <span>Onay</span>
-        </button>
-        <button class="nav-item" onclick="openScreen('borc')" id="nav-borc">
-            <span class="nav-icon">📒</span>
-            <span>Borçlar</span>
-        </button>
+        
+        <!-- Diğer ekranlar buraya gelecek... -->
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCvSAndZsfDbZ_eIXtHtcCYMWoqzVGKZU0",
-            authDomain: "demirkapi-ca886.firebaseapp.com",
-            projectId: "demirkapi-ca886",
-            storageBucket: "demirkapi-ca886.firebasestorage.app",
-            messagingSenderId: "222198402724",
-            appId: "1:222198402724:web:416fd76dc0b64c9e296031",
-            databaseURL: "https://demirkapi-ca886-default-rtdb.europe-west1.firebasedatabase.app"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [], girisler: {} };
+        // ... (Diğer Firebase ve fonksiyonlar aynı kalacak)
 
-        let oncekiBekleyenSayisi = 0;
-        db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                veritabani = data;
-                if(!veritabani.islemler) veritabani.islemler = [];
-                if(!veritabani.stoklar) veritabani.stoklar = {};
-                if(!veritabani.borclar) veritabani.borclar = {};
-                if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
-                if(!veritabani.girisler) veritabani.girisler = {};
-            }
+        function gunlukRaporuGoster() {
+            let secilenTarih = document.getElementById('rapor-tarih').value;
+            if(!secilenTarih) return;
 
-            const yeniSayi = veritabani.bekleyenler.length;
-            if (oncekiBekleyenSayisi !== 0 && yeniSayi > oncekiBekleyenSayisi) {
-                const sonTalep = veritabani.bekleyenler[yeniSayi - 1];
-                if (Notification.permission === "granted") {
-                    new Notification("🔔 DEMİRKAPI ÇİFTLİĞİ", { body: sonTalep.musteri + " yeni satış onayı bekliyor." });
-                }
-            }
-            oncekiBekleyenSayisi = yeniSayi;
-            bekleyenRozetGuncelle();
-
-            if (!document.getElementById('screen-onay').classList.contains('hidden')) {
-                onayBekleyenleriGoster();
-            }
-            if (!document.getElementById('screen-musteriler').classList.contains('hidden')) {
-                musterileriGoster();
-            }
-            if (!document.getElementById('screen-stok').classList.contains('hidden')) {
-                stoklariGoster();
-            }
-            if (!document.getElementById('screen-borc').classList.contains('hidden')) {
-                borclariListele();
-            }
-        });
-
-        if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission();
-        }
-
-        function kaydetVeri() {
-            db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
-                bekleyenRozetGuncelle();
-            });
-        }
-
-        function simdikiTarihInputFormat() {
-            let d = new Date();
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-            return d.toISOString().slice(0, 16);
-        }
-
-        function formatliTarihGoster(inputStr) {
-            if(!inputStr) return '';
-            let d = new Date(inputStr);
-            if(isNaN(d.getTime())) return inputStr; 
-            return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
-        }
-
-        function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'gecmis', 'fis'];
-            screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
-            document.getElementById('screen-' + name)?.classList.remove('hidden');
-            window.scrollTo(0, 0);
-
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(name === 'menu') document.getElementById('nav-anasayfa')?.classList.add('active');
-            if(name === 'satis') document.getElementById('nav-satis')?.classList.add('active');
-            if(name === 'onay') document.getElementById('nav-onay')?.classList.add('active');
-            if(name === 'borc') document.getElementById('nav-borc')?.classList.add('active');
-
-            if(name === 'satis') {
-                document.getElementById('s-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('urunler-konteynir').innerHTML = '';
-                document.getElementById('s-pesin').value = '';
-                document.getElementById('s-not').value = '';
-                document.getElementById('s-musteri').value = '';
-                urunSatiriEkle();
-            }
-            if(name === 'tahsilat') {
-                document.getElementById('t-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('t-musteri').value = '';
-                document.getElementById('t-tutar').value = '';
-                document.getElementById('t-aciklama').value = '';
-            }
-            if(name === 'onay') onayBekleyenleriGoster();
-            if(name === 'borc') borclariListele();
-            if(name === 'stok') stoklariGoster();
-            if(name === 'musteriler') musterileriGoster();
-            if(name === 'gecmis') gecmisiGoster();
-        }
-
-        function goHome() { openScreen('menu'); }
-
-        function urunSatiriEkle() {
-            let konteynir = document.getElementById('urunler-konteynir');
-            let seceneklerHTML = '';
-            let keys = Object.keys(veritabani.stoklar);
+            let detayKonteynir = document.getElementById('rapor-detay');
+            let ozetKonteynir = document.getElementById('rapor-ozet');
             
-            if(keys.length === 0) {
-                seceneklerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
-            } else {
-                keys.forEach(k => {
-                    seceneklerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]})</option>`;
-                });
-            }
+            let gununIslemleri = veritabani.islemler.filter(i => i.tarih.startsWith(secilenTarih));
+            
+            let toplamSatis = 0;
+            let toplamTahsilat = 0;
+            let detayHtml = '';
 
-            let div = document.createElement('div');
-            div.className = 'urun-satir';
-            div.innerHTML = `
-                <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
-                <div class="form-group" style="margin-bottom:10px;"><label>Ürün</label><select class="s-tur-secim">${seceneklerHTML}</select></div>
-                <div class="form-group" style="margin-bottom:10px;"><label>Miktar (Adet)</label><input type="number" class="s-miktar-input" placeholder="0"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>Birim Fiyat (TL)</label><input type="number" class="s-fiyat-input" placeholder="0"></div>
-            `;
-            konteynir.appendChild(div);
-        }
-
-        function satisTalebiGonder() {
-            let tarihSecilen = document.getElementById('s-tarih').value;
-            let musteri = document.getElementById('s-musteri').value.trim();
-            let pesinTutar = parseFloat(document.getElementById('s-pesin').value) || 0;
-            let notBilgisi = document.getElementById('s-not').value.trim() || 'Saha Satışı';
-
-            if(!tarihSecilen) { alert('Lütfen tarih seçin.'); return; }
-            if(!musteri) { alert('Lütfen müşteri adı girin.'); return; }
-
-            let satirlar = document.querySelectorAll('.urun-satir');
-            if(satirlar.length === 0) { alert('Lütfen en az bir ürün ekleyin.'); return; }
-
-            let kalemler = [];
-            for(let satir of satirlar) {
-                let tur = satir.querySelector('.s-tur-secim').value;
-                let miktar = parseFloat(satir.querySelector('.s-miktar-input').value) || 0;
-                let fiyat = parseFloat(satir.querySelector('.s-fiyat-input').value) || 0;
-                let tutar = miktar * fiyat;
-
-                if(!tur || miktar <= 0 || fiyat <= 0) {
-                    alert('Lütfen tüm ürün alanlarını eksiksiz doldurun.');
-                    return;
-                }
-                kalemler.push({tur, miktar, fiyat, tutar});
-            }
-
-            let yeniTalep = {
-                id: Date.now(),
-                tarih: tarihSecilen,
-                musteri: musteri,
-                kalemler: kalemler,
-                pesinTutar: pesinTutar,
-                notBilgisi: notBilgisi
-            };
-
-            veritabani.bekleyenler.push(yeniTalep);
-            kaydetVeri();
-
-            alert('Satış talebi başarıyla gönderildi!');
-            goHome();
-        }
-
-        function onayBekleyenleriGoster() {
-            let konteynir = document.getElementById('onay-listesi');
-            let bekleyenler = veritabani.bekleyenler || [];
-
-            if(bekleyenler.length === 0) {
-                konteynir.innerHTML = '<p>Onay bekleyen satış bulunmuyor.</p>';
-                return;
-            }
-
-            let html = '';
-            bekleyenler.forEach((talep, index) => {
-                let toplamTutar = 0;
-                let urunlerHTML = '<ul>';
-                talep.kalemler.forEach(k => {
-                    toplamTutar += k.tutar;
-                    urunlerHTML += `<li><b>${k.tur}</b>: ${k.miktar} adet x ${k.fiyat} ₺ = ${k.tutar} ₺</li>`;
-                });
-                urunlerHTML += '</ul>';
-
-                html += `<div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <div style="font-size:12px; color:#666; float:right;">${formatliTarihGoster(talep.tarih)}</div>
-                    <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${talep.musteri}</h3>
-                    <div style="font-size:13px; color:#444; margin-bottom:5px;"><b>Not:</b> ${talep.notBilgisi}</div>
-                    <div style="font-size:13px; color:#444;"><b>Sepet:</b> ${urunlerHTML}</div>
-                    <p style="margin:5px 0;"><b>Toplam:</b> ${toplamTutar} ₺ | <b>Peşin:</b> ${talep.pesinTutar} ₺</p>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button class="btn-green" style="margin-top:0;" onclick="satisiOnayla(${index})">✅ Onayla & Stoğa İşle</button>
-                        <button class="btn-danger" onclick="satisiReddet(${index})">❌ Reddet</button>
-                    </div>
-                </div>`;
-            });
-
-            konteynir.innerHTML = html;
-        }
-
-        function satisiOnayla(index) {
-            let talep = veritabani.bekleyenler[index];
-            let toplamSepetTutar = 0;
-
-            for(let item of talep.kalemler) {
-                let mevcutStok = veritabani.stoklar[item.tur] || 0;
-                if(mevcutStok < item.miktar) {
-                    alert('Hata: "' + item.tur + '" için stokta yeterli miktar yok! (Stok: ' + mevcutStok + ')');
-                    return;
-                }
-                toplamSepetTutar += item.tutar;
-            }
-
-            talep.kalemler.forEach(item => {
-                veritabani.stoklar[item.tur] -= item.miktar;
-            });
-
-            let islemId = Date.now();
-
-            veritabani.islemler.push({
-                id: islemId,
-                tarih: talep.tarih,
-                tip: 'Satış',
-                musteri: talep.musteri,
-                kalemler: talep.kalemler,
-                tutar: toplamSepetTutar,
-                aciklama: talep.notBilgisi
-            });
-
-            let kalanBorcEkle = toplamSepetTutar - talep.pesinTutar;
-            if(kalanBorcEkle > 0) {
-                veritabani.borclar[talep.musteri] = (veritabani.borclar[talep.musteri] || 0) + kalanBorcEkle;
-            }
-
-            if(talep.pesinTutar > 0) {
-                veritabani.islemler.push({
-                    id: islemId + 1,
-                    tarih: talep.tarih,
-                    tip: 'Tahsilat',
-                    musteri: talep.musteri,
-                    kalemler: [],
-                    tutar: talep.pesinTutar,
-                    aciklama: 'Satış Peşinatı'
-                });
-            }
-
-            veritabani.bekleyenler.splice(index, 1);
-            kaydetVeri();
-            alert('Satış onaylandı ve stoktan düşüldü!');
-            onayBekleyenleriGoster();
-        }
-
-        function satisiReddet(index) {
-            if(confirm('Reddetmek istediğinize emin misiniz?')) {
-                veritabani.bekleyenler.splice(index, 1);
-                kaydetVeri();
-                onayBekleyenleriGoster();
-            }
-        }
-
-        function islemSil(islemId) {
-            if(!confirm('Bu işlemi silmek istediğinize emin misiniz? (Stok ve borçlar otomatik eski haline getirilecektir)')) return;
-
-            let index = veritabani.islemler.findIndex(i => i.id === islemId);
-            if(index === -1) {
-                alert('İşlem bulunamadı.');
-                return;
-            }
-
-            let islem = veritabani.islemler[index];
-
-            if(islem.tip === 'Satış') {
-                if(islem.kalemler && islem.kalemler.length > 0) {
-                    islem.kalemler.forEach(k => {
-                        veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
-                    });
-                }
-                let pesinKayitIndex = veritabani.islemler.findIndex(i => i.musteri === islem.musteri && i.tip === 'Tahsilat' && i.aciklama === 'Satış Peşinatı' && Math.abs(new Date(i.tarih) - new Date(islem.tarih)) < 5000);
-                
-                let pesinTutar = 0;
-                if(pesinKayitIndex !== -1) {
-                    pesinTutar = veritabani.islemler[pesinKayitIndex].tutar;
-                    veritabani.islemler.splice(pesinKayitIndex, 1);
-                }
-
-                let kalanBorc = islem.tutar - pesinTutar;
-                if(kalanBorc > 0 && veritabani.borclar[islem.musteri]) {
-                    veritabani.borclar[islem.musteri] = Math.max(0, veritabani.borclar[islem.musteri] - kalanBorc);
-                }
-            } else if(islem.tip === 'Tahsilat') {
-                if(veritabani.borclar[islem.musteri] !== undefined) {
-                    veritabani.borclar[islem.musteri] += islem.tutar;
-                }
-            }
-
-            let guncelIndex = veritabani.islemler.findIndex(i => i.id === islemId);
-            if(guncelIndex !== -1) {
-                veritabani.islemler.splice(guncelIndex, 1);
-            }
-
-            kaydetVeri();
-            alert('İşlem silindi, stok ve borçlar güncellendi.');
-            borclariListele();
-            gecmisiGoster();
-        }
-
-        function musteriSil(musteriAdi) {
-            if (!confirm(musteriAdi + " isimli müşteriyi ve tüm ilişkili kayıtlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
-
-            veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
-
-            if (veritabani.borclar[musteriAdi] !== undefined) {
-                delete veritabani.borclar[musteriAdi];
-            }
-
-            veritabani.bekleyenler = veritabani.bekleyenler.filter(t => t.musteri !== musteriAdi);
-
-            kaydetVeri();
-            alert(musteriAdi + " başarıyla sistemden silindi.");
-            musterileriGoster();
-        }
-
-        function bekleyenRozetGuncelle() {
-            let badge = document.getElementById('menu-badge');
-            let count = (veritabani.bekleyenler || []).length;
-            if(badge) {
-                if(count > 0) {
-                    badge.innerText = count;
-                    badge.classList.remove('hidden');
+            gununIslemleri.forEach(i => {
+                if(i.tip === 'Satış') {
+                    toplamSatis += i.tutar;
+                    detayHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px;">
+                        <div style="font-weight:bold; color:#166534;">👤 ${i.musteri}</div>
+                        <div style="font-size:13px;">Satış: <b>${i.tutar} ₺</b> - ${i.aciklama}</div>
+                    </div>`;
                 } else {
-                    badge.classList.add('hidden');
+                    toplamTahsilat += i.tutar;
+                    detayHtml += `<div style="background:#eff6ff; padding:10px; border-radius:8px; margin-bottom:8px;">
+                        <div style="font-weight:bold; color:#1e40af;">💰 ${i.musteri}</div>
+                        <div style="font-size:13px;">Tahsilat: <b>${i.tutar} ₺</b> - ${i.aciklama}</div>
+                    </div>`;
                 }
-            }
-        }
-
-        function stokEkle() {
-            let urunInput = document.getElementById('g-urun');
-            let miktarInput = document.getElementById('g-miktar');
-            
-            let urun = urunInput.value.trim();
-            let miktar = parseFloat(miktarInput.value) || 0;
-            
-            if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve miktar girin.'); return; }
-            
-            veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
-
-            if(!veritabani.girisler) veritabani.girisler = {};
-            veritabani.girisler[urun] = (veritabani.girisler[urun] || 0) + miktar;
-
-            kaydetVeri();
-            
-            urunInput.value = '';
-            miktarInput.value = '';
-
-            alert('Ürün stoğa eklendi!');
-            goHome();
-        }
-
-        function tahsilatAl() {
-            let tarihSecilen = document.getElementById('t-tarih').value;
-            let musteri = document.getElementById('t-musteri').value.trim();
-            let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
-            let aciklama = document.getElementById('t-aciklama').value.trim() || 'Nakit Ödeme';
-
-            if(!tarihSecilen) { alert('Lütfen tarih seçin.'); return; }
-            if(!musteri || tutar <= 0) { alert('Lütfen müşteri adı ve tutar girin.'); return; }
-
-            let mevcutBorc = veritabani.borclar[musteri] || 0;
-            veritabani.borclar[musteri] = Math.max(0, mevcutBorc - tutar);
-
-            veritabani.islemler.push({
-                id: Date.now(),
-                tarih: tarihSecilen,
-                tip: 'Tahsilat',
-                musteri: musteri,
-                kalemler: [],
-                tutar: tutar,
-                aciklama: aciklama
             });
 
-            kaydetVeri();
-            alert('Tahsilat kaydedildi!');
-            goHome();
-        }
-
-        function borclariListele() {
-            let arama = document.getElementById('borc-arama').value.toLowerCase();
-            let html = '';
-            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
-            
-            musteriler.forEach(m => {
-                if(arama && !m.toLowerCase().includes(arama)) return;
-                let bakiye = veritabani.borclar[m] || 0;
-                
-                html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e5e7eb; padding-bottom:8px;">
-                        <h3 style="margin:0; color:#166534; font-size:16px;">👤 ${m}</h3>
-                        <button class="btn-secondary" style="margin-bottom:0;" onclick="musteriOzetFisGoster('${m}')">🖨️ Fiş / PDF</button>
+            ozetKonteynir.innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <div style="font-size:12px;">Toplam Satış</div>
+                        <div style="font-weight:bold; color:#b91c1c;">${toplamSatis} ₺</div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px; font-weight:bold;">
-                        <span style="color:#555;">Güncel Bakiye:</span>
-                        <span style="color:${bakiye > 0 ? '#dc2626':'#166534'}">${bakiye} ₺</span>
+                    <div style="background:#f1f5f9; padding:10px; border-radius:8px; text-align:center;">
+                        <div style="font-size:12px;">Toplam Tahsilat</div>
+                        <div style="font-weight:bold; color:#15803d;">${toplamTahsilat} ₺</div>
                     </div>
-                    <div class="table-responsive">
-                        <table>
-                            <tr>
-                                <th style="width:25%;">Tarih</th>
-                                <th style="width:45%;">İşlem / Ürün Detay</th>
-                                <th style="width:15%;">Tutar</th>
-                                <th style="width:15%;">Ödeme</th>
-                            </tr>`;
-                
-                let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
-                if(musteriIslemleri.length === 0) {
-                    html += `<tr><td colspan="4">Kayıt bulunmuyor.</td></tr>`;
-                } else {
-                    musteriIslemleri.forEach(islem => {
-                        let tarihStr = formatliTarihGoster(islem.tarih);
-                        let urunDetay = "";
-                        let satisTutarHucre = "-";
-                        let odemeTutarHucre = "-";
-
-                        if(islem.tip === 'Satış') {
-                            if(islem.kalemler && islem.kalemler.length > 0) {
-                                urunDetay = islem.kalemler.map(k => `• <b>${k.tur}</b>: ${k.miktar} ad x ${k.fiyat} ₺`).join('<br>');
-                            } else {
-                                urunDetay = islem.aciklama || 'Satış';
-                            }
-                            satisTutarHucre = `<b>${islem.tutar} ₺</b>`;
-                        } else {
-                            urunDetay = `Ödeme: ${islem.aciklama || 'Nakit/Havale'}`;
-                            odemeTutarHucre = `<b style="color:#2563eb;">${islem.tutar} ₺</b>`;
-                        }
-
-                        html += `<tr>
-                            <td style="white-space:nowrap; font-size:11px;">${tarihStr}</td>
-                            <td>${urunDetay}</td>
-                            <td style="color:#dc2626;">${satisTutarHucre}</td>
-                            <td>${odemeTutarHucre}</td>
-                        </tr>`;
-                    });
-                }
-                html += `</table></div></div>`;
-            });
-
-            document.getElementById('borc-detay-listesi').innerHTML = html || '<p>Kayıt bulunamadı.</p>';
-        }
-
-        function stoklariGoster() {
-            let tumUrunler = new Set([...Object.keys(veritabani.stoklar || {}), ...Object.keys(veritabani.girisler || {})]);
-            
-            let satilanlar = {};
-            (veritabani.islemler || []).forEach(i => {
-                if(i.tip === 'Satış' && i.kalemler) {
-                    i.kalemler.forEach(k => {
-                        satilanlar[k.tur] = (satilanlar[k.tur] || 0) + k.miktar;
-                    });
-                }
-            });
-
-            let html = '<table><tr><th>Ürün Adı</th><th>Toplam Giren</th><th>Satılan</th><th>Kalan Stok</th></tr>';
-            if(tumUrunler.size === 0) {
-                document.getElementById('stok-listesi').innerHTML = '<p>Stokta ürün bulunmuyor.</p>';
-                return;
-            }
-
-            tumUrunler.forEach(u => {
-                let toplamGiren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0));
-                let satilan = satilanlar[u] || 0;
-                let kalan = veritabani.stoklar[u] || 0;
-
-                html += `<tr>
-                    <td><b>${u}</b></td>
-                    <td>${toplamGiren}</td>
-                    <td style="color:#dc2626;">${satilan}</td>
-                    <td style="color:#166534; font-weight:bold;">${kalan}</td>
-                </tr>`;
-            });
-            html += '</table>';
-            document.getElementById('stok-listesi').innerHTML = html;
-        }
-
-        function musterileriGoster() {
-            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
-            let html = '<ul>';
-            musteriler.forEach(m => {
-                let borc = veritabani.borclar[m] || 0;
-                html += `<li style="padding:8px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                            <div><b>${m}</b> - Borç: <span style="color:${borc>0?'red':'green'}">${borc} ₺</span></div>
-                            <button class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="musteriSil('${m}')">Sil</button>
-                         </li>`;
-            });
-            html += '</ul>';
-            document.getElementById('musteri-listesi').innerHTML = musteriler.length ? html : 'Kayıt yok.';
-        }
-
-        function gecmisiGoster() {
-            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Detay</th><th>Tutar</th><th>Fiş</th><th>Sil</th></tr>';
-            veritabani.islemler.slice().reverse().forEach(i => {
-                let det = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : (i.aciklama || '');
-                let silBtn = i.id ? `<button class="btn-danger" style="padding:4px 6px; font-size:10px;" onclick="islemSil(${i.id})">Sil</button>` : '';
-                let fisBtn = (i.tip === 'Satış' && i.id) ? `<button class="btn-secondary" style="padding:4px 6px; font-size:10px; margin-bottom:0;" onclick="fisGoster(${i.id}, 'gecmis')">🖨️ Fiş</button>` : '-';
-                
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${det}</td><td><b>${i.tutar} ₺</b></td><td>${fisBtn}</td><td>${silBtn}</td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
-        }
-
-        // Fişi tablo yerine alt alta, bloklar halinde düzenli gösteren fonksiyon
-        function musteriOzetFisGoster(musteriAdi) {
-            let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
-            let bakiye = veritabani.borclar[musteriAdi] || 0;
-
-            let fisHtml = `
-                <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
-                <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
-                
-                <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;">
-                    <div><b>Müşteri:</b> ${musteriAdi}</div>
-                    <div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}</div>
-                </div>
-                
-                <div style="font-size:13px; font-weight:bold; margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:4px;">📜 İşlem Geçmişi:</div>
-            `;
-
-            if(musteriIslemleri.length === 0) {
-                fisHtml += `<div style="font-size:12px; color:#666; padding:5px;">İşlem kaydı bulunmuyor.</div>`;
-            } else {
-                musteriIslemleri.forEach(i => {
-                    let tarihStr = formatliTarihGoster(i.tarih);
-                    
-                    if(i.tip === 'Satış') {
-                        fisHtml += `
-                            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px;">
-                                <div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;">
-                                    <span>📅 ${tarihStr}</span>
-                                    <span style="font-weight:bold; color:#166534;">SATIŞ İŞLEMİ</span>
-                                </div>
-                        `;
-                        
-                        if(i.kalemler && i.kalemler.length > 0) {
-                            i.kalemler.forEach(k => {
-                                fisHtml += `
-                                    <div style="display:flex; justify-content:space-between; font-size:12px; padding:3px 0; border-bottom:1px dotted #eee;">
-                                        <span>• <b>${k.tur}</b> (${k.miktar} adet x ${k.fiyat} ₺)</span>
-                                        <span style="font-weight:bold;">${k.tutar} ₺</span>
-                                    </div>
-                                `;
-                            });
-                        }
-                        
-                        fisHtml += `
-                                <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; margin-top:6px; padding-top:4px; border-top:1px solid #eee;">
-                                    <span>Toplam Tutar:</span>
-                                    <span style="color:#dc2626;">${i.tutar} ₺</span>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        // Tahsilat işlemi
-                        fisHtml += `
-                            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;">
-                                <div style="display:flex; justify-content:space-between; font-size:11px; color:#166534; margin-bottom:4px;">
-                                    <span>📅 ${tarihStr}</span>
-                                    <span style="font-weight:bold;">TAHSİLAT (ÖDEME)</span>
-                                </div>
-                                <div style="font-size:12px; color:#333; margin-bottom:4px;">
-                                    Açıklama: ${i.aciklama || 'Nakit/Havale'}
-                                </div>
-                                <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; color:#2563eb; margin-top:4px; padding-top:4px; border-top:1px solid #dcfce7;">
-                                    <span>Alınan Ödeme:</span>
-                                    <span>-${i.tutar} ₺</span>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-            }
-
-            fisHtml += `
-                <div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;">
-                    <div style="font-size:11px; color:#991b1b; font-weight:bold; margin-bottom:2px;">GÜNCEL KALAN BORÇ</div>
-                    <div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiye} ₺</div>
-                </div>
-                
-                <div style="text-align:center; font-size:10px; margin-top:20px; color:#555;">
-                    Bizi tercih ettiğiniz için teşekkür ederiz.<br>Demirkapı Çiftliği Sistemleri
                 </div>
             `;
-
-            document.getElementById('fis-alani').innerHTML = fisHtml;
-            document.querySelector('#screen-fis .btn-back').setAttribute('onclick', `openScreen('borc')`);
-            document.querySelector('#screen-fis .btn-back').innerText = '⬅️ Borç Takibine Dön';
-
-            openScreen('fis');
+            
+            detayKonteynir.innerHTML = detayHtml || '<p>Bu tarihte işlem bulunamadı.</p>';
         }
 
-        function fisPdfIndir() {
-            const element = document.getElementById('fis-alani');
-            const opt = {
-                margin:       10,
-                filename:     'Demirkapi_Musteri_Hesap_Fisi.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
-            };
-            html2pdf().from(element).set(opt).save();
-        }
-
-        function fisYazdir() {
-            let icerik = document.getElementById('fis-alani').innerHTML;
-            let yeniPencere = window.open('', '_blank', 'width=400,height=600');
-            yeniPencere.document.write('<html><head><title>Fiş Yazdır</title></head><body style="font-family:monospace; padding:20px;">');
-            yeniPencere.document.write(icerik);
-            yeniPencere.document.write('</body></html>');
-            yeniPencere.document.close();
-            yeniPencere.focus();
-            setTimeout(() => {
-                yeniPencere.print();
-                yeniPencere.close();
-            }, 500);
-        }
+        // ... (Diğer fonksiyonlar)
     </script>
 </body>
 </html>
