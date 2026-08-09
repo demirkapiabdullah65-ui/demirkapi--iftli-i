@@ -168,8 +168,8 @@
             <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
             <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
             <div class="card">
-                <div id="fis-alani" style="font-family: monospace; padding: 20px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;">
-                    <!-- Dinamik fiş içeriği -->
+                <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;">
+                    <!-- Dinamik alt alta düzenli fiş içeriği -->
                 </div>
                 <div style="display: flex; gap: 10px; flex-direction: column;">
                     <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
@@ -717,59 +717,85 @@
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
         }
 
-        // Müşterinin ne aldıysa, kaftan aldıysa ve en altta güncel borcunu gösteren fiş fonksiyonu
+        // Fişi tablo yerine alt alta, bloklar halinde düzenli gösteren fonksiyon
         function musteriOzetFisGoster(musteriAdi) {
             let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
             let bakiye = veritabani.borclar[musteriAdi] || 0;
 
             let fisHtml = `
-                <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:5px;">DEMİRKAPI ÇİFTLİĞİ</div>
-                <div style="text-align:center; font-size:11px; margin-bottom:15px;">Müşteri Alış Detayları ve Hesap Özeti</div>
-                <div style="font-size:12px; margin-bottom:10px;">
-                    <b>Müşteri:</b> ${musteriAdi}<br>
-                    <b>Rapor Tarihi:</b> ${new Date().toLocaleDateString('tr-TR')}
+                <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
+                <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
+                
+                <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;">
+                    <div><b>Müşteri:</b> ${musteriAdi}</div>
+                    <div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}</div>
                 </div>
-                <hr style="border:0; border-top:1px dashed #333; margin:10px 0;">
-                <div style="font-size:13px; font-weight:bold; margin-bottom:5px;">📋 Tüm Alışveriş ve Ödeme Geçmişi:</div>
-                <table style="width:100%; font-size:11px;">
-                    <tr>
-                        <th style="background:none; padding:4px;">Tarih</th>
-                        <th style="background:none; padding:4px;">Ürün / İşlem Detayı</th>
-                        <th style="background:none; padding:4px; text-align:right;">Tutar</th>
-                    </tr>`;
+                
+                <div style="font-size:13px; font-weight:bold; margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:4px;">📜 İşlem Geçmişi:</div>
+            `;
 
             if(musteriIslemleri.length === 0) {
-                fisHtml += `<tr><td colspan="3" style="padding:5px;">İşlem kaydı bulunmuyor.</td></tr>`;
+                fisHtml += `<div style="font-size:12px; color:#666; padding:5px;">İşlem kaydı bulunmuyor.</div>`;
             } else {
                 musteriIslemleri.forEach(i => {
-                    if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
-                        // Ürünleri ayrıntılı listele (Ne aldı, kaçtan aldı)
-                        i.kalemler.forEach(k => {
-                            fisHtml += `<tr>
-                                <td style="padding:3px; white-space:nowrap;">${formatliTarihGoster(i.tarih)}</td>
-                                <td style="padding:3px;"><b>${k.tur}</b> (${k.miktar} adet x ${k.fiyat} ₺)</td>
-                                <td style="padding:3px; text-align:right;"><b>${k.tutar} ₺</b></td>
-                            </tr>`;
-                        });
+                    let tarihStr = formatliTarihGoster(i.tarih);
+                    
+                    if(i.tip === 'Satış') {
+                        fisHtml += `
+                            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px;">
+                                <div style="display:flex; justify-content:space-between; font-size:11px; color:#666; margin-bottom:4px;">
+                                    <span>📅 ${tarihStr}</span>
+                                    <span style="font-weight:bold; color:#166534;">SATIŞ İŞLEMİ</span>
+                                </div>
+                        `;
+                        
+                        if(i.kalemler && i.kalemler.length > 0) {
+                            i.kalemler.forEach(k => {
+                                fisHtml += `
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; padding:3px 0; border-bottom:1px dotted #eee;">
+                                        <span>• <b>${k.tur}</b> (${k.miktar} adet x ${k.fiyat} ₺)</span>
+                                        <span style="font-weight:bold;">${k.tutar} ₺</span>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        fisHtml += `
+                                <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; margin-top:6px; padding-top:4px; border-top:1px solid #eee;">
+                                    <span>Toplam Tutar:</span>
+                                    <span style="color:#dc2626;">${i.tutar} ₺</span>
+                                </div>
+                            </div>
+                        `;
                     } else {
-                        // Tahsilat veya diğer işlemler
-                        fisHtml += `<tr>
-                            <td style="padding:3px; white-space:nowrap;">${formatliTarihGoster(i.tarih)}</td>
-                            <td style="padding:3px; color:#2563eb;">Ödeme: ${i.aciklama || 'Nakit/Havale'}</td>
-                            <td style="padding:3px; text-align:right; color:#2563eb;">-${i.tutar} ₺</td>
-                        </tr>`;
+                        // Tahsilat işlemi
+                        fisHtml += `
+                            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;">
+                                <div style="display:flex; justify-content:space-between; font-size:11px; color:#166534; margin-bottom:4px;">
+                                    <span>📅 ${tarihStr}</span>
+                                    <span style="font-weight:bold;">TAHSİLAT (ÖDEME)</span>
+                                </div>
+                                <div style="font-size:12px; color:#333; margin-bottom:4px;">
+                                    Açıklama: ${i.aciklama || 'Nakit/Havale'}
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; color:#2563eb; margin-top:4px; padding-top:4px; border-top:1px solid #dcfce7;">
+                                    <span>Alınan Ödeme:</span>
+                                    <span>-${i.tutar} ₺</span>
+                                </div>
+                            </div>
+                        `;
                     }
                 });
             }
 
             fisHtml += `
-                </table>
-                <hr style="border:0; border-top:2px solid #333; margin:15px 0 10px 0;">
-                <div style="text-align:right; font-size:15px; font-weight:bold; color:${bakiye > 0 ? '#dc2626':'#166534'};">
-                    GÜNCEL TOPLAM BORÇ: ${bakiye} ₺
+                <div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;">
+                    <div style="font-size:11px; color:#991b1b; font-weight:bold; margin-bottom:2px;">GÜNCEL KALAN BORÇ</div>
+                    <div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiye} ₺</div>
                 </div>
-                <div style="text-align:center; font-size:10px; margin-top:25px; color:#555;">
-                    Bizi tercih ettiğiniz için teşekkür ederiz.<br>Demirkapı Çiftliği Yönetim Sistemi
+                
+                <div style="text-align:center; font-size:10px; margin-top:20px; color:#555;">
+                    Bizi tercih ettiğiniz için teşekkür ederiz.<br>Demirkapı Çiftliği Sistemleri
                 </div>
             `;
 
