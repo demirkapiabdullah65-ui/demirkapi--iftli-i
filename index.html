@@ -14,7 +14,7 @@
         .logo-box { background-color: #fde047; padding: 10px; border-radius: 12px; margin-right: 15px; font-size: 24px; }
         .title-main { font-size: 20px; font-weight: bold; }
         .title-sub { font-size: 15px; opacity: 0.9; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; padding: 15px; }
         .section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
@@ -23,7 +23,7 @@
         .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
         .menu-desc { font-size: 12px; color: #666; }
         .badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
+        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
@@ -32,9 +32,12 @@
         .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: #666; font-weight: 600; background: #f9fafb; }
+        
+        /* Tablo düzeni */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
+        th { color: #444; font-weight: 700; background: #f1f5f9; }
         .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
         
         /* Sabit Alt Navigasyon Çubuğu */
@@ -117,20 +120,20 @@
         <!-- 4. TAHSİLAT -->
         <div id="screen-tahsilat" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💰 Tahsilat (Ödeme Al)</div>
+            <div class="section-title">💰 Tahsilat (Sonradan Ödeme Al)</div>
             <div class="card">
-                <div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
+                <div class="form-group"><label>Ödeme Tarihi ve Saati</label><input type="datetime-local" id="t-tarih"></div>
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
-                <div class="form-group"><label>Alınan Tutar (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
+                <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
                 <div class="form-group"><label>Ödeme Açıklaması</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
-                <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Al & Borçtan Düş</button>
+                <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Kaydet & Borçtan Düş</button>
             </div>
         </div>
 
         <!-- 5. BORÇ TAKİBİ -->
         <div id="screen-borc" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📒 Müşteri Detaylı Borç & İşlem Takibi</div>
+            <div class="section-title">📒 Müşteri Borç & Alış Detayları</div>
             <div class="card">
                 <div class="form-group"><label>Müşteri Ara</label><input type="text" id="borc-arama" oninput="borclariListele()" placeholder="İsim yazın..."></div>
                 <div id="borc-detay-listesi"></div>
@@ -238,7 +241,7 @@
         function formatliTarihGoster(inputStr) {
             if(!inputStr) return '';
             let d = new Date(inputStr);
-            if(isNaN(d.getTime())) return inputStr; // Eski formatlar için düz metin desteği
+            if(isNaN(d.getTime())) return inputStr; 
             return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         }
 
@@ -395,7 +398,6 @@
                 veritabani.stoklar[item.tur] -= item.miktar;
             });
 
-            // Satış işlemini geçmişe tüm kalem detaylarıyla kaydediyoruz
             veritabani.islemler.push({
                 tarih: talep.tarih,
                 tip: 'Satış',
@@ -413,7 +415,7 @@
             if(talep.pesinTutar > 0) {
                 veritabani.islemler.push({
                     tarih: talep.tarih,
-                    tip: 'Tahsilat (Peşin)',
+                    tip: 'Tahsilat',
                     musteri: talep.musteri,
                     kalemler: [],
                     tutar: talep.pesinTutar,
@@ -502,34 +504,49 @@
                 if(arama && !m.toLowerCase().includes(arama)) return;
                 let bakiye = veritabani.borclar[m] || 0;
                 
-                html += `<div style="background:#f9fafb; padding:12px; border-radius:10px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Güncel Borç: ${bakiye} ₺</span></h3>
-                    <div style="font-size:13px; font-weight:600; color:#555; margin-top:8px;">Alınan Ürünler & Yapılan Ödemeler:</div>
-                    <table>
-                        <tr><th>Tarih</th><th>İşlem / Ürün Detayları</th><th>Tutar</th></tr>`;
+                html += `<div style="background:#f9fafb; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #e5e7eb;">
+                    <h3 style="margin:0 0 8px 0; color:#166534; font-size:16px;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span></h3>
+                    <div class="table-responsive">
+                        <table>
+                            <tr>
+                                <th style="width:25%;">Tarih</th>
+                                <th style="width:45%;">Alınan Ürünler & Detay</th>
+                                <th style="width:15%;">Satış Tutar</th>
+                                <th style="width:15%; color:#2563eb;">Sonradan Ödeme</th>
+                            </tr>`;
                 
                 let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
                 if(musteriIslemleri.length === 0) {
-                    html += `<tr><td colspan="3">Kayıt bulunmuyor.</td></tr>`;
+                    html += `<tr><td colspan="4">Kayıt bulunmuyor.</td></tr>`;
                 } else {
                     musteriIslemleri.forEach(islem => {
-                        let detayMetin = "";
-                        if(islem.tip === 'Satış' && islem.kalemler && islem.kalemler.length > 0) {
-                            let liste = islem.kalemler.map(k => `📦 <b>${k.tur}</b> (${k.miktar} adet x ${k.fiyat} ₺)`).join('<br>');
-                            detayMetin = `<span style="color:#166534; font-weight:bold;">[SATIŞ]</span><br>${liste}`;
+                        let tarihStr = formatliTarihGoster(islem.tarih);
+                        let urunDetay = "";
+                        let satisTutarHucre = "-";
+                        let odemeTutarHucre = "-";
+
+                        if(islem.tip === 'Satış') {
+                            if(islem.kalemler && islem.kalemler.length > 0) {
+                                urunDetay = islem.kalemler.map(k => `• <b>${k.tur}</b>: ${k.miktar} ad x ${k.fiyat} ₺`).join('<br>');
+                            } else {
+                                urunDetay = islem.aciklama || 'Satış';
+                            }
+                            satisTutarHucre = `<b>${islem.tutar} ₺</b>`;
                         } else {
-                            let renk = islem.tip.includes('Tahsilat') ? '#2563eb' : '#333';
-                            detayMetin = `<span style="color:${renk}; font-weight:bold;">[${islem.tip.toUpperCase()}]</span> ${islem.aciklama || ''}`;
+                            // Tahsilat (Sonradan Ödeme)
+                            urunDetay = `Ödeme: ${islem.aciklama || 'Nakit/Havale'}`;
+                            odemeTutarHucre = `<b style="color:#2563eb;">${islem.tutar} ₺</b>`;
                         }
 
                         html += `<tr>
-                            <td style="white-space:nowrap;">${formatliTarihGoster(islem.tarih)}</td>
-                            <td>${detayMetin}</td>
-                            <td style="white-space:nowrap; font-weight:bold; color:${islem.tip.includes('Tahsilat') ? '#2563eb':'#dc2626'}">${islem.tutar} ₺</td>
+                            <td style="white-space:nowrap; font-size:11px;">${tarihStr}</td>
+                            <td>${urunDetay}</td>
+                            <td style="color:#dc2626;">${satisTutarHucre}</td>
+                            <td>${odemeTutarHucre}</td>
                         </tr>`;
                     });
                 }
-                html += `</table></div>`;
+                html += `</table></div></div>`;
             });
 
             document.getElementById('borc-detay-listesi').innerHTML = html || '<p>Kayıt bulunamadı.</p>';
