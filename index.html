@@ -398,7 +398,11 @@
                 veritabani.stoklar[item.tur] -= item.miktar;
             });
 
+            // Benzersiz benzersiz işlem ID'si atıyoruz ki silerken tam olarak bu işlem bulunsun
+            let islemId = Date.now();
+
             veritabani.islemler.push({
+                id: islemId,
                 tarih: talep.tarih,
                 tip: 'Satış',
                 musteri: talep.musteri,
@@ -414,6 +418,7 @@
 
             if(talep.pesinTutar > 0) {
                 veritabani.islemler.push({
+                    id: islemId + 1, // Farklı ID
                     tarih: talep.tarih,
                     tip: 'Tahsilat',
                     musteri: talep.musteri,
@@ -435,6 +440,58 @@
                 kaydetVeri();
                 onayBekleyenleriGoster();
             }
+        }
+
+        function islemSil(islemId) {
+            if(!confirm('Bu işlemi silmek istediğinize emin misiniz? (Stok ve borçlar otomatik eski haline getirilecektir)')) return;
+
+            let index = veritabani.islemler.findIndex(i => i.id === islemId);
+            if(index === -1) {
+                alert('İşlem bulunamadı.');
+                return;
+            }
+
+            let islem = veritabani.islemler[index];
+
+            if(islem.tip === 'Satış') {
+                // Stoğu iade et
+                if(islem.kalemler && islem.kalemler.length > 0) {
+                    islem.kalemler.forEach(k => {
+                        veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
+                    });
+                }
+                // Borçtan düş (Eğer bu satış borç yazdırdıysa)
+                // Peşinat varsa onu da kontrol edeceğiz
+                let pesinKayitIndex = veritabani.islemler.findIndex(i => i.musteri === islem.musteri && i.tip === 'Tahsilat' && i.aciklama === 'Satış Peşinatı' && Math.abs(new Date(i.tarih) - new Date(islem.tarih)) < 5000);
+                
+                let pesinTutar = 0;
+                if(pesinKayitIndex !== -1) {
+                    pesinTutar = veritabani.islemler[pesinKayitIndex].tutar;
+                    veritabani.islemler.splice(pesinKayitIndex, 1); // Peşinat kaydını da sil
+                }
+
+                let kalanBorc = islem.tutar - pesinTutar;
+                if(kalanBorc > 0 && veritabani.borclar[islem.musteri]) {
+                    veritabani.borclar[islem.musteri] = Math.max(0, veritabani.borclar[islem.musteri] - kalanBorc);
+                }
+            } else if(islem.tip === 'Tahsilat') {
+                // Eğer tahsilat siliniyorsa müşterinin borcunu geri ekle
+                if(veritabani.borclar[islem.musteri] !== undefined) {
+                    veritabani.borclar[islem.musteri] += islem.tutar;
+                }
+            }
+
+            // İşlemi listeden sil
+            // Not: index tekrar değişmiş olabilir çünkü peşinatı sildik, id ile yeniden bulalım:
+            let guncelIndex = veritabani.islemler.findIndex(i => i.id === islemId);
+            if(guncelIndex !== -1) {
+                veritabani.islemler.splice(guncelIndex, 1);
+            }
+
+            kaydetVeri();
+            alert('İşlem silindi, stok ve borçlar güncellendi.');
+            borclariListele();
+            gecmisiGoster();
         }
 
         function bekleyenRozetGuncelle() {
@@ -482,6 +539,7 @@
             veritabani.borclar[musteri] = Math.max(0, mevcutBorc - tutar);
 
             veritabani.islemler.push({
+                id: Date.now(),
                 tarih: tarihSecilen,
                 tip: 'Tahsilat',
                 musteri: musteri,
@@ -509,15 +567,16 @@
                     <div class="table-responsive">
                         <table>
                             <tr>
-                                <th style="width:25%;">Tarih</th>
-                                <th style="width:45%;">Alınan Ürünler & Detay</th>
-                                <th style="width:15%;">Satış Tutar</th>
-                                <th style="width:15%; color:#2563eb;">Sonradan Ödeme</th>
+                                <th style="width:23%;">Tarih</th>
+                                <th style="width:40%;">Alınan Ürünler & Detay</th>
+                                <th style="width:14%;">Satış Tutar</th>
+                                <th style="width:14%; color:#2563eb;">Sonradan Ödeme</th>
+                                <th style="width:9%;">İşlem</th>
                             </tr>`;
                 
                 let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
                 if(musteriIslemleri.length === 0) {
-                    html += `<tr><td colspan="4">Kayıt bulunmuyor.</td></tr>`;
+                    html += `<tr><td colspan="5">Kayıt bulunmuyor.</td></tr>`;
                 } else {
                     musteriIslemleri.forEach(islem => {
                         let tarihStr = formatliTarihGoster(islem.tarih);
@@ -538,11 +597,14 @@
                             odemeTutarHucre = `<b style="color:#2563eb;">${islem.tutar} ₺</b>`;
                         }
 
+                        let silBtn = islem.id ? `<button class="btn-danger" style="padding:4px 6px; font-size:10px;" onclick="islemSil(${islem.id})">Sil</button>` : '';
+
                         html += `<tr>
                             <td style="white-space:nowrap; font-size:11px;">${tarihStr}</td>
                             <td>${urunDetay}</td>
                             <td style="color:#dc2626;">${satisTutarHucre}</td>
                             <td>${odemeTutarHucre}</td>
+                            <td>${silBtn}</td>
                         </tr>`;
                     });
                 }
@@ -578,10 +640,11 @@
         }
 
         function gecmisiGoster() {
-            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Detay</th><th>Tutar</th></tr>';
+            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Detay</th><th>Tutar</th><th>Sil</th></tr>';
             veritabani.islemler.slice().reverse().forEach(i => {
                 let det = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : (i.aciklama || '');
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${det}</td><td><b>${i.tutar} ₺</b></td></tr>`;
+                let silBtn = i.id ? `<button class="btn-danger" style="padding:4px 6px; font-size:10px;" onclick="islemSil(${i.id})">Sil</button>` : '';
+                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${det}</td><td><b>${i.tutar} ₺</b></td><td>${silBtn}</td></tr>`;
             });
             html += '</table>';
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
