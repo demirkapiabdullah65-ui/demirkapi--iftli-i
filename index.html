@@ -99,6 +99,7 @@
                 <div class="menu-card" onclick="openScreen('banka')"><div class="menu-icon">🏦</div><div class="menu-title">15. Banka & Havale</div><div class="menu-desc">Banka tahsilat eşleştir</div></div>
                 <div class="menu-card" onclick="openScreen('hizlitahsilat')"><div class="menu-icon">⚡</div><div class="menu-title">16. Hızlı Tahsilat</div><div class="menu-desc">Tek tıkla ödeme düş</div></div>
                 <div class="menu-card" onclick="openScreen('fason')"><div class="menu-icon">🚜</div><div class="menu-title">17. Fason Biçme & İşler</div><div class="menu-desc">Tarla & biçme hizmetleri</div></div>
+                <div class="menu-card" onclick="openScreen('gunlukgorev')"><div class="menu-icon">📋</div><div class="menu-title">18. Günlük Görevler</div><div class="menu-desc">Çiftlik iş planı & notlar</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -303,7 +304,7 @@
             </div>
         </div>
 
-        <!-- 17. FASON BİÇME VE TARLA İŞLERİ (YENİ EKLENEN ÖZELLİK) -->
+        <!-- 17. FASON BİÇME VE TARLA İŞLERİ -->
         <div id="screen-fason" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🚜 Fason Biçme & Tarla İşleri (Resmi Faturalı)</div>
@@ -328,6 +329,28 @@
             <div class="card">
                 <h3 style="margin-top:0; font-size:16px; color:#166534;">Geçmiş Fason ve Hizmet İşleri</h3>
                 <div id="fason-listesi">Kayıtlı fason iş bulunmuyor.</div>
+            </div>
+        </div>
+
+        <!-- 18. GÜNLÜK GÖREVLER & NOTLAR (YENİ EKLENEN ÖZELLİK) -->
+        <div id="screen-gunlukgorev" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📋 Günlük Çiftlik Görevleri & Notlar</div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Yeni Görev / Not Ekle</h3>
+                <div class="form-group"><label>Yapılacak İş / Görev Başlığı</label><input type="text" id=" gorev-baslik" placeholder="Örn: Yem karma makinesi bakımı yapılacak"></div>
+                <div class="form-group"><label>Öncelik Durumu</label>
+                    <select id="gorev-oncelik">
+                        <option value="Normal">Normal</option>
+                        <option value="Acil">🔴 Acil / Önemli</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Notlar / Detay</label><input type="text" id="gorev-not" placeholder="Ekstra detay yazabilirsiniz"></div>
+                <button class="btn-green" onclick="gorevEkle()">Listeye Görev Ekle</button>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Yapılacaklar Listesi</h3>
+                <div id="gorev-listesi">Kayıtlı görev bulunmuyor.</div>
             </div>
         </div>
 
@@ -415,7 +438,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: [], vadeler: [], fasonIsler: [] };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: [], vadeler: [], fasonIsler: [], gorevler: [] };
 
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
@@ -433,6 +456,7 @@
                 if(!veritabani.fiyatlar) veritabani.fiyatlar = {};
                 if(!veritabani.vadeler) veritabani.vadeler = [];
                 if(!veritabani.fasonIsler) veritabani.fasonIsler = [];
+                if(!veritabani.gorevler) veritabani.gorevler = [];
             }
 
             const yeniSayi = veritabani.bekleyenler.length;
@@ -452,6 +476,7 @@
             if (!document.getElementById('screen-vade').classList.contains('hidden')) vadeleriGoster();
             if (!document.getElementById('screen-hizlitahsilat').classList.contains('hidden')) hizliTahsilatMusterileriDoldur();
             if (!document.getElementById('screen-fason').classList.contains('hidden')) fasonIsleriGoster();
+            if (!document.getElementById('screen-gunlukgorev').classList.contains('hidden')) gorevleriGoster();
         });
 
         // Hava Durumu Çekme (Sakarya)
@@ -500,7 +525,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'fason', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'fason', 'gunlukgorev', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -540,6 +565,11 @@
                 document.getElementById('fason-not').value = '';
                 fasonIsleriGoster();
             }
+            if(name === 'gunlukgorev') {
+                document.getElementById(' gorev-baslik').value = '';
+                document.getElementById('gorev-not').value = '';
+                gorevleriGoster();
+            }
             if(name === 'gunluk') {
                 let bugun = new Date().toISOString().split('T')[0];
                 document.getElementById('rapor-tarih').value = bugun;
@@ -567,6 +597,74 @@
         }
 
         function goHome() { openScreen('menu'); }
+
+        // Günlük Görevler & Notlar Fonksiyonları
+        function gorevEkle() {
+            let baslik = document.getElementById(' gorev-baslik').value.trim();
+            let oncelik = document.getElementById('gorev-oncelik').value;
+            let notBilgi = document.getElementById('gorev-not').value.trim() || 'Açıklama yok';
+
+            if(!baslik) {
+                alert('Lütfen görev başlığı girin.');
+                return;
+            }
+
+            if(!veritabani.gorevler) veritabani.gorevler = [];
+            veritabani.gorevler.push({
+                id: Date.now(),
+                baslik: baslik,
+                oncelik: oncelik,
+                notBilgi: notBilgi,
+                durum: 'Bekliyor',
+                tarih: new Date().toLocaleDateString('tr-TR')
+            });
+
+            kaydetVeri();
+            alert('Günlük görev başarıyla eklendi!');
+            document.getElementById(' gorev-baslik').value = '';
+            document.getElementById('gorev-not').value = '';
+            gorevleriGoster();
+        }
+
+        function gorevleriGoster() {
+            let gorevler = veritabani.gorevler || [];
+            if(gorevler.length === 0) {
+                document.getElementById('gorev-listesi').innerHTML = '<p>Kayıtlı görev bulunmuyor.</p>';
+                return;
+            }
+            let html = '';
+            gorevler.slice().reverse().forEach(g => {
+                let isTamamlandi = g.durum === 'Tamamlandı';
+                html += `<div style="background:${isTamamlandi ? '#f0fdf4' : '#fff'}; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid ${isTamamlandi ? '#bbf7d0' : '#e2e8f0'}; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:11px; color:#666;">📅 ${g.tarih} | ${g.oncelik === 'Acil' ? '🔴 <b>Acil</b>' : 'Normal'}</div>
+                        <div style="font-size:15px; font-weight:bold; color:#222; text-decoration:${isTamamlandi ? 'line-through' : 'none'};">${g.baslik}</div>
+                        <div style="font-size:13px; color:#555;">${g.notBilgi}</div>
+                    </div>
+                    <div style="display:flex; gap:6px; flex-direction:column;">
+                        <button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="gorevDurumDegistir(${g.id})">${isTamamlandi ? 'Geri Al' : 'Tamamla ✅'}</button>
+                        <button class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="gorevSil(${g.id})">Sil</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('gorev-listesi').innerHTML = html;
+        }
+
+        function gorevDurumDegistir(id) {
+            let gorev = veritabani.gorevler.find(g => g.id === id);
+            if(gorev) {
+                gorev.durum = gorev.durum === 'Tamamlandı' ? 'Bekliyor' : 'Tamamlandı';
+                kaydetVeri();
+                gorevleriGoster();
+            }
+        }
+
+        function gorevSil(id) {
+            if(!confirm('Bu görevi silmek istediğinize emin misiniz?')) return;
+            veritabani.gorevler = veritabani.gorevler.filter(g => g.id !== id);
+            kaydetVeri();
+            gorevleriGoster();
+        }
 
         // Fason Biçme ve Tarla İşleri Fonksiyonları
         function fasonIsKaydet() {
@@ -599,7 +697,6 @@
                 notBilgi: notBilgi
             });
 
-            // Resmi Fatura Kaydı ve Finans Entegrasyonu
             veritabani.islemler.push({
                 id: islemId,
                 tarih: tarih,
@@ -673,7 +770,6 @@
             fasonIsleriGoster();
         }
 
-        // Diğer Fonksiyonlar (Fiyat, Vade, Banka, Satış vb.)
         function fiyatEkle() {
             let urun = document.getElementById('fl-urun').value.trim();
             let fiyat = parseFloat(document.getElementById('fl-fiyat').value) || 0;
@@ -908,7 +1004,6 @@
             let toplamSepetTutar = 0;
 
             for(let item of talep.kalemler) {
-                // Eğer kalem bir stok ürünü ise stok kontrolü yapalım (Fason işlerde stok düşülmez)
                 if(veritabani.stoklar[item.tur] !== undefined) {
                     let mevcutStok = veritabani.stoklar[item.tur] || 0;
                     if(mevcutStok < item.miktar) {
@@ -1289,7 +1384,6 @@
             }
         }
 
-        // Veri Yedekleme (JSON Dışa Aktar / İçe Aktar)
         function verileriDisaAktar() {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
             let downloadAnchor = document.createElement('a');
@@ -1364,7 +1458,6 @@
             (veritabani.islemler || []).forEach(i => {
                 if(i.tip === 'Satış' && i.kalemler) {
                     i.kalemler.forEach(k => { 
-                        // Fason ve hizmet kalemlerini stok sayımından hariç tutalım
                         if(veritabani.stoklar[k.tur] !== undefined || veritabani.girisler[k.tur] !== undefined) {
                             satilanlar[k.tur] = (satilanlar[k.tur] || 0) + k.miktar; 
                         }
