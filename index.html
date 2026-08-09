@@ -5,21 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demirkapı Çiftliği</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 15px; background-color: #f4f4f4; margin: 0; }
+        h1 { font-size: 20px; color: #2e7d32; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; box-sizing: border-box; }
+        .section { display: none; background: white; padding: 15px; border-radius: 8px; margin-top: 10px; text-align: left; }
+        .active { display: block; }
     </style>
 </head>
 <body>
     <h1>DEMİRKAPI ÇİFTLİĞİ</h1>
     <p>Sistem Aktif</p>
-    <!-- Buraya satış sayfalarının olduğu dosya isimlerini yazmalısın -->
-    <a href="satis.html" class="btn">1. Satış / Giriş Yap</a>
-    <a href="onay.html" class="btn">2. Onay Bekleyenler (Canlı)</a>
-    
+
+    <!-- Butonlar -->
+    <button class="btn" onclick="goster('satis')">1. Satış / Giriş Yap</button>
+    <button class="btn" onclick="goster('onay')">2. Onay Bekleyenler (Canlı)</button>
+
+    <!-- Satış İçeriği -->
+    <div id="satis" class="section active">
+        <h3>Satış Ekranı</h3>
+        <p>Buradan satış ve giriş işlemlerini yapabilirsin.</p>
+        <button class="btn" onclick="goster('anasayfa')" style="background-color: #d32f2f;">Geri Dön</button>
+    </div>
+
+    <!-- Onay İçeriği -->
+    <div id="onay" class="section">
+        <h3>Onay Bekleyenler</h3>
+        <p>Burada diğer telefondan gelen talepler listelenir.</p>
+        <button class="btn" onclick="goster('anasayfa')" style="background-color: #d32f2f;">Geri Dön</button>
+    </div>
+
     <script>
-        window.onload = function() {
-            console.log("Uygulama başarıyla yüklendi.");
-        };
+        function goster(bolumID) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            if(bolumID === 'anasayfa') {
+                // Ana ekranda butonlar görünsün
+            } else {
+                document.getElementById(bolumID).classList.add('active');
+            }
+        }
     </script>
 </body>
 </html>
