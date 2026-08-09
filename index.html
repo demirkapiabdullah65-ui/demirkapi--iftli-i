@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 70px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 90px; }
         .header { background-color: #166534; color: white; padding: 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: space-between; }
         .logo-box { background-color: #fde047; padding: 10px; border-radius: 12px; margin-right: 15px; font-size: 24px; }
         .title-main { font-size: 20px; font-weight: bold; }
@@ -23,10 +23,6 @@
         .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
         .menu-desc { font-size: 12px; color: #666; }
         .badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .summary-card { background-color: white; border-radius: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; }
-        .summary-label { font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 500; }
-        .summary-value { font-size: 20px; font-weight: bold; color: #111; }
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
@@ -40,8 +36,10 @@
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
         th { color: #666; font-weight: 600; background: #f9fafb; }
         .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
+        
+        /* Alt Navigasyon Çubuğu */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; }
         .nav-item.active { color: white; font-weight: bold; }
         .nav-icon { font-size: 20px; margin-bottom: 3px; }
         .hidden { display: none !important; }
@@ -65,7 +63,7 @@
         <div id="screen-menu">
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş</div><div class="menu-desc">Talep gönder</div></div>
+                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş</div><div class="menu-desc">Telefondan talep gönder</div></div>
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
                     <div class="menu-title">2. Onay Bekleyenler</div>
@@ -73,8 +71,8 @@
                     <div id="menu-badge" class="badge hidden">0</div>
                 </div>
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Ödeme al</div></div>
-                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Detaylı borçlar</div></div>
+                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
+                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
                 <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok</div><div class="menu-desc">Mevcut stok</div></div>
                 <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">7. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -159,6 +157,26 @@
         </div>
     </div>
 
+    <!-- Sabit Alt Navigasyon Çubuğu -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="goHome()" id="nav-anasayfa">
+            <span class="nav-icon">🏠</span>
+            <span>Ana Sayfa</span>
+        </button>
+        <button class="nav-item" onclick="openScreen('satis')" id="nav-satis">
+            <span class="nav-icon">🛒</span>
+            <span>Satış</span>
+        </button>
+        <button class="nav-item" onclick="openScreen('onay')" id="nav-onay">
+            <span class="nav-icon">🔔</span>
+            <span>Onay</span>
+        </button>
+        <button class="nav-item" onclick="openScreen('borc')" id="nav-borc">
+            <span class="nav-icon">📒</span>
+            <span>Borçlar</span>
+        </button>
+    </div>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCvSAndZsfDbZ_eIXtHtcCYMWoqzVGKZU0",
@@ -173,7 +191,7 @@
         const db = firebase.database();
         let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [] };
 
-        // 🔥 CANLI VERİ DİNLEME VE BİLDİRİM MANTIĞI
+        // Canlı Veri Dinleme ve Bildirim
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -216,6 +234,13 @@
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
+
+            // Alt menü aktiflik durumunu güncelle
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(name === 'menu') document.getElementById('nav-anasayfa')?.classList.add('active');
+            if(name === 'satis') document.getElementById('nav-satis')?.classList.add('active');
+            if(name === 'onay') document.getElementById('nav-onay')?.classList.add('active');
+            if(name === 'borc') document.getElementById('nav-borc')?.classList.add('active');
 
             if(name === 'satis') {
                 document.getElementById('urunler-konteynir').innerHTML = '';
@@ -407,12 +432,21 @@
         }
 
         function stokEkle() {
-            let urun = document.getElementById('g-urun').value.trim();
-            let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
+            let urunInput = document.getElementById('g-urun');
+            let miktarInput = document.getElementById('g-miktar');
+            
+            let urun = urunInput.value.trim();
+            let miktar = parseFloat(miktarInput.value) || 0;
+            
             if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve miktar girin.'); return; }
             
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
             kaydetVeri();
+            
+            // Eklendiği anda inputları temizle
+            urunInput.value = '';
+            miktarInput.value = '';
+
             alert('Ürün stoğa eklendi!');
             goHome();
         }
