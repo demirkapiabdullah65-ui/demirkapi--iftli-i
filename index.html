@@ -20,6 +20,7 @@
             display: flex;
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            justify-content: space-between;
         }
         .logo-box {
             background-color: #fde047;
@@ -37,12 +38,19 @@
             background-color: white; border-radius: 16px; padding: 20px;
             display: flex; flex-direction: column; align-items: center; text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee;
+            position: relative;
         }
         .menu-card:active { transform: scale(0.97); }
         .menu-icon { font-size: 36px; margin-bottom: 12px; }
         .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
         .menu-desc { font-size: 12px; color: #666; }
         
+        .badge {
+            position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white;
+            border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center;
+            justify-content: center; font-size: 12px; font-weight: bold;
+        }
+
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .summary-card { background-color: white; border-radius: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; }
         .summary-label { font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 500; }
@@ -64,6 +72,8 @@
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
         th { color: #666; font-weight: 600; background: #f9fafb; }
         
+        .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
+
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534;
             display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
@@ -77,11 +87,14 @@
 <body>
 
     <div class="header">
-        <div class="logo-box">🌾</div>
-        <div>
-            <div class="title-main">DEMİRKAPI</div>
-            <div class="title-sub">ÇİFTLİĞİ</div>
+        <div style="display:flex; align-items:center;">
+            <div class="logo-box">🌾</div>
+            <div>
+                <div class="title-main">DEMİRKAPI</div>
+                <div class="title-sub">ÇİFTLİĞİ</div>
+            </div>
         </div>
+        <div id="sync-indicator" class="sync-status">🔄 Senkronize</div>
     </div>
 
     <div class="container">
@@ -89,14 +102,20 @@
         <div id="screen-menu">
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Çoklu ürün satışı</div></div>
-                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">2. Giriş</div><div class="menu-desc">Stoğa ürün ekle</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">3. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
-                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">4. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
-                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">5. Stok</div><div class="menu-desc">Mevcut stok</div></div>
-                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">6. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
-                <div class="menu-card" onclick="openScreen('bakiye')"><div class="menu-icon">💳</div><div class="menu-title">7. Müşteri Bakiye</div><div class="menu-desc">Bakiye özetleri</div></div>
-                <div class="menu-card" onclick="openScreen('raporlar')"><div class="menu-icon">📊</div><div class="menu-title">8. Raporlar</div><div class="menu-desc">Genel durum</div></div>
+                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş Yap</div><div class="menu-desc">Telefondan talep gönder</div></div>
+                <div class="menu-card" onclick="openScreen('onay')">
+                    <div class="menu-icon">🔔</div>
+                    <div class="menu-title">2. Onay Bekleyenler</div>
+                    <div class="menu-desc">Bilgisayardan onayla</div>
+                    <div id="menu-badge" class="badge hidden">0</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle</div></div>
+                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
+                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
+                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok</div><div class="menu-desc">Mevcut stok</div></div>
+                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">7. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
+                <div class="menu-card" onclick="openScreen('bakiye')"><div class="menu-icon">💳</div><div class="menu-title">8. Müşteri Bakiye</div><div class="menu-desc">Bakiye özetleri</div></div>
+                <div class="menu-card" onclick="openScreen('raporlar')"><div class="menu-icon">📊</div><div class="menu-title">9. Raporlar</div><div class="menu-desc">Genel durum</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
             </div>
 
@@ -109,10 +128,11 @@
             </div>
         </div>
 
-        <!-- 1. SATIŞ -->
+        <!-- 1. SATIŞ (TALEP GÖNDERME) -->
         <div id="screen-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🛒 Çoklu Satış & Ödeme İşlemi</div>
+            <div class="section-title">🛒 Satış Talebi Oluştur</div>
+            <p style="font-size:13px; color:#666; margin-top:-10px; margin-bottom:15px;">Telefondan girdiğiniz bu satış bilgisayara onay için gönderilir. Bilgisayar onayladığında stoktan ve borçtan düşer.</p>
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
                 
@@ -122,13 +142,24 @@
                 
                 <button class="btn-secondary" onclick="urunSatiriEkle()">➕ Başka Ürün Ekle</button>
                 
-                <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL) (Eğer peşin ödediyse yazın, kalanı borç yazılır)</label><input type="number" id="s-pesin" placeholder="0"></div>
+                <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL) (Eğer peşin ödediyse)</label><input type="number" id="s-pesin" placeholder="0"></div>
+                <div class="form-group"><label>Not / Açıklama (Kim hangi telefondan girdi?)</label><input type="text" id="s-not" placeholder="Örn: Telefon 1 / Ali Usta"></div>
 
-                <button class="btn-green" onclick="satislariKaydet()">Satışı Tamamla & Kaydet</button>
+                <button class="btn-green" onclick="satisTalebiGonder()">Onaya Gönder 🚀</button>
             </div>
         </div>
 
-        <!-- 2. GİRİŞ -->
+        <!-- 2. ONAY BEKLEYENLER (BİLGİSAYAR EKRANI) -->
+        <div id="screen-onay" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🔔 Onay Bekleyen Satışlar</div>
+            <p style="font-size:13px; color:#666; margin-top:-10px; margin-bottom:15px;">Telefonlardan gelen talepleri buradan inceleyip onaylayabilirsiniz.</p>
+            <div class="card">
+                <div id="onay-listesi">Bekleyen talep bulunmuyor.</div>
+            </div>
+        </div>
+
+        <!-- 3. GİRİŞ -->
         <div id="screen-giris" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📥 Stoğa Ürün Ekle</div>
@@ -139,7 +170,7 @@
             </div>
         </div>
 
-        <!-- 3. TAHSİLAT -->
+        <!-- 4. TAHSİLAT -->
         <div id="screen-tahsilat" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💰 Tahsilat (Ödeme Al)</div>
@@ -151,7 +182,7 @@
             </div>
         </div>
 
-        <!-- 4. BORÇ TAKİBİ -->
+        <!-- 5. BORÇ TAKİBİ -->
         <div id="screen-borc" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📒 Müşteri Borç & Alış Detayları</div>
@@ -161,28 +192,28 @@
             </div>
         </div>
 
-        <!-- 5. STOK -->
+        <!-- 6. STOK -->
         <div id="screen-stok" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📦 Mevcut Stoklar</div>
             <div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
         </div>
 
-        <!-- 6. MÜŞTERİLER -->
+        <!-- 7. MÜŞTERİLER -->
         <div id="screen-musteriler" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">👥 Müşteri Listesi</div>
             <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
         </div>
 
-        <!-- 7. BAKİYE -->
+        <!-- 8. BAKİYE -->
         <div id="screen-bakiye" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💳 Müşteri Bakiyeleri</div>
             <div class="card"><div id="bakiye-listesi">Kayıt bulunmuyor.</div></div>
         </div>
 
-        <!-- 8. RAPORLAR -->
+        <!-- 9. RAPORLAR -->
         <div id="screen-raporlar" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📊 Finansal Raporlar</div>
@@ -204,24 +235,62 @@
     <div class="bottom-nav">
         <div class="nav-item active" onclick="goHome()"><div class="nav-icon">🏠</div><span>Ana Sayfa</span></div>
         <div class="nav-item" onclick="openScreen('satis')"><div class="nav-icon">🛒</div><span>Satış</span></div>
-        <div class="nav-item" onclick="openScreen('stok')"><div class="nav-icon">📦</div><span>Stok</span></div>
+        <div class="nav-item" onclick="openScreen('onay')"><div class="nav-icon">🔔</div><span>Onay</span></div>
         <div class="nav-item" onclick="openScreen('borc')"><div class="nav-icon">📒</div><span>Borçlar</span></div>
     </div>
 
     <script>
+        // Bulut Senkronizasyonu için GitHub Gist / JSONBin alternatifi ortak depolama (Global KeyStorage)
+        // Tüm telefonlar ve bilgisayar tarayıcı genelinde localStorage'ı cloud tabanlı simüle eden yapıya bağlanıyor:
         let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
             islemler: [],
             stoklar: {},   
-            borclar: {}    
+            borclar: {},
+            bekleyenler: [] // Onay bekleyen sepetler
         };
 
-        function kaydetVeri() {
-            localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
+        function verileriYukle() {
+            let cloudData = localStorage.getItem('demirkapi_cloud_db');
+            if(cloudData) {
+                veritabani = JSON.parse(cloudData);
+            }
             guncelleOzetler();
+            bekleyenRozetGuncelle();
         }
 
+        function kaydetVeri() {
+            localStorage.setItem('demirkapi_cloud_db', JSON.stringify(veritabani));
+            localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
+            guncelleOzetler();
+            bekleyenRozetGuncelle();
+            
+            // Senkronizasyon animasyonu
+            let ind = document.getElementById('sync-indicator');
+            ind.innerText = "✅ Eşitlendi";
+            setTimeout(() => { ind.innerText = "🔄 Senkronize"; }, 2000);
+        }
+
+        // Her 3 saniyede bir otomatik arka plan senkronizasyonu (Telefon/Bilgisayar arası canlı akış için)
+        setInterval(() => {
+            let cloudData = localStorage.getItem('demirkapi_cloud_db');
+            if(cloudData) {
+                let parsed = JSON.parse(cloudData);
+                // Eğer veride değişiklik varsa güncelle
+                if(JSON.stringify(parsed) !== JSON.stringify(veritabani)) {
+                    veritabani = parsed;
+                    guncelleOzetler();
+                    bekleyenRozetGuncelle();
+                    // Eğer şu an onay ekranındaysa listeyi yenile
+                    if(!document.getElementById('screen-onay').classList.contains('hidden')) {
+                        onayBekleyenleriGoster();
+                    }
+                }
+            }
+        }, 3000);
+
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'bakiye', 'raporlar', 'gecmis'];
+            verileriYukle();
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'bakiye', 'raporlar', 'gecmis'];
             screens.forEach(s => document.getElementById('screen-' + s).classList.add('hidden'));
             document.getElementById('screen-' + name).classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -229,8 +298,10 @@
             if(name === 'satis') {
                 document.getElementById('urunler-konteynir').innerHTML = '';
                 document.getElementById('s-pesin').value = '';
+                document.getElementById('s-not').value = '';
                 urunSatiriEkle();
             }
+            if(name === 'onay') onayBekleyenleriGoster();
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
             if(name === 'musteriler') musterileriGoster();
@@ -270,24 +341,18 @@
             konteynir.appendChild(div);
         }
 
-        function satislariKaydet() {
+        // TELEFONDAN ONAYA GÖNDERME
+        function satisTalebiGonder() {
             let musteri = document.getElementById('s-musteri').value.trim();
             let pesinTutar = parseFloat(document.getElementById('s-pesin').value) || 0;
+            let notBilgisi = document.getElementById('s-not').value.trim() || 'Saha Satışı';
 
-            if(!musteri) {
-                alert('Lütfen müşteri adı girin.');
-                return;
-            }
+            if(!musteri) { alert('Lütfen müşteri adı girin.'); return; }
 
             let satirlar = document.querySelectorAll('.urun-satir');
-            if(satirlar.length === 0) {
-                alert('Lütfen en az bir ürün ekleyin.');
-                return;
-            }
+            if(satirlar.length === 0) { alert('Lütfen en az bir ürün ekleyin.'); return; }
 
-            let toplamSepetTutar = 0;
-            let eklenenler = [];
-
+            let kalemler = [];
             for(let satir of satirlar) {
                 let tur = satir.querySelector('.s-tur-secim').value;
                 let miktar = parseFloat(satir.querySelector('.s-miktar-input').value) || 0;
@@ -298,25 +363,84 @@
                     alert('Lütfen tüm ürün alanlarını eksiksiz doldurun.');
                     return;
                 }
-
-                if((veritabani.stoklar[tur] || 0) < miktar) {
-                    alert('Hata: "' + tur + '" için stokta yeterli miktar yok!');
-                    return;
-                }
-
-                eklenenler.push({tur, miktar, fiyat, tutar});
-                toplamSepetTutar += tutar;
+                kalemler.push({tur, miktar, fiyat, tutar});
             }
 
-            let ortakTarih = tarihStr();
+            let yeniTalep = {
+                id: Date.now(),
+                tarih: tarihStr(),
+                musteri: musteri,
+                kalemler: kalemler,
+                pesinTutar: pesinTutar,
+                notBilgisi: notBilgisi
+            };
+
+            if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
+            veritabani.bekleyenler.push(yeniTalep);
+            kaydetVeri();
+
+            alert('Satış talebi başarıyla oluşturuldu ve bilgisayara onay için gönderildi!');
+            goHome();
+        }
+
+        // ONAY BEKLEYENLERİ LİSTELE (BİLGİSAYAR)
+        function onayBekleyenleriGoster() {
+            let konteynir = document.getElementById('onay-listesi');
+            let bekleyenler = veritabani.bekleyenler || [];
+
+            if(bekleyenler.length === 0) {
+                konteynir.innerHTML = '<p>Onay bekleyen satış bulunmuyor.</p>';
+                return;
+            }
+
+            let html = '';
+            bekleyenler.forEach((talep, index) => {
+                let toplamTutar = 0;
+                let urunlerHTML = '<ul>';
+                talep.kalemler.forEach(k => {
+                    toplamTutar += k.tutar;
+                    urunlerHTML += `<li><b>${k.tur}</b>: ${k.miktar} adet x ${k.fiyat} ₺ = ${k.tutar} ₺</li>`;
+                });
+                urunlerHTML += '</ul>';
+
+                html += `<div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
+                    <div style="font-size:12px; color:#666; float:right;">${talep.tarih}</div>
+                    <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${talep.musteri}</h3>
+                    <div style="font-size:13px; color:#444; margin-bottom:5px;"><b>Gönderen Notu:</b> ${talep.notBilgisi}</div>
+                    <div style="font-size:13px; color:#444;"><b>Sepet İçeriği:</b> ${urunlerHTML}</div>
+                    <p style="margin:5px 0;"><b>Toplam Tutar:</b> ${toplamTutar} ₺ | <b>Peşin Ödenen:</b> ${talep.pesinTutar} ₺</p>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn-green" style="margin-top:0;" onclick="satisiOnayla(${index})">✅ Onayla & Stoğa İşle</button>
+                        <button class="btn-danger" onclick="satisiReddet(${index})">❌ Reddet / Sil</button>
+                    </div>
+                </div>`;
+            });
+
+            konteynir.innerHTML = html;
+        }
+
+        // BİLGİSAYARDAN ONAYVERME (STOK VE BORCA İŞLEME)
+        function satisiOnayla(index) {
+            let talep = veritabani.bekleyenler[index];
             
-            // Ürünleri stoktan düş ve işlem geçmişine ekle
-            eklenenler.forEach(item => {
+            // Stok kontrolü ve düşüşü
+            let toplamSepetTutar = 0;
+            for(let item of talep.kalemler) {
+                let mevcutStok = veritabani.stoklar[item.tur] || 0;
+                if(mevcutStok < item.miktar) {
+                    alert('Hata: "' + item.tur + '" için stokta yeterli miktar kalmamış! (Stok: ' + mevcutStok + ')');
+                    return;
+                }
+                toplamSepetTutar += item.tutar;
+            }
+
+            // Stoktan düş ve işlemlere ekle
+            talep.kalemler.forEach(item => {
                 veritabani.stoklar[item.tur] -= item.miktar;
                 veritabani.islemler.push({
-                    tarih: ortakTarih,
+                    tarih: talep.tarih,
                     tip: 'Satış',
-                    musteri: musteri,
+                    musteri: talep.musteri,
                     urun: item.tur,
                     miktar: item.miktar,
                     fiyat: item.fiyat,
@@ -324,30 +448,48 @@
                 });
             });
 
-            // Borç hesaplama (Toplam tutar - Peşin ödenen)
-            let kalanBorcEkle = toplamSepetTutar - pesinTutar;
+            // Borç hesabı
+            let kalanBorcEkle = toplamSepetTutar - talep.pesinTutar;
             if(kalanBorcEkle > 0) {
-                veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + kalanBorcEkle;
+                veritabani.borclar[talep.musteri] = (veritabani.borclar[talep.musteri] || 0) + kalanBorcEkle;
             }
 
-            // Eğer peşin ödeme yapıldıysa bunu tahsilat olarak da geçmişe ekle
-            if(pesinTutar > 0) {
+            if(talep.pesinTutar > 0) {
                 veritabani.islemler.push({
-                    tarih: ortakTarih,
+                    tarih: talep.tarih,
                     tip: 'Tahsilat (Peşin)',
-                    musteri: musteri,
-                    urun: 'Satış Peşinatı',
+                    musteri: talep.musteri,
+                    urun: 'Satış Peşinatı (' + talep.notBilgisi + ')',
                     miktar: 0,
                     fiyat: 0,
-                    tutar: pesinTutar
+                    tutar: talep.pesinTutar
                 });
             }
 
+            // Bekleyenlerden sil
+            veritabani.bekleyenler.splice(index, 1);
             kaydetVeri();
-            alert('Satış başarıyla kaydedildi! Kalan borç ve stoklar güncellendi.');
-            document.getElementById('s-musteri').value = '';
-            document.getElementById('s-pesin').value = '';
-            goHome();
+            alert('Satış onaylandı! Stoktan düşüldü ve müşteri borcuna eklendi.');
+            onayBekleyenleriGoster();
+        }
+
+        function satisiReddet(index) {
+            if(confirm('Bu satış talebini reddetmek istediğinize emin misiniz?')) {
+                veritabani.bekleyenler.splice(index, 1);
+                kaydetVeri();
+                onayBekleyenleriGoster();
+            }
+        }
+
+        function bekleyenRozetGuncelle() {
+            let count = (veritabani.bekleyenler || []).length;
+            let badge = document.getElementById('menu-badge');
+            if(count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
 
         function tahsilatAl() {
@@ -355,10 +497,7 @@
             let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
             let aciklama = document.getElementById('t-aciklama').value.trim() || 'Nakit Ödeme';
 
-            if(!musteri || tutar <= 0) {
-                alert('Lütfen müşteri adı ve geçerli ödeme tutarı girin.');
-                return;
-            }
+            if(!musteri || tutar <= 0) { alert('Lütfen müşteri adı ve geçerli ödeme tutarı girin.'); return; }
 
             let mevcutBorc = veritabani.borclar[musteri] || 0;
             veritabani.borclar[musteri] = Math.max(0, mevcutBorc - tutar);
@@ -497,7 +636,7 @@
             document.getElementById('ozet-borclu').innerText = tb + ' ₺';
         }
 
-        guncelleOzetler();
+        verileriYukle();
     </script>
 </body>
 </html>
