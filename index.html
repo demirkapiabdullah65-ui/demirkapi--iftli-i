@@ -11,10 +11,8 @@
             margin: 0;
             padding: 0;
             color: #333;
-            padding-bottom: 70px; /* Alt menü için boşluk */
+            padding-bottom: 70px;
         }
-
-        /* YEŞİL HEADER */
         .header {
             background-color: #166534;
             color: white;
@@ -23,7 +21,6 @@
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
         .logo-box {
             background-color: #fde047;
             padding: 10px;
@@ -31,262 +28,50 @@
             margin-right: 15px;
             font-size: 24px;
         }
-
-        .title-main {
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
-
-        .title-sub {
-            font-size: 15px;
-            opacity: 0.9;
-        }
-
-        /* İÇERİK ALANI */
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .section-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: #111;
-            margin-bottom: 20px;
-            margin-top: 10px;
-        }
-
-        /* MENÜ KUTULARI GRID */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
+        .title-main { font-size: 20px; font-weight: bold; }
+        .title-sub { font-size: 15px; opacity: 0.9; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .menu-card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            cursor: pointer;
-            transition: transform 0.1s ease;
-            border: 1px solid #eee;
+            background-color: white; border-radius: 16px; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee;
         }
+        .menu-card:active { transform: scale(0.97); }
+        .menu-icon { font-size: 36px; margin-bottom: 12px; }
+        .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
+        .menu-desc { font-size: 12px; color: #666; }
+        
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .summary-card { background-color: white; border-radius: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; }
+        .summary-label { font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 500; }
+        .summary-value { font-size: 20px; font-weight: bold; color: #111; }
 
-        .menu-card:active {
-            transform: scale(0.97);
-        }
-
-        .menu-icon {
-            font-size: 36px;
-            margin-bottom: 12px;
-        }
-
-        .menu-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #222;
-            margin-bottom: 4px;
-        }
-
-        .menu-desc {
-            font-size: 12px;
-            color: #666;
-        }
-
-        /* GÜNLÜK ÖZET ALANI */
-        .summary-section-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #111;
-            margin-bottom: 15px;
-            margin-top: 10px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            border: 1px solid #eee;
-        }
-
-        .summary-label {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .summary-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #111;
-        }
-
-        /* AZALAN STOK UYARI KUTUSU */
-        .alert-card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            border: 1px solid #eee;
-            margin-bottom: 20px;
-        }
-
-        .alert-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .alert-icon {
-            font-size: 24px;
-        }
-
-        .alert-text {
-            font-size: 16px;
-            font-weight: bold;
-            color: #111;
-        }
-
-        .btn-alert-action {
-            background-color: #f3f4f6;
-            color: #111;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* ALT SABİT MENÜ ÇUBUĞU */
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
+        
+        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { color: #666; font-weight: 600; background: #f9fafb; }
+        
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #166534;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            z-index: 1000;
+            position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534;
+            display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
         }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            color: white;
-            font-weight: bold;
-        }
-
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 3px;
-        }
-
-        /* İŞLEM EKRANLARI (FORM) */
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            margin-bottom: 20px;
-            border: 1px solid #eee;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #444;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 15px;
-            box-sizing: border-box;
-            background-color: #fafafa;
-        }
-
-        .btn-green {
-            background-color: #166534;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2);
-        }
-
-        .btn-back {
-            background-color: #e5e7eb;
-            color: #374151;
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 15px;
-        }
-
-        .summary-box {
-            background-color: #f0fdf4;
-            border-left: 5px solid #166534;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; }
+        .nav-item.active { color: white; font-weight: bold; }
+        .nav-icon { font-size: 20px; margin-bottom: 3px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- YEŞİL HEADER -->
     <div class="header">
         <div class="logo-box">🌾</div>
         <div>
@@ -296,242 +81,341 @@
     </div>
 
     <div class="container">
-
-        <!-- 1. ANA MENÜ EKRANI -->
+        <!-- ANA MENÜ -->
         <div id="screen-menu">
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')">
-                    <div class="menu-icon">🛒</div>
-                    <div class="menu-title">1. Satış</div>
-                    <div class="menu-desc">Yem ve slaj satışı</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('giris')">
-                    <div class="menu-icon">📥</div>
-                    <div class="menu-title">2. Giriş</div>
-                    <div class="menu-desc">Stoğa ürün ekle</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('tahsilat')">
-                    <div class="menu-icon">💰</div>
-                    <div class="menu-title">3. Tahsilat</div>
-                    <div class="menu-desc">Ödeme kaydı</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('borc')">
-                    <div class="menu-icon">📒</div>
-                    <div class="menu-title">4. Borç Takibi</div>
-                    <div class="menu-desc">Borçları takip et</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('stok')">
-                    <div class="menu-icon">📦</div>
-                    <div class="menu-title">5. Stok</div>
-                    <div class="menu-desc">Mevcut stok</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('musteriler')">
-                    <div class="menu-icon">👥</div>
-                    <div class="menu-title">6. Müşteriler</div>
-                    <div class="menu-desc">Müşteri kartları</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('bakiye')">
-                    <div class="menu-icon">💳</div>
-                    <div class="menu-title">7. Müşteri Bakiye</div>
-                    <div class="menu-desc">Bakiye görüntüle</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('raporlar')">
-                    <div class="menu-icon">📊</div>
-                    <div class="menu-title">8. Raporlar</div>
-                    <div class="menu-desc">Satış ve tahsilat</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('ayarlar')">
-                    <div class="menu-icon">⚙️</div>
-                    <div class="menu-title">9. Ayarlar</div>
-                    <div class="menu-desc">Uygulama ayarları</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('gecmis')">
-                    <div class="menu-icon">🧾</div>
-                    <div class="menu-title">İşlem Geçmişi</div>
-                    <div class="menu-desc">Tüm hareketler</div>
-                </div>
+                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Yem ve slaj satışı</div></div>
+                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">2. Giriş</div><div class="menu-desc">Stoğa ürün ekle</div></div>
+                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">3. Tahsilat</div><div class="menu-desc">Ödeme kaydı</div></div>
+                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">4. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
+                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">5. Stok</div><div class="menu-desc">Mevcut stok</div></div>
+                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">6. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
+                <div class="menu-card" onclick="openScreen('bakiye')"><div class="menu-icon">💳</div><div class="menu-title">7. Müşteri Bakiye</div><div class="menu-desc">Bakiye özetleri</div></div>
+                <div class="menu-card" onclick="openScreen('raporlar')"><div class="menu-icon">📊</div><div class="menu-title">8. Raporlar</div><div class="menu-desc">Genel durum</div></div>
+                <div class="menu-card" onclick="openScreen('gecmis')"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
             </div>
 
-            <!-- GÜNLÜK ÖZET -->
-            <div class="summary-section-title">Günlük Özet</div>
+            <div class="section-title">Günlük Özet</div>
             <div class="summary-grid">
-                <div class="summary-card">
-                    <div class="summary-label">Bugünkü Satış</div>
-                    <div class="summary-value">0 ₺</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-label">Bugünkü Tahsilat</div>
-                    <div class="summary-value">0 ₺</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-label">Toplam Stok</div>
-                    <div class="summary-value">0</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-label">Borçlu Müşteri</div>
-                    <div class="summary-value">0</div>
-                </div>
-            </div>
-
-            <!-- AZALAN STOK UYARISI -->
-            <div class="alert-card">
-                <div class="alert-left">
-                    <div class="alert-icon">⚠️</div>
-                    <div class="alert-text">Azalan Stok</div>
-                </div>
-                <button class="btn-alert-action" onclick="openScreen('stok')">Tümünü Gör</button>
+                <div class="summary-card"><div class="summary-label">Toplam Satış</div><div class="summary-value" id="ozet-satis">0 ₺</div></div>
+                <div class="summary-card"><div class="summary-label">Toplam Tahsilat</div><div class="summary-value" id="ozet-tahsilat">0 ₺</div></div>
+                <div class="summary-card"><div class="summary-label">Toplam Stok</div><div class="summary-value" id="ozet-stok">0</div></div>
+                <div class="summary-card"><div class="summary-label">Kalan Borçlu</div><div class="summary-value" id="ozet-borclu">0 ₺</div></div>
             </div>
         </div>
 
-        <!-- 2. SATIŞ EKRANI -->
+        <!-- 1. SATIŞ -->
         <div id="screen-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🛒 Satış İşlemi</div>
             <div class="card">
-                <div class="form-group">
-                    <label>Müşteri Adı</label>
-                    <input type="text" id="satis-musteri" placeholder="Müşteri adını girin">
+                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
+                <div class="form-group"><label>Ürün / İşlem Türü</label>
+                    <select id="s-tur"><option>Yem Satışı</option><option>Slaj Satışı</option><option>Arpa / Diğer</option></select>
                 </div>
-                <div class="form-group">
-                    <label>Ürün / İşlem Türü</label>
-                    <select id="satis-tur">
-                        <option>Yem Satışı</option>
-                        <option>Slaj Satışı</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Miktar (Ton / Çuval / Adet)</label>
-                    <input type="number" id="satis-miktar" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>Birim Fiyat (TL)</label>
-                    <input type="number" id="satis-fiyat" placeholder="0">
-                </div>
-                <button class="btn-green" onclick="islemKaydet('Satış')">İşlemi Kaydet</button>
-            </div>
-            
-            <div class="summary-box">
-                <strong>Özet Rapor</strong><br>
-                Toplam İşlem Sayısı: <span id="toplam-islem">0</span><br>
-                Toplam Tutar: <span id="toplam-tutar">0</span> TL
+                <div class="form-group"><label>Miktar</label><input type="number" id="s-miktar" placeholder="0"></div>
+                <div class="form-group"><label>Birim Fiyat (TL)</label><input type="number" id="s-fiyat" placeholder="0"></div>
+                <button class="btn-green" onclick="satisKaydet()">Satışı Kaydet & Borca Ekle</button>
             </div>
         </div>
 
-        <!-- DİĞER EKRANLAR -->
+        <!-- 2. GİRİŞ -->
         <div id="screen-giris" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📥 Stoğa Ürün Ekle</div>
-            <div class="card"><p>Ürün giriş formu yakında burada olacak.</p></div>
+            <div class="card">
+                <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Örn: Mısır Silajı"></div>
+                <div class="form-group"><label>Miktar</label><input type="number" id="g-miktar" placeholder="0"></div>
+                <button class="btn-green" onclick="stokEkle()">Stoğa Ekle</button>
+            </div>
         </div>
 
+        <!-- 3. TAHSİLAT -->
         <div id="screen-tahsilat" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💰 Tahsilat / Ödeme Kaydı</div>
-            <div class="card"><p>Tahsilat ekranı yakında burada olacak.</p></div>
+            <div class="section-title">💰 Tahsilat (Ödeme Al)</div>
+            <div class="card">
+                <div class="form-group"><label>Müşteri Seç / Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
+                <div class="form-group"><label>Alınan Tutar (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
+                <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Düş & Tahsil Et</button>
+            </div>
         </div>
 
+        <!-- 4. BORÇ TAKİBİ -->
         <div id="screen-borc" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📒 Borç Takibi</div>
-            <div class="card"><p>Borç takip ekranı yakında burada olacak.</p></div>
+            <div class="section-title">📒 Müşteri Borç & Alış Detayları</div>
+            <div class="card">
+                <div class="form-group"><label>Müşteri Ara</label><input type="text" id="borc-arama" oninput="borclariListele()" placeholder="İsim yazın..."></div>
+                <div id="borc-detay-listesi"></div>
+            </div>
         </div>
 
+        <!-- 5. STOK -->
         <div id="screen-stok" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📦 Mevcut Stok</div>
-            <div class="card"><p>Stok listesi yakında burada olacak.</p></div>
+            <div class="section-title">📦 Mevcut Stoklar</div>
+            <div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
         </div>
 
+        <!-- 6. MÜŞTERİLER -->
         <div id="screen-musteriler" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">👥 Müşteri Kartları</div>
-            <div class="card"><p>Müşteri listesi yakında burada olacak.</p></div>
+            <div class="section-title">👥 Müşteri Listesi</div>
+            <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
         </div>
 
+        <!-- 7. BAKİYE -->
         <div id="screen-bakiye" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💳 Müşteri Bakiye</div>
-            <div class="card"><p>Bakiye görüntüleme ekranı yakında burada olacak.</p></div>
+            <div class="section-title">💳 Müşteri Bakiyeleri</div>
+            <div class="card"><div id="bakiye-listesi">Kayıt bulunmuyor.</div></div>
         </div>
 
+        <!-- 8. RAPORLAR -->
         <div id="screen-raporlar" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📊 Raporlar</div>
-            <div class="card"><p>Satış ve tahsilat raporları yakında burada olacak.</p></div>
+            <div class="section-title">📊 Finansal Raporlar</div>
+            <div class="card">
+                <p><strong>Toplam Satış:</strong> <span id="rep-satis">0</span> ₺</p>
+                <p><strong>Toplam Tahsilat:</strong> <span id="rep-tahsilat">0</span> ₺</p>
+                <p><strong>Toplam Kalan Alacak (Borç):</strong> <span id="rep-borc">0</span> ₺</p>
+            </div>
         </div>
 
-        <div id="screen-ayarlar" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">⚙️ Ayarlar</div>
-            <div class="card"><p>Uygulama ayarları yakında burada olacak.</p></div>
-        </div>
-
+        <!-- İŞLEM GEÇMİŞİ -->
         <div id="screen-gecmis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🧾 İşlem Geçmişi</div>
-            <div class="card"><p>Tüm hareketler yakında burada olacak.</p></div>
+            <div class="section-title">🧾 Tüm İşlem Geçmişi</div>
+            <div class="card"><div id="gecmis-listesi">Henüz işlem yapılmadı.</div></div>
         </div>
-
     </div>
 
-    <!-- ALT SABİT MENÜ ÇUBUĞU -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="goHome()">
-            <div class="nav-icon">🏠</div>
-            <span>Ana Sayfa</span>
-        </div>
-        <div class="nav-item" onclick="openScreen('satis')">
-            <div class="nav-icon">🛒</div>
-            <span>Satış</span>
-        </div>
-        <div class="nav-item" onclick="openScreen('stok')">
-            <div class="nav-icon">📦</div>
-            <span>Stok</span>
-        </div>
-        <div class="nav-item" onclick="openScreen('musteriler')">
-            <div class="nav-icon">👥</div>
-            <span>Müşteriler</span>
-        </div>
+        <div class="nav-item active" onclick="goHome()"><div class="nav-icon">🏠</div><span>Ana Sayfa</span></div>
+        <div class="nav-item" onclick="openScreen('satis')"><div class="nav-icon">🛒</div><span>Satış</span></div>
+        <div class="nav-item" onclick="openScreen('stok')"><div class="nav-icon">📦</div><span>Stok</span></div>
+        <div class="nav-item" onclick="openScreen('borc')"><div class="nav-icon">📒</div><span>Borçlar</span></div>
     </div>
 
     <script>
-        function openScreen(screenName) {
-            let screens = ['menu', 'satis', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'bakiye', 'raporlar', 'ayarlar', 'gecmis'];
-            screens.forEach(s => {
-                document.getElementById('screen-' + s).classList.add('hidden');
-            });
-            document.getElementById('screen-' + screenName).classList.remove('hidden');
+        // Bellek Verileri (Tarayıcıda saklanır)
+        let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
+            islemler: [], // {id, tarih, tip, musteri, urun, miktar, fiyat, tutar, kalanBorc}
+            stoklar: {},   // {urunAdi: miktar}
+            borclar: {}    // {musteriAdi: toplamBorc}
+        };
+
+        function kaydetVeri() {
+            localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
+            guncelleOzetler();
+        }
+
+        function openScreen(name) {
+            let screens = ['menu', 'satis', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'bakiye', 'raporlar', 'gecmis'];
+            screens.forEach(s => document.getElementById('screen-' + s).classList.add('hidden'));
+            document.getElementById('screen-' + name).classList.remove('hidden');
             window.scrollTo(0, 0);
+
+            if(name === 'borc') borclariListele();
+            if(name === 'stok') stoklariGoster();
+            if(name === 'musteriler') musterileriGoster();
+            if(name === 'bakiye') bakiyeGoster();
+            if(name === 'raporlar') raporlariGoster();
+            if(name === 'gecmis') gecmisiGoster();
         }
 
-        function goHome() {
-            openScreen('menu');
+        function goHome() { openScreen('menu'); }
+
+        function tarihStr() {
+            let d = new Date();
+            return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         }
 
-        let toplamIslemSayisi = 0;
-        let toplamPara = 0;
-
-        function islemKaydet(tur) {
-            let miktar = parseFloat(document.getElementById('satis-miktar').value) || 0;
-            let fiyat = parseFloat(document.getElementById('satis-fiyat').value) || 0;
+        // SATIŞ YAP
+        function satisKaydet() {
+            let musteri = document.getElementById('s-musteri').value.trim();
+            let tur = document.getElementById('s-tur').value;
+            let miktar = parseFloat(document.getElementById('s-miktar').value) || 0;
+            let fiyat = parseFloat(document.getElementById('s-fiyat').value) || 0;
             let tutar = miktar * fiyat;
 
-            if (tutar > 0) {
-                toplamIslemSayisi++;
-                toplamPara += tutar;
-
-                document.getElementById('toplam-islem').innerText = toplamIslemSayisi;
-                document.getElementById('toplam-tutar').innerText = toplamPara;
-
-                document.getElementById('satis-musteri').value = '';
-                document.getElementById('satis-miktar').value = '';
-                document.getElementById('satis-fiyat').value = '';
-                alert('İşlem başarıyla kaydedildi!');
-            } else {
-                alert('Lütfen geçerli bir miktar ve fiyat girin.');
+            if(!musteri || tutar <= 0) {
+                alert('Lütfen müşteri adı girin ve geçerli miktar/fiyat yazın.');
+                return;
             }
+
+            // Borca ve işlemlere ekle
+            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + tutar;
+            
+            veritabani.islemler.push({
+                tarih: tarihStr(),
+                tip: 'Satış',
+                musteri: musteri,
+                urun: tur,
+                miktar: miktar,
+                fiyat: fiyat,
+                tutar: tutar
+            });
+
+            kaydetVeri();
+            alert('Satış başarıyla kaydedildi ve müşterinin borcuna yansıtıldı!');
+            document.getElementById('s-musteri').value = '';
+            document.getElementById('s-miktar').value = '';
+            document.getElementById('s-fiyat').value = '';
+            goHome();
         }
+
+        // TAHSİLAT YAP (Akıllı Düşüm: Ödeme alınınca borçtan düşer)
+        function tahsilatAl() {
+            let musteri = document.getElementById('t-musteri').value.trim();
+            let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
+
+            if(!musteri || tutar <= 0) {
+                alert('Lütfen müşteri adı ve geçerli ödeme tutarı girin.');
+                return;
+            }
+
+            let mevcutBorc = veritabani.borclar[musteri] || 0;
+            if(mevcutBorc <= 0) {
+                alert('Bu müşterinin zaten kayıtlı borcu bulunmuyor.');
+                return;
+            }
+
+            veritabani.borclar[musteri] = Math.max(0, mevcutBorc - tutar);
+
+            veritabani.islemler.push({
+                tarih: tarihStr(),
+                tip: 'Tahsilat',
+                musteri: musteri,
+                urun: 'Nakit Ödeme',
+                miktar: 0,
+                fiyat: 0,
+                tutar: tutar
+            });
+
+            kaydetVeri();
+            alert(tutar + ' TL tahsilat alındı ve borçtan düşüldü!');
+            document.getElementById('t-musteri').value = '';
+            document.getElementById('t-tutar').value = '';
+            goHome();
+        }
+
+        // STOK EKLE
+        function stokEkle() {
+            let urun = document.getElementById('g-urun').value.trim();
+            let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
+            if(!urun || miktar <= 0) { alert('Ürün adı ve miktar girin.'); return; }
+            
+            veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
+            kaydetVeri();
+            alert('Ürün stoğa eklendi.');
+            document.getElementById('g-urun').value = '';
+            document.getElementById('g-miktar').value = '';
+            goHome();
+        }
+
+        // BORÇ VE ALIŞ DETAYLARI
+        function borclariListele() {
+            let arama = document.getElementById('borc-arama').value.toLowerCase();
+            let html = '';
+            
+            // Müşterileri grupla
+            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
+            
+            musteriler.forEach(m => {
+                if(arama && !m.toLowerCase().includes(arama)) return;
+                let bakiye = veritabani.borclar[m] || 0;
+                
+                html += `<div style="background:#f9fafb; padding:12px; border-radius:10px; margin-bottom:15px; border:1px solid #e5e7eb;">
+                    <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span></h3>
+                    <div style="font-size:13px; color:#555; margin-bottom:5px;"><b>Alınan Ürünler ve Geçmiş:</b></div>
+                    <table>
+                        <tr><th>Tarih</th><th>İşlem / Ürün</th><th>Miktar</th><th>Tutar</th></tr>`;
+                
+                let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
+                musteriIslemleri.forEach(islem => {
+                    let renk = islem.tip === 'Tahsilat' ? 'color:#166534;font-weight:bold;' : '';
+                    html += `<tr style="${renk}">
+                        <td>${islem.tarih}</td>
+                        <td>${islem.tip}: ${islem.urun}</td>
+                        <td>${islem.miktar > 0 ? islem.miktar : '-'}</td>
+                        <td>${islem.tutar} ₺</td>
+                    </tr>`;
+                });
+                
+                html += `</table></div>`;
+            });
+
+            document.getElementById('borc-detay-listesi').innerHTML = html || '<p>Kayıt bulunamadı.</p>';
+        }
+
+        function stoklariGoster() {
+            let html = '<table><tr><th>Ürün Adı</th><th>Miktar</th></tr>';
+            for(let u in veritabani.stoklar) {
+                html += `<tr><td>${u}</td><td><b>${veritabani.stoklar[u]}</b></td></tr>`;
+            }
+            html += '</table>';
+            document.getElementById('stok-listesi').innerHTML = html;
+        }
+
+        function musterileriGoster() {
+            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
+            let html = '<ul>';
+            musteriler.forEach(m => {
+                let borc = veritabani.borclar[m] || 0;
+                html += `<li style="padding:8px 0; border-bottom:1px solid #eee;"><b>${m}</b> - Borç: <span style="color:${borc>0?'red':'green'}">${borc} ₺</span></li>`;
+            });
+            html += '</ul>';
+            document.getElementById('musteri-listesi').innerHTML = musteriler.length ? html : 'Kayıt yok.';
+        }
+
+        function bakiyeGoster() {
+            let html = '<table><tr><th>Müşteri</th><th>Güncel Borç / Bakiye</th></tr>';
+            for(let m in veritabani.borclar) {
+                html += `<tr><td>${m}</td><td><b>${veritabani.borclar[m]} ₺</b></td></tr>`;
+            }
+            html += '</table>';
+            document.getElementById('bakiye-listesi').innerHTML = html;
+        }
+
+        function raporlariGoster() {
+            let toplamSatis = 0, toplamTahsilat = 0, toplamBorc = 0;
+            veritabani.islemler.forEach(i => {
+                if(i.tip === 'Satış') toplamSatis += i.tutar;
+                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
+            });
+            for(let m in veritabani.borclar) toplamBorc += veritabani.borclar[m];
+
+            document.getElementById('rep-satis').innerText = toplamSatis;
+            document.getElementById('rep-tahsilat').innerText = toplamTahsilat;
+            document.getElementById('rep-borc').innerText = toplamBorc;
+        }
+
+        function gecmisiGoster() {
+            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Detay</th><th>Tutar</th></tr>';
+            veritabani.islemler.slice().reverse().forEach(i => {
+                html += `<tr><td>${i.tarih}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${i.urun} (${i.miktar})</td><td><b>${i.tutar} ₺</b></td></tr>`;
+            });
+            html += '</table>';
+            document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
+        }
+
+        function guncelleOzetler() {
+            let ts = 0, tt = 0, tb = 0;
+            veritabani.islemler.forEach(i => {
+                if(i.tip === 'Satış') ts += i.tutar;
+                if(i.tip === 'Tahsilat') tt += i.tutar;
+            });
+            for(let m in veritabani.borclar) tb += veritabani.borclar[m];
+
+            document.getElementById('ozet-satis').innerText = ts + ' ₺';
+            document.getElementById('ozet-tahsilat').innerText = tt + ' ₺';
+            document.getElementById('ozet-borclu').innerText = tb + ' ₺';
+        }
+
+        guncelleOzetler();
     </script>
 </body>
 </html>
