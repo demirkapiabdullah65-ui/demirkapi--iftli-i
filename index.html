@@ -165,7 +165,7 @@
 
         <!-- FİŞ EKRANI -->
         <div id="screen-fis" class="hidden">
-            <button class="btn-back" onclick="openScreen('gecmis')">⬅️ İşlem Geçmişine Dön</button>
+            <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
             <div class="section-title">🖨️ Satış Bilgi Fişi</div>
             <div class="card">
                 <div id="fis-alani" style="font-family: monospace; padding: 20px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;">
@@ -243,6 +243,9 @@
             }
             if (!document.getElementById('screen-stok').classList.contains('hidden')) {
                 stoklariGoster();
+            }
+            if (!document.getElementById('screen-borc').classList.contains('hidden')) {
+                borclariListele();
             }
         });
 
@@ -599,20 +602,24 @@
                 if(arama && !m.toLowerCase().includes(arama)) return;
                 let bakiye = veritabani.borclar[m] || 0;
                 
-                html += `<div style="background:#f9fafb; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <h3 style="margin:0 0 8px 0; color:#166534; font-size:16px;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span></h3>
+                html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <h3 style="margin:0; color:#166534; font-size:16px;">👤 ${m}</h3>
+                        <span style="font-size:14px; font-weight:bold; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span>
+                    </div>
                     <div class="table-responsive">
                         <table>
                             <tr>
-                                <th style="width:25%;">Tarih</th>
-                                <th style="width:45%;">İşlem / Ürün Detay</th>
+                                <th style="width:22%;">Tarih</th>
+                                <th style="width:38%;">İşlem / Ürün Detay</th>
                                 <th style="width:15%;">Tutar</th>
                                 <th style="width:15%;">Ödeme</th>
+                                <th style="width:10%;">Fiş</th>
                             </tr>`;
                 
                 let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
                 if(musteriIslemleri.length === 0) {
-                    html += `<tr><td colspan="4">Kayıt bulunmuyor.</td></tr>`;
+                    html += `<tr><td colspan="5">Kayıt bulunmuyor.</td></tr>`;
                 } else {
                     musteriIslemleri.forEach(islem => {
                         let tarihStr = formatliTarihGoster(islem.tarih);
@@ -632,11 +639,14 @@
                             odemeTutarHucre = `<b style="color:#2563eb;">${islem.tutar} ₺</b>`;
                         }
 
+                        let fisBtn = (islem.tip === 'Satış' && islem.id) ? `<button class="btn-secondary" style="padding:4px 6px; font-size:10px; margin-bottom:0;" onclick="fisGoster(${islem.id}, 'borc')">🖨️ Fiş</button>` : '-';
+
                         html += `<tr>
                             <td style="white-space:nowrap; font-size:11px;">${tarihStr}</td>
                             <td>${urunDetay}</td>
                             <td style="color:#dc2626;">${satisTutarHucre}</td>
                             <td>${odemeTutarHucre}</td>
+                            <td>${fisBtn}</td>
                         </tr>`;
                     });
                 }
@@ -699,7 +709,7 @@
             veritabani.islemler.slice().reverse().forEach(i => {
                 let det = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : (i.aciklama || '');
                 let silBtn = i.id ? `<button class="btn-danger" style="padding:4px 6px; font-size:10px;" onclick="islemSil(${i.id})">Sil</button>` : '';
-                let fisBtn = (i.tip === 'Satış' && i.id) ? `<button class="btn-secondary" style="padding:4px 6px; font-size:10px; margin-bottom:0;" onclick="fisGoster(${i.id})">🖨️ Fiş</button>` : '-';
+                let fisBtn = (i.tip === 'Satış' && i.id) ? `<button class="btn-secondary" style="padding:4px 6px; font-size:10px; margin-bottom:0;" onclick="fisGoster(${i.id}, 'gecmis')">🖨️ Fiş</button>` : '-';
                 
                 html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${det}</td><td><b>${i.tutar} ₺</b></td><td>${fisBtn}</td><td>${silBtn}</td></tr>`;
             });
@@ -707,7 +717,9 @@
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
         }
 
-        function fisGoster(islemId) {
+        let aktifDonusEkrani = 'borc';
+        function fisGoster(islemId, donusYeri = 'borc') {
+            aktifDonusEkrani = donusYeri;
             let islem = veritabani.islemler.find(i => i.id === islemId);
             if(!islem) { alert('İşlem bulunamadı.'); return; }
 
@@ -751,6 +763,12 @@
             `;
 
             document.getElementById('fis-alani').innerHTML = fisHtml;
+            
+            // Geri dönüş butonunu dinamik ayarla
+            let geriButonText = donusYeri === 'borc' ? '⬅️ Borç Takibine Dön' : '⬅️ İşlem Geçmişine Dön';
+            document.querySelector('#screen-fis .btn-back').setAttribute('onclick', `openScreen('${donusYeri}')`);
+            document.querySelector('#screen-fis .btn-back').innerText = geriButonText;
+
             openScreen('fis');
         }
 
