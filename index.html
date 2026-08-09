@@ -91,7 +91,7 @@
             <div class="menu-grid">
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Çoklu ürün satışı</div></div>
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">2. Giriş</div><div class="menu-desc">Stoğa ürün ekle</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">3. Tahsilat</div><div class="menu-desc">Ödeme kaydı</div></div>
+                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">3. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
                 <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">4. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
                 <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">5. Stok</div><div class="menu-desc">Mevcut stok</div></div>
                 <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">6. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
@@ -112,7 +112,7 @@
         <!-- 1. SATIŞ -->
         <div id="screen-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🛒 Çoklu Satış İşlemi</div>
+            <div class="section-title">🛒 Çoklu Satış & Ödeme İşlemi</div>
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
                 
@@ -121,7 +121,10 @@
                 <div id="urunler-konteynir"></div>
                 
                 <button class="btn-secondary" onclick="urunSatiriEkle()">➕ Başka Ürün Ekle</button>
-                <button class="btn-green" onclick="satislariKaydet()">Tüm Satışı Kaydet & Borca Ekle</button>
+                
+                <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL) (Eğer peşin ödediyse yazın, kalanı borç yazılır)</label><input type="number" id="s-pesin" placeholder="0"></div>
+
+                <button class="btn-green" onclick="satislariKaydet()">Satışı Tamamla & Kaydet</button>
             </div>
         </div>
 
@@ -143,7 +146,8 @@
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
                 <div class="form-group"><label>Alınan Tutar (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
-                <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Düş & Tahsil Et</button>
+                <div class="form-group"><label>Ödeme Açıklaması / Türü (Örn: Nakit, IBAN, Çek)</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
+                <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Al & Borçtan Düş</button>
             </div>
         </div>
 
@@ -224,7 +228,8 @@
 
             if(name === 'satis') {
                 document.getElementById('urunler-konteynir').innerHTML = '';
-                urunSatiriEkle(); // İlk satırı otomatik aç
+                document.getElementById('s-pesin').value = '';
+                urunSatiriEkle();
             }
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
@@ -241,7 +246,6 @@
             return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         }
 
-        // Satış ekranına dinamik ürün satırı ekleme
         function urunSatiriEkle() {
             let konteynir = document.getElementById('urunler-konteynir');
             let seceneklerHTML = '';
@@ -266,9 +270,10 @@
             konteynir.appendChild(div);
         }
 
-        // ÇOKLU SATIŞI KAYDET
         function satislariKaydet() {
             let musteri = document.getElementById('s-musteri').value.trim();
+            let pesinTutar = parseFloat(document.getElementById('s-pesin').value) || 0;
+
             if(!musteri) {
                 alert('Lütfen müşteri adı girin.');
                 return;
@@ -303,8 +308,9 @@
                 toplamSepetTutar += tutar;
             }
 
-            // Stoktan ve kasadan/borçtan düş-ekle
             let ortakTarih = tarihStr();
+            
+            // Ürünleri stoktan düş ve işlem geçmişine ekle
             eklenenler.forEach(item => {
                 veritabani.stoklar[item.tur] -= item.miktar;
                 veritabani.islemler.push({
@@ -318,17 +324,36 @@
                 });
             });
 
-            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + toplamSepetTutar;
+            // Borç hesaplama (Toplam tutar - Peşin ödenen)
+            let kalanBorcEkle = toplamSepetTutar - pesinTutar;
+            if(kalanBorcEkle > 0) {
+                veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + kalanBorcEkle;
+            }
+
+            // Eğer peşin ödeme yapıldıysa bunu tahsilat olarak da geçmişe ekle
+            if(pesinTutar > 0) {
+                veritabani.islemler.push({
+                    tarih: ortakTarih,
+                    tip: 'Tahsilat (Peşin)',
+                    musteri: musteri,
+                    urun: 'Satış Peşinatı',
+                    miktar: 0,
+                    fiyat: 0,
+                    tutar: pesinTutar
+                });
+            }
 
             kaydetVeri();
-            alert('Tüm ürün satışları başarıyla kaydedildi ve borca eklendi!');
+            alert('Satış başarıyla kaydedildi! Kalan borç ve stoklar güncellendi.');
+            document.getElementById('s-musteri').value = '';
+            document.getElementById('s-pesin').value = '';
             goHome();
         }
 
-        // TAHSİLAT YAP
         function tahsilatAl() {
             let musteri = document.getElementById('t-musteri').value.trim();
             let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
+            let aciklama = document.getElementById('t-aciklama').value.trim() || 'Nakit Ödeme';
 
             if(!musteri || tutar <= 0) {
                 alert('Lütfen müşteri adı ve geçerli ödeme tutarı girin.');
@@ -336,31 +361,26 @@
             }
 
             let mevcutBorc = veritabani.borclar[musteri] || 0;
-            if(mevcutBorc <= 0) {
-                alert('Bu müşterinin kayıtlı borcu bulunmuyor.');
-                return;
-            }
-
             veritabani.borclar[musteri] = Math.max(0, mevcutBorc - tutar);
 
             veritabani.islemler.push({
                 tarih: tarihStr(),
                 tip: 'Tahsilat',
                 musteri: musteri,
-                urun: 'Nakit Ödeme',
+                urun: aciklama,
                 miktar: 0,
                 fiyat: 0,
                 tutar: tutar
             });
 
             kaydetVeri();
-            alert(tutar + ' TL tahsilat alındı ve borçtan düşüldü!');
+            alert(tutar + ' TL tahsilat (' + aciklama + ') başarıyla kaydedildi!');
             document.getElementById('t-musteri').value = '';
             document.getElementById('t-tutar').value = '';
+            document.getElementById('t-aciklama').value = '';
             goHome();
         }
 
-        // STOK EKLE
         function stokEkle() {
             let urun = document.getElementById('g-urun').value.trim();
             let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
@@ -385,13 +405,14 @@
                 
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:10px; margin-bottom:15px; border:1px solid #e5e7eb;">
                     <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span></h3>
-                    <div style="font-size:13px; color:#555; margin-bottom:5px;"><b>Alınan Ürünler ve Geçmiş:</b></div>
+                    <div style="font-size:13px; color:#555; margin-bottom:5px;"><b>Alınan Ürünler ve Ödeme Geçmişi:</b></div>
                     <table>
-                        <tr><th>Tarih</th><th>İşlem / Ürün</th><th>Miktar</th><th>Tutar</th></tr>`;
+                        <tr><th>Tarih</th><th>İşlem / Açıklama</th><th>Miktar</th><th>Tutar</th></tr>`;
                 
                 let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
                 musteriIslemleri.forEach(islem => {
-                    let renk = islem.tip === 'Tahsilat' ? 'color:#166534;font-weight:bold;' : '';
+                    let isTahsilat = islem.tip.includes('Tahsilat');
+                    let renk = isTahsilat ? 'color:#166534;font-weight:bold;' : '';
                     html += `<tr style="${renk}">
                         <td>${islem.tarih}</td>
                         <td>${islem.tip}: ${islem.urun}</td>
@@ -444,7 +465,7 @@
             let toplamSatis = 0, toplamTahsilat = 0, toplamBorc = 0;
             veritabani.islemler.forEach(i => {
                 if(i.tip === 'Satış') toplamSatis += i.tutar;
-                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
+                if(i.tip.includes('Tahsilat')) toplamTahsilat += i.tutar;
             });
             for(let m in veritabani.borclar) toplamBorc += veritabani.borclar[m];
 
@@ -456,7 +477,7 @@
         function gecmisiGoster() {
             let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Detay</th><th>Tutar</th></tr>';
             veritabani.islemler.slice().reverse().forEach(i => {
-                html += `<tr><td>${i.tarih}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${i.urun} (${i.miktar})</td><td><b>${i.tutar} ₺</b></td></tr>`;
+                html += `<tr><td>${i.tarih}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${i.urun} (${i.miktar > 0 ? i.miktar : '-'})</td><td><b>${i.tutar} ₺</b></td></tr>`;
             });
             html += '</table>';
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
@@ -466,7 +487,7 @@
             let ts = 0, tt = 0, tb = 0;
             veritabani.islemler.forEach(i => {
                 if(i.tip === 'Satış') ts += i.tutar;
-                if(i.tip === 'Tahsilat') tt += i.tutar;
+                if(i.tip.includes('Tahsilat')) tt += i.tutar;
             });
             for(let m in veritabani.borclar) tb += veritabani.borclar[m];
 
