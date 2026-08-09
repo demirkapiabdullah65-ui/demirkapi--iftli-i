@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demirkapı Çiftliği Yönetim</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        button:hover { background: #219653; }
+        .summary { margin-top: 25px; background: #e8f8f5; padding: 15px; border-radius: 8px; border-left: 5px solid #27ae60; }
+        .list-item { background: #fff; border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 6px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🌾 Demirkapı Çiftliği</h2>
+    
+    <label>Müşteri Adı</label>
+    <input type="text" id="musteri" placeholder="Müşteri adını girin">
+
+    <label>İşlem Türü</label>
+    <select id="tur">
+        <option value="Yem Satışı">Yem Satışı</option>
+        <option value="Boş Silaj Satışı">Boş Silaj Satışı</option>
+        <option value="Mısırlı Silaj Satışı">Mısırlı Silaj Satışı</option>
+        <option value="Fason İşlem">Fason İşlem</option>
+    </select>
+
+    <label>Miktar (Ton / Çuval / Adet)</label>
+    <input type="number" id="miktar" placeholder="0">
+
+    <label>Birim Fiyat (TL)</label>
+    <input type="number" id="fiyat" placeholder="0">
+
+    <button onclick="kaydet()">İşlemi Kaydet</button>
+
+    <div class="summary">
+        <h3>Özet Rapor</h3>
+        <p>Toplam İşlem Sayısı: <span id="toplamKayit">0</span></p>
+        <p>Toplam Tutar: <span id="toplamTutar">0</span> TL</p>
+    </div>
+
+    <h3>Son İşlemler</h3>
+    <div id="liste"></div>
+</div>
+
+<script>
+    let kayitlar = JSON.parse(localStorage.getItem('demirkapi_kayitlar')) || [];
+
+    function kaydet() {
+        let musteri = document.getElementById('musteri').value;
+        let tur = document.getElementById('tur').value;
+        let miktar = parseFloat(document.getElementById('miktar').value) || 0;
+        let fiyat = parseFloat(document.getElementById('fiyat').value) || 0;
+
+        if(!musteri) {
+            alert("Lütfen müşteri adı giriniz!");
+            return;
+        }
+
+        let yeniIslem = {
+            musteri,
+            tur,
+            miktar,
+            fiyat,
+            toplam: miktar * fiyat,
+            tarih: new Date().toLocaleDateString('tr-TR')
+        };
+
+        kayitlar.unshift(yeniIslem);
+        localStorage.setItem('demirkapi_kayitlar', JSON.stringify(kayitlar));
+        
+        document.getElementById('musteri').value = '';
+        document.getElementById('miktar').value = '';
+        document.getElementById('fiyat').value = '';
+        
+        goster();
+    }
+
+    function goster() {
+        let listeDiv = document.getElementById('liste');
+        listeDiv.innerHTML = '';
+        let toplamTutar = 0;
+
+        kayitlar.forEach((k, index) => {
+            toplamTutar += k.toplam;
+            listeDiv.innerHTML += `
+                <div class="list-item">
+                    <b>${k.musteri}</b> - ${k.tur}<br>
+                    Miktar: ${k.miktar} | Tutar: <b>${k.toplam.toLocaleString()} TL</b><br>
+                    <small style="color:gray;">${k.tarih}</small>
+                </div>
+            `;
+        });
+
+        document.getElementById('toplamKayit').innerText = kayitlar.length;
+        document.getElementById('toplamTutar').innerText = toplamTutar.toLocaleString();
+    }
+
+    goster();
+</script>
+
+</body>
+</html>
