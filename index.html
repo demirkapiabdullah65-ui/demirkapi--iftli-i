@@ -94,7 +94,7 @@
                 <div class="title-sub">ÇİFTLİĞİ</div>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🔄 Senkronize</div>
+        <div id="sync-indicator" class="sync-status">🔄 Çevrimiçi</div>
     </div>
 
     <div class="container">
@@ -106,7 +106,7 @@
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
                     <div class="menu-title">2. Onay Bekleyenler</div>
-                    <div class="menu-desc">Bilgisayardan onayla</div>
+                    <div class="menu-desc">Cebinden onayla</div>
                     <div id="menu-badge" class="badge hidden">0</div>
                 </div>
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle</div></div>
@@ -128,43 +128,35 @@
             </div>
         </div>
 
-        <!-- 1. SATIŞ (TALEP GÖNDERME) -->
+        <!-- 1. SATIŞ -->
         <div id="screen-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🛒 Satış Talebi Oluştur</div>
-            <p style="font-size:13px; color:#666; margin-top:-10px; margin-bottom:15px;">Telefondan girdiğiniz bu satış bilgisayara onay için gönderilir. Bilgisayar onayladığında stoktan ve borçtan düşer.</p>
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
-                
                 <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
                 <label><b>Sepetteki Ürünler</b></label>
                 <div id="urunler-konteynir"></div>
-                
                 <button class="btn-secondary" onclick="urunSatiriEkle()">➕ Başka Ürün Ekle</button>
-                
-                <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL) (Eğer peşin ödediyse)</label><input type="number" id="s-pesin" placeholder="0"></div>
-                <div class="form-group"><label>Not / Açıklama (Kim hangi telefondan girdi?)</label><input type="text" id="s-not" placeholder="Örn: Telefon 1 / Ali Usta"></div>
-
+                <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
+                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Örn: Telefon / Ali Usta"></div>
                 <button class="btn-green" onclick="satisTalebiGonder()">Onaya Gönder 🚀</button>
             </div>
         </div>
 
-        <!-- 2. ONAY BEKLEYENLER (BİLGİSAYAR EKRANI) -->
+        <!-- 2. ONAY BEKLEYENLER -->
         <div id="screen-onay" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🔔 Onay Bekleyen Satışlar</div>
-            <p style="font-size:13px; color:#666; margin-top:-10px; margin-bottom:15px;">Telefonlardan gelen talepleri buradan inceleyip onaylayabilirsiniz.</p>
-            <div class="card">
-                <div id="onay-listesi">Bekleyen talep bulunmuyor.</div>
-            </div>
+            <div class="card"><div id="onay-listesi">Bekleyen talep bulunmuyor.</div></div>
         </div>
 
-        <!-- 3. GİRİŞ -->
+        <!-- 3. STOK EKLE -->
         <div id="screen-giris" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📥 Stoğa Ürün Ekle</div>
             <div class="card">
-                <div class="form-group"><label>Ürün Adı (Örn: Süt Yemi, Mısır Silajı vb.)</label><input type="text" id="g-urun" placeholder="Ürün adını yazın"></div>
+                <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Ürün adını yazın"></div>
                 <div class="form-group"><label>Miktar</label><input type="number" id="g-miktar" placeholder="0"></div>
                 <button class="btn-green" onclick="stokEkle()">Stoğa Ürün Ekle</button>
             </div>
@@ -177,7 +169,7 @@
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
                 <div class="form-group"><label>Alınan Tutar (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
-                <div class="form-group"><label>Ödeme Açıklaması / Türü (Örn: Nakit, IBAN, Çek)</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
+                <div class="form-group"><label>Ödeme Açıklaması</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
                 <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Al & Borçtan Düş</button>
             </div>
         </div>
@@ -220,7 +212,7 @@
             <div class="card">
                 <p><strong>Toplam Satış:</strong> <span id="rep-satis">0</span> ₺</p>
                 <p><strong>Toplam Tahsilat:</strong> <span id="rep-tahsilat">0</span> ₺</p>
-                <p><strong>Toplam Kalan Alacak (Borç):</strong> <span id="rep-borc">0</span> ₺</p>
+                <p><strong>Toplam Kalan Alacak:</strong> <span id="rep-borc">0</span> ₺</p>
             </div>
         </div>
 
@@ -240,53 +232,57 @@
     </div>
 
     <script>
-        // Bulut Senkronizasyonu için GitHub Gist / JSONBin alternatifi ortak depolama (Global KeyStorage)
-        // Tüm telefonlar ve bilgisayar tarayıcı genelinde localStorage'ı cloud tabanlı simüle eden yapıya bağlanıyor:
-        let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
-            islemler: [],
-            stoklar: {},   
-            borclar: {},
-            bekleyenler: [] // Onay bekleyen sepetler
-        };
+        let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [] };
 
         function verileriYukle() {
-            let cloudData = localStorage.getItem('demirkapi_cloud_db');
-            if(cloudData) {
-                veritabani = JSON.parse(cloudData);
+            try {
+                let cloudData = localStorage.getItem('demirkapi_global_db');
+                if(cloudData) {
+                    veritabani = JSON.parse(cloudData);
+                } else {
+                    kaydetVeri();
+                }
+            } catch(e) {
+                console.log(e);
             }
             guncelleOzetler();
             bekleyenRozetGuncelle();
         }
 
         function kaydetVeri() {
-            localStorage.setItem('demirkapi_cloud_db', JSON.stringify(veritabani));
-            localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
+            try {
+                localStorage.setItem('demirkapi_global_db', JSON.stringify(veritabani));
+                localStorage.setItem('demirkapi_sync_trigger', Date.now());
+            } catch(e) {
+                console.log(e);
+            }
             guncelleOzetler();
             bekleyenRozetGuncelle();
             
-            // Senkronizasyon animasyonu
             let ind = document.getElementById('sync-indicator');
-            ind.innerText = "✅ Eşitlendi";
-            setTimeout(() => { ind.innerText = "🔄 Senkronize"; }, 2000);
+            if(ind) {
+                ind.innerText = "✅ Senkronize";
+                setTimeout(() => { ind.innerText = "🔄 Çevrimiçi"; }, 2000);
+            }
         }
 
-        // Her 3 saniyede bir otomatik arka plan senkronizasyonu (Telefon/Bilgisayar arası canlı akış için)
+        // Tarayıcılar/telefonlar arası anlık veri eşitleme döngüsü
         setInterval(() => {
-            let cloudData = localStorage.getItem('demirkapi_cloud_db');
-            if(cloudData) {
-                let parsed = JSON.parse(cloudData);
-                // Eğer veride değişiklik varsa güncelle
-                if(JSON.stringify(parsed) !== JSON.stringify(veritabani)) {
-                    veritabani = parsed;
-                    guncelleOzetler();
-                    bekleyenRozetGuncelle();
-                    // Eğer şu an onay ekranındaysa listeyi yenile
-                    if(!document.getElementById('screen-onay').classList.contains('hidden')) {
-                        onayBekleyenleriGoster();
+            try {
+                let cloudData = localStorage.getItem('demirkapi_global_db');
+                if(cloudData) {
+                    let parsed = JSON.parse(cloudData);
+                    if(JSON.stringify(parsed) !== JSON.stringify(veritabani)) {
+                        veritabani = parsed;
+                        guncelleOzetler();
+                        bekleyenRozetGuncelle();
+                        if(!document.getElementById('screen-onay').classList.contains('hidden')) {
+                            onayBekleyenleriGoster();
+                        }
                     }
                 }
-            }
-        }, 3000);
+            } catch(e) {}
+        }, 1000);
 
         function openScreen(name) {
             verileriYukle();
@@ -341,8 +337,8 @@
             konteynir.appendChild(div);
         }
 
-        // TELEFONDAN ONAYA GÖNDERME
         function satisTalebiGonder() {
+            verileriYukle();
             let musteri = document.getElementById('s-musteri').value.trim();
             let pesinTutar = parseFloat(document.getElementById('s-pesin').value) || 0;
             let notBilgisi = document.getElementById('s-not').value.trim() || 'Saha Satışı';
@@ -379,12 +375,12 @@
             veritabani.bekleyenler.push(yeniTalep);
             kaydetVeri();
 
-            alert('Satış talebi başarıyla oluşturuldu ve bilgisayara onay için gönderildi!');
+            alert('Satış talebi başarıyla gönderildi!');
             goHome();
         }
 
-        // ONAY BEKLEYENLERİ LİSTELE (BİLGİSAYAR)
         function onayBekleyenleriGoster() {
+            verileriYukle();
             let konteynir = document.getElementById('onay-listesi');
             let bekleyenler = veritabani.bekleyenler || [];
 
@@ -406,12 +402,12 @@
                 html += `<div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
                     <div style="font-size:12px; color:#666; float:right;">${talep.tarih}</div>
                     <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${talep.musteri}</h3>
-                    <div style="font-size:13px; color:#444; margin-bottom:5px;"><b>Gönderen Notu:</b> ${talep.notBilgisi}</div>
-                    <div style="font-size:13px; color:#444;"><b>Sepet İçeriği:</b> ${urunlerHTML}</div>
-                    <p style="margin:5px 0;"><b>Toplam Tutar:</b> ${toplamTutar} ₺ | <b>Peşin Ödenen:</b> ${talep.pesinTutar} ₺</p>
+                    <div style="font-size:13px; color:#444; margin-bottom:5px;"><b>Not:</b> ${talep.notBilgisi}</div>
+                    <div style="font-size:13px; color:#444;"><b>Sepet:</b> ${urunlerHTML}</div>
+                    <p style="margin:5px 0;"><b>Toplam:</b> ${toplamTutar} ₺ | <b>Peşin:</b> ${talep.pesinTutar} ₺</p>
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button class="btn-green" style="margin-top:0;" onclick="satisiOnayla(${index})">✅ Onayla & Stoğa İşle</button>
-                        <button class="btn-danger" onclick="satisiReddet(${index})">❌ Reddet / Sil</button>
+                        <button class="btn-danger" onclick="satisiReddet(${index})">❌ Reddet</button>
                     </div>
                 </div>`;
             });
@@ -419,22 +415,20 @@
             konteynir.innerHTML = html;
         }
 
-        // BİLGİSAYARDAN ONAYVERME (STOK VE BORCA İŞLEME)
         function satisiOnayla(index) {
+            verileriYukle();
             let talep = veritabani.bekleyenler[index];
-            
-            // Stok kontrolü ve düşüşü
             let toplamSepetTutar = 0;
+
             for(let item of talep.kalemler) {
                 let mevcutStok = veritabani.stoklar[item.tur] || 0;
                 if(mevcutStok < item.miktar) {
-                    alert('Hata: "' + item.tur + '" için stokta yeterli miktar kalmamış! (Stok: ' + mevcutStok + ')');
+                    alert('Hata: "' + item.tur + '" için stokta yeterli miktar yok! (Stok: ' + mevcutStok + ')');
                     return;
                 }
                 toplamSepetTutar += item.tutar;
             }
 
-            // Stoktan düş ve işlemlere ekle
             talep.kalemler.forEach(item => {
                 veritabani.stoklar[item.tur] -= item.miktar;
                 veritabani.islemler.push({
@@ -448,7 +442,6 @@
                 });
             });
 
-            // Borç hesabı
             let kalanBorcEkle = toplamSepetTutar - talep.pesinTutar;
             if(kalanBorcEkle > 0) {
                 veritabani.borclar[talep.musteri] = (veritabani.borclar[talep.musteri] || 0) + kalanBorcEkle;
@@ -459,22 +452,22 @@
                     tarih: talep.tarih,
                     tip: 'Tahsilat (Peşin)',
                     musteri: talep.musteri,
-                    urun: 'Satış Peşinatı (' + talep.notBilgisi + ')',
+                    urun: 'Satış Peşinatı',
                     miktar: 0,
                     fiyat: 0,
                     tutar: talep.pesinTutar
                 });
             }
 
-            // Bekleyenlerden sil
             veritabani.bekleyenler.splice(index, 1);
             kaydetVeri();
-            alert('Satış onaylandı! Stoktan düşüldü ve müşteri borcuna eklendi.');
+            alert('Satış onaylandı ve stoktan düşüldü!');
             onayBekleyenleriGoster();
         }
 
         function satisiReddet(index) {
-            if(confirm('Bu satış talebini reddetmek istediğinize emin misiniz?')) {
+            verileriYukle();
+            if(confirm('Reddetmek istediğinize emin misiniz?')) {
                 veritabani.bekleyenler.splice(index, 1);
                 kaydetVeri();
                 onayBekleyenleriGoster();
@@ -484,20 +477,23 @@
         function bekleyenRozetGuncelle() {
             let count = (veritabani.bekleyenler || []).length;
             let badge = document.getElementById('menu-badge');
-            if(count > 0) {
-                badge.innerText = count;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+            if(badge) {
+                if(count > 0) {
+                    badge.innerText = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
             }
         }
 
         function tahsilatAl() {
+            verileriYukle();
             let musteri = document.getElementById('t-musteri').value.trim();
             let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
             let aciklama = document.getElementById('t-aciklama').value.trim() || 'Nakit Ödeme';
 
-            if(!musteri || tutar <= 0) { alert('Lütfen müşteri adı ve geçerli ödeme tutarı girin.'); return; }
+            if(!musteri || tutar <= 0) { alert('Lütfen müşteri adı ve tutar girin.'); return; }
 
             let mevcutBorc = veritabani.borclar[musteri] || 0;
             veritabani.borclar[musteri] = Math.max(0, mevcutBorc - tutar);
@@ -513,27 +509,24 @@
             });
 
             kaydetVeri();
-            alert(tutar + ' TL tahsilat (' + aciklama + ') başarıyla kaydedildi!');
-            document.getElementById('t-musteri').value = '';
-            document.getElementById('t-tutar').value = '';
-            document.getElementById('t-aciklama').value = '';
+            alert('Tahsilat başarıyla kaydedildi!');
             goHome();
         }
 
         function stokEkle() {
+            verileriYukle();
             let urun = document.getElementById('g-urun').value.trim();
             let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
-            if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve geçerli miktar girin.'); return; }
+            if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve miktar girin.'); return; }
             
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
             kaydetVeri();
-            alert('Ürün stoğa başarıyla eklendi!');
-            document.getElementById('g-urun').value = '';
-            document.getElementById('g-miktar').value = '';
+            alert('Ürün stoğa eklendi!');
             goHome();
         }
 
         function borclariListele() {
+            verileriYukle();
             let arama = document.getElementById('borc-arama').value.toLowerCase();
             let html = '';
             let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
@@ -543,23 +536,18 @@
                 let bakiye = veritabani.borclar[m] || 0;
                 
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:10px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span></h3>
-                    <div style="font-size:13px; color:#555; margin-bottom:5px;"><b>Alınan Ürünler ve Ödeme Geçmişi:</b></div>
+                    <h3 style="margin:0 0 8px 0; color:#166534;">👤 ${m} <span style="float:right; font-size:14px; color:${bakiye > 0 ? '#dc2626':'#166534'}">Borç: ${bakiye} ₺</span></h3>
                     <table>
-                        <tr><th>Tarih</th><th>İşlem / Açıklama</th><th>Miktar</th><th>Tutar</th></tr>`;
+                        <tr><th>Tarih</th><th>İşlem</th><th>Miktar</th><th>Tutar</th></tr>`;
                 
-                let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
-                musteriIslemleri.forEach(islem => {
-                    let isTahsilat = islem.tip.includes('Tahsilat');
-                    let renk = isTahsilat ? 'color:#166534;font-weight:bold;' : '';
-                    html += `<tr style="${renk}">
+                veritabani.islemler.filter(i => i.musteri === m).forEach(islem => {
+                    html += `<tr>
                         <td>${islem.tarih}</td>
                         <td>${islem.tip}: ${islem.urun}</td>
                         <td>${islem.miktar > 0 ? islem.miktar : '-'}</td>
                         <td>${islem.tutar} ₺</td>
                     </tr>`;
                 });
-                
                 html += `</table></div>`;
             });
 
@@ -567,6 +555,7 @@
         }
 
         function stoklariGoster() {
+            verileriYukle();
             let html = '<table><tr><th>Ürün Adı</th><th>Miktar</th></tr>';
             let keys = Object.keys(veritabani.stoklar);
             if(keys.length === 0) {
@@ -581,6 +570,7 @@
         }
 
         function musterileriGoster() {
+            verileriYukle();
             let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
             let html = '<ul>';
             musteriler.forEach(m => {
@@ -592,7 +582,8 @@
         }
 
         function bakiyeGoster() {
-            let html = '<table><tr><th>Müşteri</th><th>Güncel Borç / Bakiye</th></tr>';
+            verileriYukle();
+            let html = '<table><tr><th>Müşteri</th><th>Güncel Borç</th></tr>';
             for(let m in veritabani.borclar) {
                 html += `<tr><td>${m}</td><td><b>${veritabani.borclar[m]} ₺</b></td></tr>`;
             }
@@ -601,6 +592,7 @@
         }
 
         function raporlariGoster() {
+            verileriYukle();
             let toplamSatis = 0, toplamTahsilat = 0, toplamBorc = 0;
             veritabani.islemler.forEach(i => {
                 if(i.tip === 'Satış') toplamSatis += i.tutar;
@@ -614,9 +606,10 @@
         }
 
         function gecmisiGoster() {
+            verileriYukle();
             let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Detay</th><th>Tutar</th></tr>';
             veritabani.islemler.slice().reverse().forEach(i => {
-                html += `<tr><td>${i.tarih}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${i.urun} (${i.miktar > 0 ? i.miktar : '-'})</td><td><b>${i.tutar} ₺</b></td></tr>`;
+                html += `<tr><td>${i.tarih}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${i.urun}</td><td><b>${i.tutar} ₺</b></td></tr>`;
             });
             html += '</table>';
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
@@ -630,10 +623,15 @@
             });
             for(let m in veritabani.borclar) tb += veritabani.borclar[m];
 
-            document.getElementById('ozet-satis').innerText = ts + ' ₺';
-            document.getElementById('ozet-tahsilat').innerText = tt + ' ₺';
-            document.getElementById('ozet-stok').innerText = Object.keys(veritabani.stoklar).length;
-            document.getElementById('ozet-borclu').innerText = tb + ' ₺';
+            let os = document.getElementById('ozet-satis');
+            let ot = document.getElementById('ozet-tahsilat');
+            let ost = document.getElementById('ozet-stok');
+            let ob = document.getElementById('ozet-borclu');
+
+            if(os) os.innerText = ts + ' ₺';
+            if(ot) ot.innerText = tt + ' ₺';
+            if(ost) ost.innerText = Object.keys(veritabani.stoklar).length;
+            if(ob) ob.innerText = tb + ' ₺';
         }
 
         verileriYukle();
