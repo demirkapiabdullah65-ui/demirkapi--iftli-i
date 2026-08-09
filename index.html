@@ -85,7 +85,7 @@
         <div id="screen-menu">
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Yem ve slaj satışı</div></div>
+                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Ürün satışı</div></div>
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">2. Giriş</div><div class="menu-desc">Stoğa ürün ekle</div></div>
                 <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">3. Tahsilat</div><div class="menu-desc">Ödeme kaydı</div></div>
                 <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">4. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
@@ -100,7 +100,7 @@
             <div class="summary-grid">
                 <div class="summary-card"><div class="summary-label">Toplam Satış</div><div class="summary-value" id="ozet-satis">0 ₺</div></div>
                 <div class="summary-card"><div class="summary-label">Toplam Tahsilat</div><div class="summary-value" id="ozet-tahsilat">0 ₺</div></div>
-                <div class="summary-card"><div class="summary-label">Toplam Stok</div><div class="summary-value" id="ozet-stok">0</div></div>
+                <div class="summary-card"><div class="summary-label">Toplam Stok Çeşit</div><div class="summary-value" id="ozet-stok">0</div></div>
                 <div class="summary-card"><div class="summary-label">Kalan Borçlu</div><div class="summary-value" id="ozet-borclu">0 ₺</div></div>
             </div>
         </div>
@@ -112,7 +112,9 @@
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Ürün / İşlem Türü</label>
-                    <select id="s-tur"><option>Yem Satışı</option><option>Slaj Satışı</option><option>Arpa / Diğer</option></select>
+                    <select id="s-tur">
+                        <!-- Stoktaki ürünler buraya otomatik gelecek -->
+                    </select>
                 </div>
                 <div class="form-group"><label>Miktar</label><input type="number" id="s-miktar" placeholder="0"></div>
                 <div class="form-group"><label>Birim Fiyat (TL)</label><input type="number" id="s-fiyat" placeholder="0"></div>
@@ -125,9 +127,9 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📥 Stoğa Ürün Ekle</div>
             <div class="card">
-                <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Örn: Mısır Silajı"></div>
+                <div class="form-group"><label>Ürün Adı (Örn: Süt Yemi, Mısır Silajı vb.)</label><input type="text" id="g-urun" placeholder="Ürün adını yazın"></div>
                 <div class="form-group"><label>Miktar</label><input type="number" id="g-miktar" placeholder="0"></div>
-                <button class="btn-green" onclick="stokEkle()">Stoğa Ekle</button>
+                <button class="btn-green" onclick="stokEkle()">Stoğa Ürün Ekle</button>
             </div>
         </div>
 
@@ -136,7 +138,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💰 Tahsilat (Ödeme Al)</div>
             <div class="card">
-                <div class="form-group"><label>Müşteri Seç / Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
+                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
                 <div class="form-group"><label>Alınan Tutar (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
                 <button class="btn-green" onclick="tahsilatAl()">Ödemeyi Düş & Tahsil Et</button>
             </div>
@@ -200,9 +202,8 @@
     </div>
 
     <script>
-        // Bellek Verileri (Tarayıcıda saklanır)
         let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
-            islemler: [], // {id, tarih, tip, musteri, urun, miktar, fiyat, tutar, kalanBorc}
+            islemler: [],
             stoklar: {},   // {urunAdi: miktar}
             borclar: {}    // {musteriAdi: toplamBorc}
         };
@@ -210,6 +211,7 @@
         function kaydetVeri() {
             localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
             guncelleOzetler();
+            satisUrunleriniDoldur();
         }
 
         function openScreen(name) {
@@ -218,6 +220,7 @@
             document.getElementById('screen-' + name).classList.remove('hidden');
             window.scrollTo(0, 0);
 
+            if(name === 'satis') satisUrunleriniDoldur();
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
             if(name === 'musteriler') musterileriGoster();
@@ -233,6 +236,20 @@
             return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         }
 
+        // Satış ekranındaki ürün seçeneğini stoğa göre doldur
+        function satisUrunleriniDoldur() {
+            let select = document.getElementById('s-tur');
+            select.innerHTML = '';
+            let keys = Object.keys(veritabani.stoklar);
+            if(keys.length === 0) {
+                select.innerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
+                return;
+            }
+            keys.forEach(k => {
+                select.innerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]})</option>`;
+            });
+        }
+
         // SATIŞ YAP
         function satisKaydet() {
             let musteri = document.getElementById('s-musteri').value.trim();
@@ -241,10 +258,18 @@
             let fiyat = parseFloat(document.getElementById('s-fiyat').value) || 0;
             let tutar = miktar * fiyat;
 
-            if(!musteri || tutar <= 0) {
-                alert('Lütfen müşteri adı girin ve geçerli miktar/fiyat yazın.');
+            if(!musteri || !tur || tutar <= 0) {
+                alert('Lütfen müşteri adı seçin, ürün belirleyin ve miktar/fiyat girin.');
                 return;
             }
+
+            if((veritabani.stoklar[tur] || 0) < miktar) {
+                alert('Uyarı: Stokta bu miktarda ürün bulunmuyor!');
+                return;
+            }
+
+            // Stoktan düş
+            veritabani.stoklar[tur] -= miktar;
 
             // Borca ve işlemlere ekle
             veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + tutar;
@@ -260,14 +285,14 @@
             });
 
             kaydetVeri();
-            alert('Satış başarıyla kaydedildi ve müşterinin borcuna yansıtıldı!');
+            alert('Satış başarıyla kaydedildi, stoktan düşüldü ve borca yansıtıldı!');
             document.getElementById('s-musteri').value = '';
             document.getElementById('s-miktar').value = '';
             document.getElementById('s-fiyat').value = '';
             goHome();
         }
 
-        // TAHSİLAT YAP (Akıllı Düşüm: Ödeme alınınca borçtan düşer)
+        // TAHSİLAT YAP
         function tahsilatAl() {
             let musteri = document.getElementById('t-musteri').value.trim();
             let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
@@ -279,7 +304,7 @@
 
             let mevcutBorc = veritabani.borclar[musteri] || 0;
             if(mevcutBorc <= 0) {
-                alert('Bu müşterinin zaten kayıtlı borcu bulunmuyor.');
+                alert('Bu müşterinin kayıtlı borcu bulunmuyor.');
                 return;
             }
 
@@ -306,22 +331,19 @@
         function stokEkle() {
             let urun = document.getElementById('g-urun').value.trim();
             let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
-            if(!urun || miktar <= 0) { alert('Ürün adı ve miktar girin.'); return; }
+            if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve geçerli miktar girin.'); return; }
             
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
             kaydetVeri();
-            alert('Ürün stoğa eklendi.');
+            alert('Ürün stoğa başarıyla eklendi!');
             document.getElementById('g-urun').value = '';
             document.getElementById('g-miktar').value = '';
             goHome();
         }
 
-        // BORÇ VE ALIŞ DETAYLARI
         function borclariListele() {
             let arama = document.getElementById('borc-arama').value.toLowerCase();
             let html = '';
-            
-            // Müşterileri grupla
             let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
             
             musteriler.forEach(m => {
@@ -353,9 +375,14 @@
 
         function stoklariGoster() {
             let html = '<table><tr><th>Ürün Adı</th><th>Miktar</th></tr>';
-            for(let u in veritabani.stoklar) {
-                html += `<tr><td>${u}</td><td><b>${veritabani.stoklar[u]}</b></td></tr>`;
+            let keys = Object.keys(veritabani.stoklar);
+            if(keys.length === 0) {
+                document.getElementById('stok-listesi').innerHTML = '<p>Stokta ürün bulunmuyor.</p>';
+                return;
             }
+            keys.forEach(u => {
+                html += `<tr><td><b>${u}</b></td><td>${veritabani.stoklar[u]}</td></tr>`;
+            });
             html += '</table>';
             document.getElementById('stok-listesi').innerHTML = html;
         }
@@ -412,10 +439,12 @@
 
             document.getElementById('ozet-satis').innerText = ts + ' ₺';
             document.getElementById('ozet-tahsilat').innerText = tt + ' ₺';
+            document.getElementById('ozet-stok').innerText = Object.keys(veritabani.stoklar).length;
             document.getElementById('ozet-borclu').innerText = tb + ' ₺';
         }
 
         guncelleOzetler();
+        satisUrunleriniDoldur();
     </script>
 </body>
 </html>
