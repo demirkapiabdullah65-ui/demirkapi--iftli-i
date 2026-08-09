@@ -62,6 +62,18 @@
     <div class="container">
         <!-- ANA MENÜ -->
         <div id="screen-menu">
+            <!-- Hava Durumu Kartı -->
+            <div class="card" id="hava-durumu-kutusu" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:13px; opacity:0.9;">📍 Sakarya Çiftlik Konumu</div>
+                        <div id="hava-derece" style="font-size:28px; font-weight:bold; margin:4px 0;">Yükleniyor...</div>
+                        <div id="hava-durum-metin" style="font-size:13px;">Hava durumu bilgisi alınıyor</div>
+                    </div>
+                    <div id="hava-ikon" style="font-size:42px;">🌤️</div>
+                </div>
+            </div>
+
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş</div><div class="menu-desc">Telefondan talep gönder</div></div>
@@ -79,6 +91,8 @@
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">8. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
                 <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">9. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
                 <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">10. Gider / Masraf</div><div class="menu-desc">Mazot, yem, bakım vb.</div></div>
+                <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
+                <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
             </div>
         </div>
@@ -200,6 +214,38 @@
             </div>
         </div>
 
+        <!-- SESLİ ASİSTAN EKRANI -->
+        <div id="screen-sesli" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🎙️ Sesli Komut Asistanı</div>
+            <div class="card" style="text-align: center; padding: 30px 15px;">
+                <div style="font-size: 50px; margin-bottom: 15px;" id="mic-icon">🎤</div>
+                <div id="sesli-durum" style="font-weight: bold; font-size: 16px; color: #166534; margin-bottom: 15px;">Dinlemeye Hazır</div>
+                <div style="font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5;">
+                    Mikrofon butonuna basıp konuşun:<br>
+                    <i>Örn: "Ahmet'ten 5000 lira tahsilat aldım"</i> veya<br>
+                    <i>"Mehmet'e 2 adet yem satıldı"</i>
+                </div>
+                <button class="btn-green" onclick="sesliDinlemeyiBaslat()" style="font-size: 18px; padding: 16px;">🎙️ Konuşmaya Başla</button>
+                <div id="sesli-sonuc" style="margin-top: 20px; font-weight: bold; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; text-align: left;"></div>
+            </div>
+        </div>
+
+        <!-- YEDEKLEME EKRANI -->
+        <div id="screen-yedek" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">💾 Veri Yedekleme & Dışa Aktar</div>
+            <div class="card">
+                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini (stoklar, borçlar, satış geçmişi ve giderler) telefonuna veya bilgisayarına güvenli JSON dosyası olarak indirebilirsin.</p>
+                <button class="btn-green" onclick="verileriDisaAktar()">📥 Tüm Verileri Yedekle (JSON İndir)</button>
+            </div>
+            <div class="card" style="margin-top: 15px;">
+                <p style="font-size:13px; color:#555; line-height: 1.5;">Daha önce aldığın yedek dosyasını seçerek verileri geri yükleyebilirsin:</p>
+                <input type="file" id="yedek-dosya-input" accept=".json" style="margin-bottom: 10px;">
+                <button class="btn-secondary" onclick="verileriIceAktar()" style="width:100%; padding: 12px;">📤 Yedekten Geri Yükle</button>
+            </div>
+        </div>
+
         <!-- İŞLEM GEÇMİŞİ -->
         <div id="screen-gecmis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
@@ -282,6 +328,33 @@
             if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
         });
 
+        // Hava Durumu Çekme (Sakarya)
+        async function havaDurumuGetir() {
+            try {
+                // Sakarya koordinatları: 40.7569, 30.3783
+                let res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7569&longitude=30.3783&current_weather=true');
+                let data = await res.json();
+                if(data && data.current_weather) {
+                    let sicaklik = Math.round(data.current_weather.temperature);
+                    let kod = data.current_weather.weathercode;
+                    let aciklama = "Parçalı Bulutlu / Açık";
+                    let ikon = "🌤️";
+                    if(kod >= 1 && kod <= 3) { aciklama = "Bulutlu"; ikon = "☁️"; }
+                    else if(kod >= 51 && kod <= 67) { aciklama = "Yağmurlu"; ikon = "🌧️"; }
+                    else if(kod >= 71 && kod <= 77) { aciklama = "Karlı"; ikon = "❄️"; }
+                    else if(kod >= 95) { aciklama = "Fırtınalı"; ikon = "⚡"; }
+
+                    document.getElementById('hava-derece').innerText = sicaklik + "°C";
+                    document.getElementById('hava-durum-metin').innerText = aciklama + " - Tarla ve saha işleri için uygun.";
+                    document.getElementById('hava-ikon').innerText = ikon;
+                }
+            } catch(e) {
+                document.getElementById('hava-derece').innerText = "Sakarya";
+                document.getElementById('hava-durum-metin').innerText = "Hava durumu bilgisi yüklenemedi.";
+            }
+        }
+        havaDurumuGetir();
+
         function kaydetVeri() {
             db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
                 bekleyenRozetGuncelle();
@@ -302,7 +375,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'gunluk', 'aylik', 'gider', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'gunluk', 'aylik', 'gider', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -669,6 +742,109 @@
             document.getElementById('gider-listesi').innerHTML = html;
         }
 
+        // Sesli Asistan Mantığı
+        function sesliDinlemeyiBaslat() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Tarayıcınız sesli komut özelliğini desteklemiyor. Lütfen Chrome kullanın.');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'tr-TR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            document.getElementById('sesli-durum').innerText = 'Dinleniyor... Konuşun lütfen.';
+            document.getElementById('mic-icon').innerText = '🔴';
+
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const konusmaMetni = event.results[0][0].transcript;
+                document.getElementById('sesli-sonuc').innerHTML = `Algılanan: "<b>${konusmaMetni}</b>"`;
+                document.getElementById('sesli-durum').innerText = 'Dinleme Tamamlandı';
+                document.getElementById('mic-icon').innerText = '🎤';
+                sesliKomutuIsle(konusmaMetni);
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById('sesli-durum').innerText = 'Algılama hatası, tekrar deneyin.';
+                document.getElementById('mic-icon').innerText = '🎤';
+            };
+
+            recognition.onspeechend = function() {
+                recognition.stop();
+                document.getElementById('mic-icon').innerText = '🎤';
+            };
+        }
+
+        function sesliKomutuIsle(metin) {
+            let mKucuk = metin.toLocaleLowerCase('tr-TR');
+            
+            // Örnek Tahsilat algılama: "ahmet'ten 5000 lira tahsilat aldım"
+            if(mKucuk.includes('tahsilat') || mKucuk.includes('aldım') || mKucuk.includes('borç ödedi')) {
+                let rakamlar = metin.match(/\d+/g);
+                if(!rakamlar) { alert('Sesli komutta tutar algılanamadı.'); return; }
+                let tutar = parseFloat(rakamlar[rakamlar.length - 1]);
+                
+                // Müşteri adını yakalama basitçe kelimelerden ayıklama
+                let kelimeler = metin.split(' ');
+                let musteriAdi = kelimeler[0]; // İlk kelime isim kabul edilebilir
+                
+                let tarihSimdi = new Date().toISOString().slice(0, 16);
+                veritabani.borclar[musteriAdi] = Math.max(0, (veritabani.borclar[musteriAdi] || 0) - tutar);
+                veritabani.islemler.push({
+                    id: Date.now(),
+                    tarih: tarihSimdi,
+                    tip: 'Tahsilat',
+                    musteri: musteriAdi,
+                    kalemler: [],
+                    tutar: tutar,
+                    aciklama: 'Sesli Asistan Tahsilat'
+                });
+                kaydetVeri();
+                alert(`Sesli İşlem Başarılı: ${musteriAdi} isimli müşteriden ${tutar} ₺ tahsilat işlendi!`);
+                goHome();
+            } else {
+                alert(`Komut anlaşıldı ancak otomatik eşleştirilemedi: "${metin}". Lütfen menüden işlem yapın.`);
+            }
+        }
+
+        // Veri Yedekleme (JSON Dışa Aktar / İçe Aktar)
+        function verileriDisaAktar() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
+            let downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "demirkapi_ciftligi_yedek_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function verileriIceAktar() {
+            let fileInput = document.getElementById('yedek-dosya-input');
+            if(fileInput.files.length === 0) { alert('Lütfen bir yedek JSON dosyası seçin.'); return; }
+            
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let yuklenenVeri = JSON.parse(e.target.result);
+                    if(yuklenenVeri && yuklenenVeri.islemler) {
+                        veritabani = yuklenenVeri;
+                        kaydetVeri();
+                        alert('Yedek başarıyla geri yüklendi!');
+                        goHome();
+                    } else {
+                        alert('Geçersiz dosya formatı!');
+                    }
+                } catch(err) {
+                    alert('Dosya okunurken hata oluştu.');
+                }
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+
         function borclariListele() {
             let arama = document.getElementById('borc-arama').value.toLowerCase();
             let html = '';
@@ -718,7 +894,7 @@
                 let giren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0));
                 let satilan = satilanlar[u] || 0;
                 let kalan = veritabani.stoklar[u] || 0;
-                let kritikSinir = (veritabani.kritikStok && veritabani.kritikStok[u]) ? veritabani.kritikStok[u] : 5; // Varsayılan kritik sınır 5
+                let kritikSinir = (veritabani.kritikStok && veritabani.kritikStok[u]) ? veritabani.kritikStok[u] : 5;
 
                 let uyariHTML = kalan <= kritikSinir ? `<span style="background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; font-weight:bold;">⚠️ Kritik!</span>` : `<span style="color:#166534;">Normal</span>`;
 
@@ -735,7 +911,7 @@
 
         function musterileriGoster() {
             let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
-            let html = '<div style="margin-bottom:15px; font-size:13px; color:#555;">Borçlu müşterilere tek tıkla WhatsApp üzerinden borç hatırlatması gönderebilirsiniz:</div>';
+            let html = '<div style="margin-bottom:15px; font-size:13px; color:#555;">Borçlu müşterilere tek tıkla WhatsApp üzerinden borç hatırlatması gönderebilirsin:</div>';
             
             if(musteriler.length === 0) {
                 document.getElementById('musteri-listesi').innerHTML = 'Kayıtlı müşteri yok.';
@@ -755,7 +931,7 @@
                                 ${borc > 0 ? `<a href="https://wa.me/?text=${whatsappMesaj}" target="_blank" style="background:#25d366; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:4px;">💬 WhatsApp</a>` : ''}
                                 <button class="btn-danger" style="padding:4px 8px;" onclick="musteriSil('${m}')">Sil</button>
                             </div>
-                         </li>`;
+                         </div>`;
             });
             document.getElementById('musteri-listesi').innerHTML = html;
         }
@@ -804,7 +980,7 @@
         }
 
         function aylikRaporuGoster() {
-            let secilenAy = document.getElementById('aylik-tarih').value; // Örn: "2026-08"
+            let secilenAy = document.getElementById('aylik-tarih').value;
             if(!secilenAy) return;
 
             let aylikSatislar = (veritabani.islemler || []).filter(i => i.tip === 'Satış' && i.tarih.startsWith(secilenAy));
