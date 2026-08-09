@@ -603,23 +603,25 @@
                 let bakiye = veritabani.borclar[m] || 0;
                 
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
                         <h3 style="margin:0; color:#166534; font-size:16px;">👤 ${m}</h3>
-                        <span style="font-size:14px; font-weight:bold; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:14px; font-weight:bold; color:${bakiye > 0 ? '#dc2626':'#166534'}">Kalan Borç: ${bakiye} ₺</span>
+                            <button class="btn-secondary" style="padding:4px 8px; font-size:11px; margin-bottom:0;" onclick="musteriOzetFisGoster('${m}')">🖨️ Fiş / PDF</button>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table>
                             <tr>
-                                <th style="width:22%;">Tarih</th>
-                                <th style="width:38%;">İşlem / Ürün Detay</th>
+                                <th style="width:25%;">Tarih</th>
+                                <th style="width:45%;">İşlem / Ürün Detay</th>
                                 <th style="width:15%;">Tutar</th>
                                 <th style="width:15%;">Ödeme</th>
-                                <th style="width:10%;">Fiş</th>
                             </tr>`;
                 
                 let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
                 if(musteriIslemleri.length === 0) {
-                    html += `<tr><td colspan="5">Kayıt bulunmuyor.</td></tr>`;
+                    html += `<tr><td colspan="4">Kayıt bulunmuyor.</td></tr>`;
                 } else {
                     musteriIslemleri.forEach(islem => {
                         let tarihStr = formatliTarihGoster(islem.tarih);
@@ -639,14 +641,11 @@
                             odemeTutarHucre = `<b style="color:#2563eb;">${islem.tutar} ₺</b>`;
                         }
 
-                        let fisBtn = (islem.tip === 'Satış' && islem.id) ? `<button class="btn-secondary" style="padding:4px 6px; font-size:10px; margin-bottom:0;" onclick="fisGoster(${islem.id}, 'borc')">🖨️ Fiş</button>` : '-';
-
                         html += `<tr>
                             <td style="white-space:nowrap; font-size:11px;">${tarihStr}</td>
                             <td>${urunDetay}</td>
                             <td style="color:#dc2626;">${satisTutarHucre}</td>
                             <td>${odemeTutarHucre}</td>
-                            <td>${fisBtn}</td>
                         </tr>`;
                     });
                 }
@@ -717,36 +716,34 @@
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'İşlem yok.';
         }
 
-        let aktifDonusEkrani = 'borc';
-        function fisGoster(islemId, donusYeri = 'borc') {
-            aktifDonusEkrani = donusYeri;
-            let islem = veritabani.islemler.find(i => i.id === islemId);
-            if(!islem) { alert('İşlem bulunamadı.'); return; }
+        function musteriOzetFisGoster(musteriAdi) {
+            let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
+            let bakiye = veritabani.borclar[musteriAdi] || 0;
 
             let fisHtml = `
                 <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:5px;">DEMİRKAPI ÇİFTLİĞİ</div>
-                <div style="text-align:center; font-size:11px; margin-bottom:15px;">Satış Bilgi Fişi</div>
+                <div style="text-align:center; font-size:11px; margin-bottom:15px;">Müşteri Hesap ve Borç Özeti</div>
                 <div style="font-size:12px; margin-bottom:10px;">
-                    <b>Tarih:</b> ${formatliTarihGoster(islem.tarih)}<br>
-                    <b>Müşteri:</b> ${islem.musteri}<br>
-                    <b>Açıklama:</b> ${islem.aciklama || '-' }
+                    <b>Müşteri:</b> ${musteriAdi}<br>
+                    <b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}
                 </div>
                 <hr style="border:0; border-top:1px dashed #333; margin:10px 0;">
-                <table style="width:100%; font-size:12px;">
+                <table style="width:100%; font-size:11px;">
                     <tr>
-                        <th style="background:none; padding:2px;">Ürün</th>
-                        <th style="background:none; padding:2px; text-align:center;">Miktar</th>
-                        <th style="background:none; padding:2px; text-align:right;">Fiyat</th>
-                        <th style="background:none; padding:2px; text-align:right;">Toplam</th>
+                        <th style="background:none; padding:2px;">Tarih</th>
+                        <th style="background:none; padding:2px;">İşlem Detay</th>
+                        <th style="background:none; padding:2px; text-align:right;">Tutar</th>
                     </tr>`;
 
-            if(islem.kalemler && islem.kalemler.length > 0) {
-                islem.kalemler.forEach(k => {
+            if(musteriIslemleri.length === 0) {
+                fisHtml += `<tr><td colspan="3" style="padding:5px;">İşlem kaydı yok.</td></tr>`;
+            } else {
+                musteriIslemleri.forEach(i => {
+                    let detayMetni = i.tip === 'Satış' ? (i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar}ad)`).join(', ') : 'Satış') : `Ödeme (${i.aciklama || 'Nakit'})`;
                     fisHtml += `<tr>
-                        <td style="padding:2px;">${k.tur}</td>
-                        <td style="padding:2px; text-align:center;">${k.miktar}</td>
-                        <td style="padding:2px; text-align:right;">${k.fiyat} ₺</td>
-                        <td style="padding:2px; text-align:right;">${k.tutar} ₺</td>
+                        <td style="padding:2px; white-space:nowrap;">${formatliTarihGoster(i.tarih)}</td>
+                        <td style="padding:2px;">${i.tip}: ${detayMetni}</td>
+                        <td style="padding:2px; text-align:right;">${i.tutar} ₺</td>
                     </tr>`;
                 });
             }
@@ -754,8 +751,8 @@
             fisHtml += `
                 </table>
                 <hr style="border:0; border-top:1px dashed #333; margin:10px 0;">
-                <div style="text-align:right; font-size:14px; font-weight:bold;">
-                    GENEL TOPLAM: ${islem.tutar} ₺
+                <div style="text-align:right; font-size:14px; font-weight:bold; color:${bakiye > 0 ? 'red':'green'};">
+                    GÜNCEL KALAN BORÇ: ${bakiye} ₺
                 </div>
                 <div style="text-align:center; font-size:10px; margin-top:20px; color:#555;">
                     Bizi tercih ettiğiniz için teşekkür ederiz.<br>Demirkapi Ciftligi Sistemleri
@@ -763,11 +760,8 @@
             `;
 
             document.getElementById('fis-alani').innerHTML = fisHtml;
-            
-            // Geri dönüş butonunu dinamik ayarla
-            let geriButonText = donusYeri === 'borc' ? '⬅️ Borç Takibine Dön' : '⬅️ İşlem Geçmişine Dön';
-            document.querySelector('#screen-fis .btn-back').setAttribute('onclick', `openScreen('${donusYeri}')`);
-            document.querySelector('#screen-fis .btn-back').innerText = geriButonText;
+            document.querySelector('#screen-fis .btn-back').setAttribute('onclick', `openScreen('borc')`);
+            document.querySelector('#screen-fis .btn-back').innerText = '⬅️ Borç Takibine Dön';
 
             openScreen('fis');
         }
@@ -776,7 +770,7 @@
             const element = document.getElementById('fis-alani');
             const opt = {
                 margin:       10,
-                filename:     'Demirkapi_Satis_Fisi.pdf',
+                filename:     'Demirkapi_Musteri_Hesap_Ozeti.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
