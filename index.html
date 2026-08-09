@@ -93,11 +93,12 @@
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
                 <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
                 <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Mazot, yem vb.</div></div>
-                <!-- Eklenen 7 Özellik Modülü Kartı -->
+                <!-- Eklenen Modüller -->
                 <div class="menu-card" onclick="openScreen('fiyatlistesi')"><div class="menu-icon">🏷️</div><div class="menu-title">13. Fiyat Listesi</div><div class="menu-desc">Süt & ürün satış fiyatları</div></div>
                 <div class="menu-card" onclick="openScreen('vade')"><div class="menu-icon">⏳</div><div class="menu-title">14. Vade Takibi</div><div class="menu-desc">Çek / senet vadeleri</div></div>
                 <div class="menu-card" onclick="openScreen('banka')"><div class="menu-icon">🏦</div><div class="menu-title">15. Banka & Havale</div><div class="menu-desc">Banka tahsilat eşleştir</div></div>
                 <div class="menu-card" onclick="openScreen('hizlitahsilat')"><div class="menu-icon">⚡</div><div class="menu-title">16. Hızlı Tahsilat</div><div class="menu-desc">Tek tıkla ödeme düş</div></div>
+                <div class="menu-card" onclick="openScreen('fason')"><div class="menu-icon">🚜</div><div class="menu-title">17. Fason Biçme & İşler</div><div class="menu-desc">Tarla & biçme hizmetleri</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -246,7 +247,7 @@
             </div>
         </div>
 
-        <!-- 13. FİYAT LİSTESİ (YENİ MODÜL) -->
+        <!-- 13. FİYAT LİSTESİ -->
         <div id="screen-fiyatlistesi" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🏷️ Süt ve Çiftlik Ürün Fiyat Listesi</div>
@@ -260,7 +261,7 @@
             </div>
         </div>
 
-        <!-- 14. VADE TAKİBİ - ÇEK/SENET (YENİ MODÜL) -->
+        <!-- 14. VADE TAKİBİ - ÇEK/SENET -->
         <div id="screen-vade" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">⏳ Çek / Senet & Vade Takip Tablosu</div>
@@ -276,7 +277,7 @@
             </div>
         </div>
 
-        <!-- 15. BANKA & HAVALE EŞLEŞTİRME (YENİ MODÜL) -->
+        <!-- 15. BANKA & HAVALE EŞLEŞTİRME -->
         <div id="screen-banka" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🏦 Banka Havale / Tahsilat Eşleştirme</div>
@@ -290,7 +291,7 @@
             </div>
         </div>
 
-        <!-- 16. HIZLI TAHSİLAT (YENİ MODÜL) -->
+        <!-- 16. HIZLI TAHSİLAT -->
         <div id="screen-hizlitahsilat" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">⚡ Hızlı Borç Ödeme & Tahsilat</div>
@@ -299,6 +300,34 @@
                 <div class="form-group"><label>Tahsil Edilecek Tutar (TL)</label><input type="number" id="ht-tutar" placeholder="0"></div>
                 <div class="form-group"><label>Açıklama</label><input type="text" id="ht-aciklama" value="Hızlı Tahsilat"></div>
                 <button class="btn-green" onclick="hizliTahsilatYap()">Tek Tıkla Borçtan Düş</button>
+            </div>
+        </div>
+
+        <!-- 17. FASON BİÇME VE TARLA İŞLERİ (YENİ EKLENEN ÖZELLİK) -->
+        <div id="screen-fason" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🚜 Fason Biçme & Tarla İşleri (Resmi Faturalı)</div>
+            <div class="card">
+                <div class="form-group"><label>Tarih ve Saat</label><input type="datetime-local" id="fason-tarih"></div>
+                <div class="form-group"><label>Müşteri / Çiftçi Adı</label><input type="text" id="fason-musteri" placeholder="Ad Soyad"></div>
+                <div class="form-group"><label>İşlem Türü</label>
+                    <select id="fason-tur">
+                        <option value="Biçme">Biçme (Biçerdöver / Çayır Biçme)</option>
+                        <option value="Sürme">Tarla Sürme / Sürüm</option>
+                        <option value="Ekim">Ekim İşlemi</option>
+                        <option value="Slaj Paketleme">Slaj Paketleme Hizmeti</option>
+                        <option value="Nakliye">Tarım Nakliyesi</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Alan / Miktar (Dönüm / Adet)</label><input type="number" id="fason-donum" placeholder="0"></div>
+                <div class="form-group"><label>Birim Fiyat (TL)</label><input type="number" id="fason-birim" placeholder="0"></div>
+                <div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="fason-pesin" placeholder="0"></div>
+                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="fason-not" placeholder="Fason iş detayları"></div>
+                <button class="btn-green" onclick="fasonIsKaydet()">Fason İşi Kaydet & Otomatik Fatura Kes 🚀</button>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Geçmiş Fason ve Hizmet İşleri</h3>
+                <div id="fason-listesi">Kayıtlı fason iş bulunmuyor.</div>
             </div>
         </div>
 
@@ -382,11 +411,11 @@
             storageBucket: "demirkapi-ca886.firebasestorage.app",
             messagingSenderId: "222198402724",
             appId: "1:222198402724:web:416fd76dc0b64c9e296031",
-            databaseURL: "https://demirkapi-ca886-default-rtdb.europe-west1.firebasedatabase.app"
+            databaseURL: "https://demirkapi-ca886-default-rtdb.europe-west1.firebasestorage.app"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: {}, vadeler: [] };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: [], vadeler: [], fasonIsler: [] };
 
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
@@ -403,6 +432,7 @@
                 if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
                 if(!veritabani.fiyatlar) veritabani.fiyatlar = {};
                 if(!veritabani.vadeler) veritabani.vadeler = [];
+                if(!veritabani.fasonIsler) veritabani.fasonIsler = [];
             }
 
             const yeniSayi = veritabani.bekleyenler.length;
@@ -421,6 +451,7 @@
             if (!document.getElementById('screen-fiyatlistesi').classList.contains('hidden')) fiyatlariGoster();
             if (!document.getElementById('screen-vade').classList.contains('hidden')) vadeleriGoster();
             if (!document.getElementById('screen-hizlitahsilat').classList.contains('hidden')) hizliTahsilatMusterileriDoldur();
+            if (!document.getElementById('screen-fason').classList.contains('hidden')) fasonIsleriGoster();
         });
 
         // Hava Durumu Çekme (Sakarya)
@@ -469,7 +500,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'fason', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -500,6 +531,15 @@
                 document.getElementById('b-tutar').value = '';
                 document.getElementById('b-aciklama').value = '';
             }
+            if(name === 'fason') {
+                document.getElementById('fason-tarih').value = simdikiTarihInputFormat();
+                document.getElementById('fason-musteri').value = '';
+                document.getElementById('fason-donum').value = '';
+                document.getElementById('fason-birim').value = '';
+                document.getElementById('fason-pesin').value = '';
+                document.getElementById('fason-not').value = '';
+                fasonIsleriGoster();
+            }
             if(name === 'gunluk') {
                 let bugun = new Date().toISOString().split('T')[0];
                 document.getElementById('rapor-tarih').value = bugun;
@@ -528,7 +568,112 @@
 
         function goHome() { openScreen('menu'); }
 
-        // Yeni Eklenen Modül Fonksiyonları
+        // Fason Biçme ve Tarla İşleri Fonksiyonları
+        function fasonIsKaydet() {
+            let tarih = document.getElementById('fason-tarih').value;
+            let musteri = document.getElementById('fason-musteri').value.trim();
+            let islemTur = document.getElementById('fason-tur').value;
+            let donum = parseFloat(document.getElementById('fason-donum').value) || 0;
+            let birimFiyat = parseFloat(document.getElementById('fason-birim').value) || 0;
+            let pesinTutar = parseFloat(document.getElementById('fason-pesin').value) || 0;
+            let notBilgi = document.getElementById('fason-not').value.trim() || 'Fason Hizmet';
+
+            if(!tarih || !musteri || donum <= 0 || birimFiyat <= 0) {
+                alert('Lütfen tarih, müşteri, miktar ve birim fiyatı eksiksiz girin.');
+                return;
+            }
+
+            let toplamTutar = donum * birimFiyat;
+            let islemId = Date.now();
+
+            if(!veritabani.fasonIsler) veritabani.fasonIsler = [];
+            veritabani.fasonIsler.push({
+                id: islemId,
+                tarih: tarih,
+                musteri: musteri,
+                islemTur: islemTur,
+                donum: donum,
+                birimFiyat: birimFiyat,
+                toplamTutar: toplamTutar,
+                pesinTutar: pesinTutar,
+                notBilgi: notBilgi
+            });
+
+            // Resmi Fatura Kaydı ve Finans Entegrasyonu
+            veritabani.islemler.push({
+                id: islemId,
+                tarih: tarih,
+                tip: 'Satış',
+                musteri: musteri,
+                kalemler: [{ tur: `Fason ${islemTur} (${donum} Dönüm/Adet)`, miktar: donum, fiyat: birimFiyat, tutar: toplamTutar }],
+                tutar: toplamTutar,
+                aciklama: `Resmi Fatura: Fason ${islemTur} Hizmeti - ${notBilgi}`
+            });
+
+            let kalanBorc = toplamTutar - pesinTutar;
+            if(kalanBorc > 0) {
+                veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + kalanBorc;
+            }
+
+            if(pesinTutar > 0) {
+                veritabani.islemler.push({
+                    id: islemId + 1,
+                    tarih: tarih,
+                    tip: 'Tahsilat',
+                    musteri: musteri,
+                    kalemler: [],
+                    tutar: pesinTutar,
+                    aciklama: `Fason ${islemTur} Peşinatı`
+                });
+            }
+
+            kaydetVeri();
+            alert('Fason iş kaydedildi, resmi faturası kesildi ve borç/kasa güncellendi!');
+            document.getElementById('fason-musteri').value = '';
+            document.getElementById('fason-donum').value = '';
+            document.getElementById('fason-birim').value = '';
+            document.getElementById('fason-pesin').value = '';
+            document.getElementById('fason-not').value = '';
+            fasonIsleriGoster();
+        }
+
+        function fasonIsleriGoster() {
+            let fasonlar = veritabani.fasonIsler || [];
+            if(fasonlar.length === 0) {
+                document.getElementById('fason-listesi').innerHTML = '<p>Kayıtlı fason iş bulunmuyor.</p>';
+                return;
+            }
+            let html = '<table><tr><th>Tarih</th><th>Müşteri</th><th>Hizmet</th><th>Miktar</th><th>Toplam</th><th>Sil</th></tr>';
+            fasonlar.slice().reverse().forEach(f => {
+                html += `<tr>
+                    <td style="font-size:11px;">${formatliTarihGoster(f.tarih)}</td>
+                    <td><b>${f.musteri}</b></td>
+                    <td>${f.islemTur}</td>
+                    <td>${f.donum}</td>
+                    <td style="color:#166534; font-weight:bold;">${f.toplamTutar} ₺</td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="fasonSil(${f.id})">Sil</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            document.getElementById('fason-listesi').innerHTML = html;
+        }
+
+        function fasonSil(id) {
+            if(!confirm('Bu fason kaydını silmek istediğinize emin misiniz?')) return;
+            let fasonKaydi = veritabani.fasonIsler.find(f => f.id === id);
+            if(fasonKaydi) {
+                let kalan = fasonKaydi.toplamTutar - fasonKaydi.pesinTutar;
+                if(kalan > 0 && veritabani.borclar[fasonKaydi.musteri]) {
+                    veritabani.borclar[fasonKaydi.musteri] = Math.max(0, veritabani.borclar[fasonKaydi.musteri] - kalan);
+                }
+            }
+            veritabani.fasonIsler = veritabani.fasonIsler.filter(f => f.id !== id);
+            veritabani.islemler = veritabani.islemler.filter(i => i.id !== id && i.id !== id + 1);
+            kaydetVeri();
+            fasonIsleriGoster();
+        }
+
+        // Diğer Fonksiyonlar (Fiyat, Vade, Banka, Satış vb.)
         function fiyatEkle() {
             let urun = document.getElementById('fl-urun').value.trim();
             let fiyat = parseFloat(document.getElementById('fl-fiyat').value) || 0;
@@ -763,16 +908,21 @@
             let toplamSepetTutar = 0;
 
             for(let item of talep.kalemler) {
-                let mevcutStok = veritabani.stoklar[item.tur] || 0;
-                if(mevcutStok < item.miktar) {
-                    alert('Hata: "' + item.tur + '" için stokta yeterli adet yok! (Stok: ' + mevcutStok + ' Adet)');
-                    return;
+                // Eğer kalem bir stok ürünü ise stok kontrolü yapalım (Fason işlerde stok düşülmez)
+                if(veritabani.stoklar[item.tur] !== undefined) {
+                    let mevcutStok = veritabani.stoklar[item.tur] || 0;
+                    if(mevcutStok < item.miktar) {
+                        alert('Hata: "' + item.tur + '" için stokta yeterli adet yok! (Stok: ' + mevcutStok + ' Adet)');
+                        return;
+                    }
                 }
                 toplamSepetTutar += item.tutar;
             }
 
             talep.kalemler.forEach(item => {
-                veritabani.stoklar[item.tur] -= item.miktar;
+                if(veritabani.stoklar[item.tur] !== undefined) {
+                    veritabani.stoklar[item.tur] -= item.miktar;
+                }
             });
 
             let islemId = Date.now();
@@ -806,7 +956,7 @@
 
             veritabani.bekleyenler.splice(index, 1);
             kaydetVeri();
-            alert('Satış onaylandı ve stoktan adet bazlı düşüldü!');
+            alert('Satış onaylandı!');
             onayBekleyenleriGoster();
         }
 
@@ -827,10 +977,12 @@
             if(islem.tip === 'Satış') {
                 if(islem.kalemler) {
                     islem.kalemler.forEach(k => {
-                        veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
+                        if(veritabani.stoklar[k.tur] !== undefined) {
+                            veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
+                        }
                     });
                 }
-                let pesinIdx = veritabani.islemler.findIndex(i => i.musteri === islem.musteri && i.tip === 'Tahsilat' && i.aciklama === 'Satış Peşinatı' && Math.abs(new Date(i.tarih) - new Date(islem.tarih)) < 5000);
+                let pesinIdx = veritabani.islemler.findIndex(i => i.musteri === islem.musteri && i.tip === 'Tahsilat' && (i.aciklama === 'Satış Peşinatı' || i.aciklama.includes('Peşinatı')) && Math.abs(new Date(i.tarih) - new Date(islem.tarih)) < 5000);
                 let pesinTutar = 0;
                 if(pesinIdx !== -1) {
                     pesinTutar = veritabani.islemler[pesinIdx].tutar;
@@ -867,6 +1019,7 @@
             veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
             delete veritabani.borclar[musteriAdi];
             veritabani.bekleyenler = veritabani.bekleyenler.filter(t => t.musteri !== musteriAdi);
+            veritabani.fasonIsler = veritabani.fasonIsler.filter(f => f.musteri !== musteriAdi);
             kaydetVeri();
             musterileriGoster();
         }
@@ -1210,7 +1363,12 @@
             let satilanlar = {};
             (veritabani.islemler || []).forEach(i => {
                 if(i.tip === 'Satış' && i.kalemler) {
-                    i.kalemler.forEach(k => { satilanlar[k.tur] = (satilanlar[k.tur] || 0) + k.miktar; });
+                    i.kalemler.forEach(k => { 
+                        // Fason ve hizmet kalemlerini stok sayımından hariç tutalım
+                        if(veritabani.stoklar[k.tur] !== undefined || veritabani.girisler[k.tur] !== undefined) {
+                            satilanlar[k.tur] = (satilanlar[k.tur] || 0) + k.miktar; 
+                        }
+                    });
                 }
             });
 
@@ -1275,7 +1433,7 @@
                     toplamSatis += i.tutar;
                     let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} Adet)`).join(', ') : '';
                     detayHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bbf7d0;">
-                        <div style="font-weight:bold; color:#166534;">👤 ${i.musteri} (Satış)</div>
+                        <div style="font-weight:bold; color:#166534;">👤 ${i.musteri} (Satış / Hizmet)</div>
                         <div style="font-size:13px; color:#333;">Ürünler: ${urunlerStr}</div>
                         <div style="font-size:13px; font-weight:bold; color:#dc2626; margin-top:4px;">Tutar: ${i.tutar} ₺</div>
                     </div>`;
@@ -1292,7 +1450,7 @@
             document.getElementById('rapor-ozet').innerHTML = `
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
                     <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;">
-                        <div style="font-size:12px; color:#555;">Toplam Satış</div>
+                        <div style="font-size:12px; color:#555;">Toplam Satış & Hizmet</div>
                         <div style="font-weight:bold; color:#dc2626; font-size:16px;">${toplamSatis} ₺</div>
                     </div>
                     <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;">
@@ -1320,7 +1478,7 @@
             document.getElementById('aylik-ozet-alani').innerHTML = `
                 <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
-                        <div style="font-size:13px; color:#166534; font-weight:bold;">Aylık Toplam Ciro (Satışlar)</div>
+                        <div style="font-size:13px; color:#166534; font-weight:bold;">Aylık Toplam Ciro (Satış & Hizmetler)</div>
                         <div style="font-size:22px; font-weight:bold; color:#166534;">${toplamCiro} ₺</div>
                     </div>
                     <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
@@ -1363,10 +1521,10 @@
                 let tarihStr = formatliTarihGoster(i.tarih);
                 if(i.tip === 'Satış') {
                     fisHtml += `<div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px;">
-                        <div style="font-size:11px; color:#666; margin-bottom:4px;">📅 ${tarihStr} - SATIŞ</div>`;
+                        <div style="font-size:11px; color:#666; margin-bottom:4px;">📅 ${tarihStr} - SATIŞ / HİZMET</div>`;
                     if(i.kalemler) {
                         i.kalemler.forEach(k => {
-                            fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar} Adet x ${k.fiyat}₺)</span><b>${k.tutar} ₺</b></div>`;
+                            fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar} x ${k.fiyat}₺)</span><b>${k.tutar} ₺</b></div>`;
                         });
                     }
                     fisHtml += `</div>`;
