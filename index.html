@@ -5,43 +5,128 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demirkapı Çiftliği</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 15px; background-color: #f4f4f4; margin: 0; }
-        h1 { font-size: 20px; color: #2e7d32; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; box-sizing: border-box; }
-        .section { display: none; background: white; padding: 15px; border-radius: 8px; margin-top: 10px; text-align: left; }
-        .active { display: block; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f4f4; margin: 0; padding-bottom: 70px; }
+        .header { background-color: #2e7d32; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-box { background: #ffeb3b; padding: 8px 12px; border-radius: 8px; font-weight: bold; color: #333; }
+        .status-badge { background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 15px; font-size: 12px; }
+        
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        h2 { font-size: 22px; color: #111; margin-bottom: 15px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: white; padding: 20px 15px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: none; width: 100%; box-sizing: border-box; }
+        .card span { font-size: 28px; display: block; margin-bottom: 10px; }
+        .card h3 { font-size: 15px; color: #222; margin: 0 0 5px 0; }
+        .card p { font-size: 11px; color: #666; margin: 0; }
+
+        /* Alt Menü */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #2e7d32; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); }
+        .nav-item { color: white; text-align: center; text-decoration: none; font-size: 11px; flex: 1; cursor: pointer; }
+        .nav-item span { font-size: 20px; display: block; }
+        
+        .section { display: none; }
+        .active-section { display: block; }
     </style>
 </head>
 <body>
-    <h1>DEMİRKAPI ÇİFTLİĞİ</h1>
-    <p>Sistem Aktif</p>
 
-    <!-- Butonlar -->
-    <button class="btn" onclick="goster('satis')">1. Satış / Giriş Yap</button>
-    <button class="btn" onclick="goster('onay')">2. Onay Bekleyenler (Canlı)</button>
-
-    <!-- Satış İçeriği -->
-    <div id="satis" class="section active">
-        <h3>Satış Ekranı</h3>
-        <p>Buradan satış ve giriş işlemlerini yapabilirsin.</p>
-        <button class="btn" onclick="goster('anasayfa')" style="background-color: #d32f2f;">Geri Dön</button>
+    <div class="header">
+        <div class="logo-area">
+            <div class="logo-box">🌾</div>
+            <div>
+                <div style="font-weight: bold; font-size: 16px;">DEMİRKAPI</div>
+                <div style="font-size: 11px; opacity: 0.9;">ÇİFTLİĞİ</div>
+            </div>
+        </div>
+        <div class="status-badge">🔄 Çevrimiçi</div>
     </div>
 
-    <!-- Onay İçeriği -->
-    <div id="onay" class="section">
-        <h3>Onay Bekleyenler</h3>
-        <p>Burada diğer telefondan gelen talepler listelenir.</p>
-        <button class="btn" onclick="goster('anasayfa')" style="background-color: #d32f2f;">Geri Dön</button>
+    <div class="container">
+        <!-- ANA SAYFA -->
+        <div id="sec-anasayfa" class="section active-section">
+            <h2>Ana Sayfa</h2>
+            <div class="grid">
+                <button class="card" onclick="sayfaGecis('satis')">
+                    <span>🛒</span>
+                    <h3>1. Satış / Giriş Yap</h3>
+                    <p>Telefondan talep gönder</p>
+                </button>
+                <button class="card" onclick="sayfaGecis('onay')">
+                    <span>🔔</span>
+                    <h3>2. Onay Bekleyenler</h3>
+                    <p>Cebinden onayla</p>
+                </button>
+                <button class="card" onclick="sayfaGecis('stok-ekle')">
+                    <span>📥</span>
+                    <h3>3. Stok Ekle</h3>
+                    <p>Stoğa ürün ekle</p>
+                </button>
+                <button class="card" onclick="sayfaGecis('tahsilat')">
+                    <span>💰</span>
+                    <h3>4. Tahsilat</h3>
+                    <p>Ödeme kaydı & açıklama</p>
+                </button>
+                <button class="card" onclick="sayfaGecis('borc')">
+                    <span>📒</span>
+                    <h3>5. Borç Takibi</h3>
+                    <p>Müşteri detaylı borçlar</p>
+                </button>
+                <button class="card" onclick="sayfaGecis('stok')">
+                    <span>📦</span>
+                    <h3>6. Stok</h3>
+                    <p>Mevcut stok</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- DİĞER SAYFALARIN İÇERİK ALANLARI -->
+        <div id="sec-satis" class="section">
+            <h2>Satış / Giriş Yap</h2>
+            <p>Buradan yeni satış ve giriş işlemlerini yapabilirsin. Diğer telefona anında düşer.</p>
+            <button class="card" style="background:#e0e0e0;" onclick="sayfaGecis('anasayfa')">⬅ Ana Sayfaya Dön</button>
+        </div>
+
+        <div id="sec-onay" class="section">
+            <h2>Onay Bekleyenler</h2>
+            <p>Diğer telefondan gelen işlemler burada listelenir.</p>
+            <button class="card" style="background:#e0e0e0;" onclick="sayfaGecis('anasayfa')">⬅ Ana Sayfaya Dön</button>
+        </div>
+
+        <div id="sec-tahsilat" class="section">
+            <h2>Tahsilat</h2>
+            <p>Ödeme ve tahsilat işlemleri.</p>
+            <button class="card" style="background:#e0e0e0;" onclick="sayfaGecis('anasayfa')">⬅ Ana Sayfaya Dön</button>
+        </div>
+
+        <div id="sec-borc" class="section">
+            <h2>Borç Takibi</h2>
+            <p>Müşteri borç listesi.</p>
+            <button class="card" style="background:#e0e0e0;" onclick="sayfaGecis('anasayfa')">⬅ Ana Sayfaya Dön</button>
+        </div>
+    </div>
+
+    <!-- ALT MENÜ ÇUBUĞU -->
+    <div class="bottom-nav">
+        <a class="nav-item" onclick="sayfaGecis('anasayfa')">
+            <span>🏠</span> Ana Sayfa
+        </a>
+        <a class="nav-item" onclick="sayfaGecis('satis')">
+            <span>🛒</span> Satış
+        </a>
+        <a class="nav-item" onclick="sayfaGecis('onay')">
+            <span>🔔</span> Onay
+        </a>
+        <a class="nav-item" onclick="sayfaGecis('borc')">
+            <span>📒</span> Borçlar
+        </a>
     </div>
 
     <script>
-        function goster(bolumID) {
-            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-            if(bolumID === 'anasayfa') {
-                // Ana ekranda butonlar görünsün
-            } else {
-                document.getElementById(bolumID).classList.add('active');
-            }
+        function sayfaGecis(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-section'));
+            document.getElementById('sec-' + id).classList.add('active-section');
+            window.scrollTo(0, 0);
         }
     </script>
 </body>
