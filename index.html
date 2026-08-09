@@ -220,6 +220,9 @@
             if (!document.getElementById('screen-onay').classList.contains('hidden')) {
                 onayBekleyenleriGoster();
             }
+            if (!document.getElementById('screen-musteriler').classList.contains('hidden')) {
+                musterileriGoster();
+            }
         });
 
         if ("Notification" in window && Notification.permission === "default") {
@@ -398,7 +401,6 @@
                 veritabani.stoklar[item.tur] -= item.miktar;
             });
 
-            // Benzersiz benzersiz işlem ID'si atıyoruz ki silerken tam olarak bu işlem bulunsun
             let islemId = Date.now();
 
             veritabani.islemler.push({
@@ -418,7 +420,7 @@
 
             if(talep.pesinTutar > 0) {
                 veritabani.islemler.push({
-                    id: islemId + 1, // Farklı ID
+                    id: islemId + 1,
                     tarih: talep.tarih,
                     tip: 'Tahsilat',
                     musteri: talep.musteri,
@@ -454,20 +456,17 @@
             let islem = veritabani.islemler[index];
 
             if(islem.tip === 'Satış') {
-                // Stoğu iade et
                 if(islem.kalemler && islem.kalemler.length > 0) {
                     islem.kalemler.forEach(k => {
                         veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
                     });
                 }
-                // Borçtan düş (Eğer bu satış borç yazdırdıysa)
-                // Peşinat varsa onu da kontrol edeceğiz
                 let pesinKayitIndex = veritabani.islemler.findIndex(i => i.musteri === islem.musteri && i.tip === 'Tahsilat' && i.aciklama === 'Satış Peşinatı' && Math.abs(new Date(i.tarih) - new Date(islem.tarih)) < 5000);
                 
                 let pesinTutar = 0;
                 if(pesinKayitIndex !== -1) {
                     pesinTutar = veritabani.islemler[pesinKayitIndex].tutar;
-                    veritabani.islemler.splice(pesinKayitIndex, 1); // Peşinat kaydını da sil
+                    veritabani.islemler.splice(pesinKayitIndex, 1);
                 }
 
                 let kalanBorc = islem.tutar - pesinTutar;
@@ -475,14 +474,11 @@
                     veritabani.borclar[islem.musteri] = Math.max(0, veritabani.borclar[islem.musteri] - kalanBorc);
                 }
             } else if(islem.tip === 'Tahsilat') {
-                // Eğer tahsilat siliniyorsa müşterinin borcunu geri ekle
                 if(veritabani.borclar[islem.musteri] !== undefined) {
                     veritabani.borclar[islem.musteri] += islem.tutar;
                 }
             }
 
-            // İşlemi listeden sil
-            // Not: index tekrar değişmiş olabilir çünkü peşinatı sildik, id ile yeniden bulalım:
             let guncelIndex = veritabani.islemler.findIndex(i => i.id === islemId);
             if(guncelIndex !== -1) {
                 veritabani.islemler.splice(guncelIndex, 1);
@@ -492,6 +488,22 @@
             alert('İşlem silindi, stok ve borçlar güncellendi.');
             borclariListele();
             gecmisiGoster();
+        }
+
+        function musteriSil(musteriAdi) {
+            if (!confirm(musteriAdi + " isimli müşteriyi ve tüm ilişkili kayıtlarını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) return;
+
+            veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
+
+            if (veritabani.borclar[musteriAdi] !== undefined) {
+                delete veritabani.borclar[musteriAdi];
+            }
+
+            veritabani.bekleyenler = veritabani.bekleyenler.filter(t => t.musteri !== musteriAdi);
+
+            kaydetVeri();
+            alert(musteriAdi + " başarıyla sistemden silindi.");
+            musterileriGoster();
         }
 
         function bekleyenRozetGuncelle() {
@@ -592,7 +604,6 @@
                             }
                             satisTutarHucre = `<b>${islem.tutar} ₺</b>`;
                         } else {
-                            // Tahsilat (Sonradan Ödeme)
                             urunDetay = `Ödeme: ${islem.aciklama || 'Nakit/Havale'}`;
                             odemeTutarHucre = `<b style="color:#2563eb;">${islem.tutar} ₺</b>`;
                         }
@@ -633,7 +644,10 @@
             let html = '<ul>';
             musteriler.forEach(m => {
                 let borc = veritabani.borclar[m] || 0;
-                html += `<li style="padding:8px 0; border-bottom:1px solid #eee;"><b>${m}</b> - Borç: <span style="color:${borc>0?'red':'green'}">${borc} ₺</span></li>`;
+                html += `<li style="padding:8px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                            <div><b>${m}</b> - Borç: <span style="color:${borc>0?'red':'green'}">${borc} ₺</span></div>
+                            <button class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="musteriSil('${m}')">Sil</button>
+                         </li>`;
             });
             html += '</ul>';
             document.getElementById('musteri-listesi').innerHTML = musteriler.length ? html : 'Kayıt yok.';
