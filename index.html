@@ -3,108 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demirkapı Çiftliği Yönetim</title>
+    <title>Demirkapı Çiftliği</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        label { font-weight: bold; display: block; margin-top: 10px; font-size: 14px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { background: #27ae60; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-        button:hover { background: #219653; }
-        .summary { margin-top: 25px; background: #e8f8f5; padding: 15px; border-radius: 8px; border-left: 5px solid #27ae60; }
-        .list-item { background: #fff; border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 6px; font-size: 14px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* YEŞİL HEADER */
+        .header {
+            background-color: #166534;
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo-box {
+            background-color: #fde047;
+            padding: 10px;
+            border-radius: 12px;
+            margin-right: 15px;
+            font-size: 24px;
+        }
+
+        .title-main {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .title-sub {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        /* İÇERİK ALANI */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #111;
+            margin-bottom: 20px;
+        }
+
+        /* MENÜ KUTULARI GRID */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .menu-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            border: 1px solid #eee;
+        }
+
+        .menu-card:active {
+            transform: scale(0.97);
+        }
+
+        .menu-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .menu-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 4px;
+        }
+
+        .menu-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* İŞLEM EKRANLARI (FORM) */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+            background-color: #fafafa;
+        }
+
+        .btn-green {
+            background-color: #166534;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2);
+        }
+
+        .btn-back {
+            background-color: #e5e7eb;
+            color: #374151;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        /* ÖZET KUTUSU */
+        .summary-box {
+            background-color: #f0fdf4;
+            border-left: 5px solid #166534;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🌾 Demirkapı Çiftliği</h2>
-    
-    <label>Müşteri Adı</label>
-    <input type="text" id="musteri" placeholder="Müşteri adını girin">
-
-    <label>İşlem Türü</label>
-    <select id="tur">
-        <option value="Yem Satışı">Yem Satışı</option>
-        <option value="Boş Silaj Satışı">Boş Silaj Satışı</option>
-        <option value="Mısırlı Silaj Satışı">Mısırlı Silaj Satışı</option>
-        <option value="Fason İşlem">Fason İşlem</option>
-    </select>
-
-    <label>Miktar (Ton / Çuval / Adet)</label>
-    <input type="number" id="miktar" placeholder="0">
-
-    <label>Birim Fiyat (TL)</label>
-    <input type="number" id="fiyat" placeholder="0">
-
-    <button onclick="kaydet()">İşlemi Kaydet</button>
-
-    <div class="summary">
-        <h3>Özet Rapor</h3>
-        <p>Toplam İşlem Sayısı: <span id="toplamKayit">0</span></p>
-        <p>Toplam Tutar: <span id="toplamTutar">0</span> TL</p>
+    <!-- YEŞİL HEADER -->
+    <div class="header">
+        <div class="logo-box">🌾</div>
+        <div>
+            <div class="title-main">DEMİRKAPI</div>
+            <div class="title-sub">ÇİFTLİĞİ</div>
+        </div>
     </div>
 
-    <h3>Son İşlemler</h3>
-    <div id="liste"></div>
-</div>
+    <div class="container">
 
-<script>
-    let kayitlar = JSON.parse(localStorage.getItem('demirkapi_kayitlar')) || [];
+        <!-- 1. ANA MENÜ EKRANI -->
+        <div id="screen-menu">
+            <div class="section-title">Ana Sayfa</div>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="openScreen('satis')">
+                    <div class="menu-icon">🛒</div>
+                    <div class="menu-title">1. Satış</div>
+                    <div class="menu-desc">Yem ve slaj satışı</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('giris')">
+                    <div class="menu-icon">📥</div>
+                    <div class="menu-title">2. Giriş</div>
+                    <div class="menu-desc">Stoğa ürün ekle</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('tahsilat')">
+                    <div class="menu-icon">💰</div>
+                    <div class="menu-title">3. Tahsilat</div>
+                    <div class="menu-desc">Ödeme kaydı</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('borc')">
+                    <div class="menu-icon">📒</div>
+                    <div class="menu-title">4. Borç Takibi</div>
+                    <div class="menu-desc">Borçları takip et</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('stok')">
+                    <div class="menu-icon">📦</div>
+                    <div class="menu-title">5. Stok</div>
+                    <div class="menu-desc">Mevcut stok</div>
+                </div>
+                <div class="menu-card" onclick="openScreen('musteriler')">
+                    <div class="menu-icon">👥</div>
+                    <div class="menu-title">6. Müşteriler</div>
+                    <div class="menu-desc">Müşteri kartları</div>
+                </div>
+            </div>
+        </div>
 
-    function kaydet() {
-        let musteri = document.getElementById('musteri').value;
-        let tur = document.getElementById('tur').value;
-        let miktar = parseFloat(document.getElementById('miktar').value) || 0;
-        let fiyat = parseFloat(document.getElementById('fiyat').value) || 0;
+        <!-- 2. SATIŞ EKRANI -->
+        <div id="screen-satis" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🛒 Satış İşlemi</div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Müşteri Adı</label>
+                    <input type="text" id="satis-musteri" placeholder="Müşteri adını girin">
+                </div>
+                <div class="form-group">
+                    <label>Ürün / İşlem Türü</label>
+                    <select id="satis-tur">
+                        <option>Yem Satışı</option>
+                        <option>Slaj Satışı</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Miktar (Ton / Çuval / Adet)</label>
+                    <input type="number" id="satis-miktar" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Birim Fiyat (TL)</label>
+                    <input type="number" id="satis-fiyat" placeholder="0">
+                </div>
+                <button class="btn-green" onclick="islemKaydet('Satış')">İşlemi Kaydet</button>
+            </div>
+            
+            <div class="summary-box">
+                <strong>Özet Rapor</strong><br>
+                Toplam İşlem Sayısı: <span id="toplam-islem">0</span><br>
+                Toplam Tutar: <span id="toplam-tutar">0</span> TL
+            </div>
+        </div>
 
-        if(!musteri) {
-            alert("Lütfen müşteri adı giriniz!");
-            return;
+        <!-- DİĞER EKRANLAR İÇİN GEÇİCİ ALANLAR -->
+        <div id="screen-giris" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📥 Stoğa Ürün Ekle</div>
+            <div class="card"><p>Ürün giriş formu yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-tahsilat" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">💰 Tahsilat / Ödeme Kaydı</div>
+            <div class="card"><p>Tahsilat ekranı yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-borc" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅5️ Ana Menüye Dön</button>
+            <div class="section-title">📒 Borç Takibi</div>
+            <div class="card"><p>Borç takip ekranı yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-stok" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📦 Mevcut Stok</div>
+            <div class="card"><p>Stok listesi yakında burada olacak.</p></div>
+        </div>
+
+        <div id="screen-musteriler" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">👥 Müşteri Kartları</div>
+            <div class="card"><p>Müşteri listesi yakında burada olacak.</p></div>
+        </div>
+
+    </div>
+
+    <script>
+        function openScreen(screenName) {
+            // Tüm ekranları gizle
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-satis').classList.add('hidden');
+            document.getElementById('screen-giris').classList.add('hidden');
+            document.getElementById('screen-tahsilat').classList.add('hidden');
+            document.getElementById('screen-borc').classList.add('hidden');
+            document.getElementById('screen-stok').classList.add('hidden');
+            document.getElementById('screen-musteriler').classList.add('hidden');
+
+            // Seçilen ekranı aç
+            document.getElementById('screen-' + screenName).classList.remove('hidden');
+            window.scrollTo(0, 0);
         }
 
-        let yeniIslem = {
-            musteri,
-            tur,
-            miktar,
-            fiyat,
-            toplam: miktar * fiyat,
-            tarih: new Date().toLocaleDateString('tr-TR')
-        };
+        function goHome() {
+            // Tüm ekranları gizle, ana menüyü aç
+            document.getElementById('screen-menu').classList.remove('hidden');
+            document.getElementById('screen-satis').classList.add('hidden');
+            document.getElementById('screen-giris').classList.add('hidden');
+            document.getElementById('screen-tahsilat').classList.add('hidden');
+            document.getElementById('screen-borc').classList.add('hidden');
+            document.getElementById('screen-stok').classList.add('hidden');
+            document.getElementById('screen-musteriler').classList.add('hidden');
+            window.scrollTo(0, 0);
+        }
 
-        kayitlar.unshift(yeniIslem);
-        localStorage.setItem('demirkapi_kayitlar', JSON.stringify(kayitlar));
-        
-        document.getElementById('musteri').value = '';
-        document.getElementById('miktar').value = '';
-        document.getElementById('fiyat').value = '';
-        
-        goster();
-    }
+        let toplamIslemSayisi = 0;
+        let toplamPara = 0;
 
-    function goster() {
-        let listeDiv = document.getElementById('liste');
-        listeDiv.innerHTML = '';
-        let toplamTutar = 0;
+        function islemKaydet(tur) {
+            let miktar = parseFloat(document.getElementById('satis-miktar').value) || 0;
+            let fiyat = parseFloat(document.getElementById('satis-fiyat').value) || 0;
+            let tutar = miktar * fiyat;
 
-        kayitlar.forEach((k, index) => {
-            toplamTutar += k.toplam;
-            listeDiv.innerHTML += `
-                <div class="list-item">
-                    <b>${k.musteri}</b> - ${k.tur}<br>
-                    Miktar: ${k.miktar} | Tutar: <b>${k.toplam.toLocaleString()} TL</b><br>
-                    <small style="color:gray;">${k.tarih}</small>
-                </div>
-            `;
-        });
+            if (tutar > 0) {
+                toplamIslemSayisi++;
+                toplamPara += tutar;
 
-        document.getElementById('toplamKayit').innerText = kayitlar.length;
-        document.getElementById('toplamTutar').innerText = toplamTutar.toLocaleString();
-    }
+                document.getElementById('toplam-islem').innerText = toplamIslemSayisi;
+                document.getElementById('toplam-tutar').innerText = toplamPara;
 
-    goster();
-</script>
-
+                // Kutuları temizle
+                document.getElementById('satis-musteri').value = '';
+                document.getElementById('satis-miktar').value = '';
+                document.getElementById('satis-fiyat').value = '';
+                alert('İşlem başarıyla kaydedildi!');
+            } else {
+                alert('Lütfen geçerli bir miktar ve fiyat girin.');
+            }
+        }
+    </script>
 </body>
 </html>
