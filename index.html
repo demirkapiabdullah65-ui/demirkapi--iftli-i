@@ -22,7 +22,7 @@
         .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
         .menu-card:active { transform: scale(0.97); }
         .menu-icon { font-size: 36px; margin-bottom: 12px; }
-        .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
+        .menu-title { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 4px; }
         .menu-desc { font-size: 12px; color: #666; }
         .badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
@@ -74,9 +74,11 @@
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle</div></div>
                 <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
                 <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
-                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok</div><div class="menu-desc">Mevcut stok</div></div>
-                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">7. Müşteriler</div><div class="menu-desc">Müşteri listesi</div></div>
+                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok & Kritik</div><div class="menu-desc">Mevcut stok ve uyarılar</div></div>
+                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">7. Müşteriler</div><div class="menu-desc">Müşteri listesi & WhatsApp</div></div>
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">8. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
+                <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">9. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
+                <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">10. Gider / Masraf</div><div class="menu-desc">Mazot, yem, bakım vb.</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
             </div>
         </div>
@@ -111,7 +113,8 @@
             <div class="section-title">📥 Stoğa Ürün Ekle</div>
             <div class="card">
                 <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Ürün adını yazın"></div>
-                <div class="form-group"><label>Miktar</label><input type="number" id="g-miktar" placeholder="0"></div>
+                <div class="form-group"><label>Miktar (Adet)</label><input type="number" id="g-miktar" placeholder="0"></div>
+                <div class="form-group"><label>Kritik Uyarı Sınırı (Opsiyonel)</label><input type="number" id="g-kritik" placeholder="Örn: 10 adedin altına düşerse uyar"></div>
                 <button class="btn-green" onclick="stokEkle()">Stoğa Ürün Ekle</button>
             </div>
         </div>
@@ -142,14 +145,14 @@
         <!-- 6. STOK -->
         <div id="screen-stok" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📦 Stok Durumu</div>
+            <div class="section-title">📦 Stok Durumu & Kritik Uyarılar</div>
             <div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
         </div>
 
         <!-- 7. MÜŞTERİLER -->
         <div id="screen-musteriler" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">👥 Müşteri Listesi</div>
+            <div class="section-title">👥 Müşteri Listesi & Borç Hatırlatıcı</div>
             <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
         </div>
 
@@ -164,6 +167,36 @@
                 </div>
                 <div id="rapor-ozet" style="margin-top:15px;"></div>
                 <div id="rapor-detay"></div>
+            </div>
+        </div>
+
+        <!-- 9. AYLIK KÂR / CİRO -->
+        <div id="screen-aylik" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📊 Aylık Ciro ve Kâr Özeti</div>
+            <div class="card">
+                <div class="form-group">
+                    <label>Yıl ve Ay Seçin</label>
+                    <input type="month" id="aylik-tarih" onchange="aylikRaporuGoster()">
+                </div>
+                <div id="aylik-ozet-alani" style="margin-top:15px;"></div>
+            </div>
+        </div>
+
+        <!-- 10. GİDER / MASRAF -->
+        <div id="screen-gider" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">💸 Çiftlik Gider / Masraf Girişi</div>
+            <div class="card">
+                <div class="form-group"><label>Masraf Tarihi ve Saati</label><input type="datetime-local" id="gider-tarih"></div>
+                <div class="form-group"><label>Gider Türü / Başlığı</label><input type="text" id="gider-tur" placeholder="Örn: Mazot, Yem Alımı, Elektrik"></div>
+                <div class="form-group"><label>Tutar (TL)</label><input type="number" id="gider-tutar" placeholder="0"></div>
+                <div class="form-group"><label>Açıklama</label><input type="text" id="gider-aciklama" placeholder="Detay yazabilirsiniz"></div>
+                <button class="btn-green" onclick="giderKaydet()">Gideri Kasadan Düş & Kaydet</button>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Geçmiş Giderler</h3>
+                <div id="gider-listesi">Kayıtlı gider yok.</div>
             </div>
         </div>
 
@@ -220,7 +253,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [], girisler: {} };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [] };
 
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
@@ -229,9 +262,11 @@
                 veritabani = data;
                 if(!veritabani.islemler) veritabani.islemler = [];
                 if(!veritabani.stoklar) veritabani.stoklar = {};
+                if(!veritabani.kritikStok) veritabani.kritikStok = {};
                 if(!veritabani.borclar) veritabani.borclar = {};
                 if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
                 if(!veritabani.girisler) veritabani.girisler = {};
+                if(!veritabani.giderler) veritabani.giderler = [];
             }
 
             const yeniSayi = veritabani.bekleyenler.length;
@@ -243,6 +278,8 @@
             if (!document.getElementById('screen-stok').classList.contains('hidden')) stoklariGoster();
             if (!document.getElementById('screen-borc').classList.contains('hidden')) borclariListele();
             if (!document.getElementById('screen-gunluk').classList.contains('hidden')) gunlukRaporuGoster();
+            if (!document.getElementById('screen-aylik').classList.contains('hidden')) aylikRaporuGoster();
+            if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
         });
 
         function kaydetVeri() {
@@ -265,7 +302,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'gunluk', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'gunluk', 'aylik', 'gider', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -294,6 +331,18 @@
                 let bugun = new Date().toISOString().split('T')[0];
                 document.getElementById('rapor-tarih').value = bugun;
                 gunlukRaporuGoster();
+            }
+            if(name === 'aylik') {
+                let buAy = new Date().toISOString().slice(0, 7);
+                document.getElementById('aylik-tarih').value = buAy;
+                aylikRaporuGoster();
+            }
+            if(name === 'gider') {
+                document.getElementById('gider-tarih').value = simdikiTarihInputFormat();
+                document.getElementById('gider-tur').value = '';
+                document.getElementById('gider-tutar').value = '';
+                document.getElementById('gider-aciklama').value = '';
+                giderListesiniGoster();
             }
             if(name === 'onay') onayBekleyenleriGoster();
             if(name === 'borc') borclariListele();
@@ -500,6 +549,13 @@
             gecmisiGoster();
         }
 
+        function giderSil(giderId) {
+            if(!confirm('Bu gideri silmek istediğinize emin misiniz?')) return;
+            veritabani.giderler = veritabani.giderler.filter(g => g.id !== giderId);
+            kaydetVeri();
+            giderListesiniGoster();
+        }
+
         function musteriSil(musteriAdi) {
             if(!confirm(musteriAdi + " müşterisini silmek istediğinize emin misiniz?")) return;
             veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
@@ -525,11 +581,18 @@
         function stokEkle() {
             let urun = document.getElementById('g-urun').value.trim();
             let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
+            let kritik = parseFloat(document.getElementById('g-kritik').value) || 0;
+
             if(!urun || miktar <= 0) { alert('Ürün adı ve miktar girin.'); return; }
             
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
             if(!veritabani.girisler) veritabani.girisler = {};
             veritabani.girisler[urun] = (veritabani.girisler[urun] || 0) + miktar;
+
+            if(kritik > 0) {
+                if(!veritabani.kritikStok) veritabani.kritikStok = {};
+                veritabani.kritikStok[urun] = kritik;
+            }
 
             kaydetVeri();
             alert('Stoğa eklendi!');
@@ -558,6 +621,52 @@
             kaydetVeri();
             alert('Tahsilat kaydedildi!');
             goHome();
+        }
+
+        function giderKaydet() {
+            let tarihSecilen = document.getElementById('gider-tarih').value;
+            let tur = document.getElementById('gider-tur').value.trim();
+            let tutar = parseFloat(document.getElementById('gider-tutar').value) || 0;
+            let aciklama = document.getElementById('gider-aciklama').value.trim() || 'Masraf';
+
+            if(!tarihSecilen || !tur || tutar <= 0) { alert('Lütfen gider bilgilerini eksiksiz doldurun.'); return; }
+
+            if(!veritabani.giderler) veritabani.giderler = [];
+            veritabani.giderler.push({
+                id: Date.now(),
+                tarih: tarihSecilen,
+                tur: tur,
+                tutar: tutar,
+                aciklama: aciklama
+            });
+
+            kaydetVeri();
+            alert('Gider başarıyla kaydedildi!');
+            document.getElementById('gider-tur').value = '';
+            document.getElementById('gider-tutar').value = '';
+            document.getElementById('gider-aciklama').value = '';
+            giderListesiniGoster();
+        }
+
+        function giderListesiniGoster() {
+            let giderler = veritabani.giderler || [];
+            if(giderler.length === 0) {
+                document.getElementById('gider-listesi').innerHTML = '<p>Kayıtlı gider bulunmuyor.</p>';
+                return;
+            }
+
+            let html = '<table><tr><th>Tarih</th><th>Tür</th><th>Açıklama</th><th>Tutar</th><th>Sil</th></tr>';
+            giderler.slice().reverse().forEach(g => {
+                html += `<tr>
+                    <td style="font-size:11px;">${formatliTarihGoster(g.tarih)}</td>
+                    <td><b>${g.tur}</b></td>
+                    <td>${g.aciklama}</td>
+                    <td style="color:#dc2626; font-weight:bold;">${g.tutar} ₺</td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="giderSil(${g.id})">Sil</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            document.getElementById('gider-listesi').innerHTML = html;
         }
 
         function borclariListele() {
@@ -604,27 +713,51 @@
                 }
             });
 
-            let html = '<table><tr><th>Ürün Adı</th><th>Giren</th><th>Satılan</th><th>Kalan</th></tr>';
+            let html = '<table><tr><th>Ürün Adı</th><th>Giren</th><th>Satılan</th><th>Kalan</th><th>Durum</th></tr>';
             tumUrunler.forEach(u => {
                 let giren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0));
                 let satilan = satilanlar[u] || 0;
                 let kalan = veritabani.stoklar[u] || 0;
-                html += `<tr><td><b>${u}</b></td><td>${giren}</td><td style="color:#dc2626;">${satilan}</td><td style="color:#166534; font-weight:bold;">${kalan}</td></tr>`;
+                let kritikSinir = (veritabani.kritikStok && veritabani.kritikStok[u]) ? veritabani.kritikStok[u] : 5; // Varsayılan kritik sınır 5
+
+                let uyariHTML = kalan <= kritikSinir ? `<span style="background:#fee2e2; color:#dc2626; padding:2px 6px; border-radius:4px; font-weight:bold;">⚠️ Kritik!</span>` : `<span style="color:#166534;">Normal</span>`;
+
+                html += `<tr>
+                    <td><b>${u}</b></td>
+                    <td>${giren}</td>
+                    <td style="color:#dc2626;">${satilan}</td>
+                    <td style="color:#166534; font-weight:bold;">${kalan}</td>
+                    <td>${uyariHTML}</td>
+                </tr>`;
             });
             document.getElementById('stok-listesi').innerHTML = tumUrunler.size ? html : '<p>Stok yok.</p>';
         }
 
         function musterileriGoster() {
             let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
-            let html = '<ul>';
+            let html = '<div style="margin-bottom:15px; font-size:13px; color:#555;">Borçlu müşterilere tek tıkla WhatsApp üzerinden borç hatırlatması gönderebilirsiniz:</div>';
+            
+            if(musteriler.length === 0) {
+                document.getElementById('musteri-listesi').innerHTML = 'Kayıtlı müşteri yok.';
+                return;
+            }
+
             musteriler.forEach(m => {
                 let borc = veritabani.borclar[m] || 0;
-                html += `<li style="padding:8px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                            <div><b>${m}</b> - Borç: <span style="color:${borc>0?'red':'green'}">${borc} ₺</span></div>
-                            <button class="btn-danger" style="padding:4px 8px;" onclick="musteriSil('${m}')">Sil</button>
+                let whatsappMesaj = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği'nden yazıyorum. Güncel bakiye/borç tutarınız ${borc} ₺'dir. Bilginize sunar, iyi günler dileriz.`);
+                
+                html += `<div style="padding:10px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <b>${m}</b><br>
+                                <span style="font-size:13px;">Borç: <span style="color:${borc>0?'red':'green'}; font-weight:bold;">${borc} ₺</span></span>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                ${borc > 0 ? `<a href="https://wa.me/?text=${whatsappMesaj}" target="_blank" style="background:#25d366; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:4px;">💬 WhatsApp</a>` : ''}
+                                <button class="btn-danger" style="padding:4px 8px;" onclick="musteriSil('${m}')">Sil</button>
+                            </div>
                          </li>`;
             });
-            document.getElementById('musteri-listesi').innerHTML = musteriler.length ? html : 'Kayıt yok.';
+            document.getElementById('musteri-listesi').innerHTML = html;
         }
 
         function gunlukRaporuGoster() {
@@ -668,6 +801,41 @@
                 </div>
             `;
             document.getElementById('rapor-detay').innerHTML = detayHtml || '<p style="text-align:center; color:#666;">Bu tarihte işlem bulunamadı.</p>';
+        }
+
+        function aylikRaporuGoster() {
+            let secilenAy = document.getElementById('aylik-tarih').value; // Örn: "2026-08"
+            if(!secilenAy) return;
+
+            let aylikSatislar = (veritabani.islemler || []).filter(i => i.tip === 'Satış' && i.tarih.startsWith(secilenAy));
+            let aylikTahsilatlar = (veritabani.islemler || []).filter(i => i.tip === 'Tahsilat' && i.tarih.startsWith(secilenAy));
+            let aylikGiderler = (veritabani.giderler || []).filter(g => g.tarih.startsWith(secilenAy));
+
+            let toplamCiro = aylikSatislar.reduce((toplam, i) => toplam + i.tutar, 0);
+            let toplamTahsilat = aylikTahsilatlar.reduce((toplam, i) => toplam + i.tutar, 0);
+            let toplamGider = aylikGiderler.reduce((toplam, g) => toplam + g.tutar, 0);
+            let netKarTahmini = toplamTahsilat - toplamGider;
+
+            document.getElementById('aylik-ozet-alani').innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
+                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
+                        <div style="font-size:13px; color:#166534; font-weight:bold;">Aylık Toplam Ciro (Satışlar)</div>
+                        <div style="font-size:22px; font-weight:bold; color:#166534;">${toplamCiro} ₺</div>
+                    </div>
+                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
+                        <div style="font-size:13px; color:#1e40af; font-weight:bold;">Aylık Tahsil Edilen Para</div>
+                        <div style="font-size:22px; font-weight:bold; color:#2563eb;">${toplamTahsilat} ₺</div>
+                    </div>
+                    <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
+                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Aylık Toplam Gider / Masraf</div>
+                        <div style="font-size:22px; font-weight:bold; color:#dc2626;">${toplamGider} ₺</div>
+                    </div>
+                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;">
+                        <div style="font-size:13px; color:#6b21a8; font-weight:bold;">Net Nakit Dengesi (Tahsilat - Gider)</div>
+                        <div style="font-size:22px; font-weight:bold; color:${netKarTahmini >= 0 ? '#7c3aed':'#dc2626'};">${netKarTahmini} ₺</div>
+                    </div>
+                </div>
+            `;
         }
 
         function gecmisiGoster() {
