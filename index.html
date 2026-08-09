@@ -53,9 +53,13 @@
         label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
         
-        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         
+        .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
         th { color: #666; font-weight: 600; background: #f9fafb; }
@@ -85,7 +89,7 @@
         <div id="screen-menu">
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Ürün satışı</div></div>
+                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış</div><div class="menu-desc">Çoklu ürün satışı</div></div>
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">2. Giriş</div><div class="menu-desc">Stoğa ürün ekle</div></div>
                 <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">3. Tahsilat</div><div class="menu-desc">Ödeme kaydı</div></div>
                 <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">4. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
@@ -108,17 +112,16 @@
         <!-- 1. SATIŞ -->
         <div id="screen-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🛒 Satış İşlemi</div>
+            <div class="section-title">🛒 Çoklu Satış İşlemi</div>
             <div class="card">
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
-                <div class="form-group"><label>Ürün / İşlem Türü</label>
-                    <select id="s-tur">
-                        <!-- Stoktaki ürünler buraya otomatik gelecek -->
-                    </select>
-                </div>
-                <div class="form-group"><label>Miktar</label><input type="number" id="s-miktar" placeholder="0"></div>
-                <div class="form-group"><label>Birim Fiyat (TL)</label><input type="number" id="s-fiyat" placeholder="0"></div>
-                <button class="btn-green" onclick="satisKaydet()">Satışı Kaydet & Borca Ekle</button>
+                
+                <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                <label><b>Sepetteki Ürünler</b></label>
+                <div id="urunler-konteynir"></div>
+                
+                <button class="btn-secondary" onclick="urunSatiriEkle()">➕ Başka Ürün Ekle</button>
+                <button class="btn-green" onclick="satislariKaydet()">Tüm Satışı Kaydet & Borca Ekle</button>
             </div>
         </div>
 
@@ -204,14 +207,13 @@
     <script>
         let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
             islemler: [],
-            stoklar: {},   // {urunAdi: miktar}
-            borclar: {}    // {musteriAdi: toplamBorc}
+            stoklar: {},   
+            borclar: {}    
         };
 
         function kaydetVeri() {
             localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
             guncelleOzetler();
-            satisUrunleriniDoldur();
         }
 
         function openScreen(name) {
@@ -220,7 +222,10 @@
             document.getElementById('screen-' + name).classList.remove('hidden');
             window.scrollTo(0, 0);
 
-            if(name === 'satis') satisUrunleriniDoldur();
+            if(name === 'satis') {
+                document.getElementById('urunler-konteynir').innerHTML = '';
+                urunSatiriEkle(); // İlk satırı otomatik aç
+            }
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
             if(name === 'musteriler') musterileriGoster();
@@ -236,59 +241,87 @@
             return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         }
 
-        // Satış ekranındaki ürün seçeneğini stoğa göre doldur
-        function satisUrunleriniDoldur() {
-            let select = document.getElementById('s-tur');
-            select.innerHTML = '';
+        // Satış ekranına dinamik ürün satırı ekleme
+        function urunSatiriEkle() {
+            let konteynir = document.getElementById('urunler-konteynir');
+            let seceneklerHTML = '';
             let keys = Object.keys(veritabani.stoklar);
+            
             if(keys.length === 0) {
-                select.innerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
-                return;
+                seceneklerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
+            } else {
+                keys.forEach(k => {
+                    seceneklerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]})</option>`;
+                });
             }
-            keys.forEach(k => {
-                select.innerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]})</option>`;
-            });
+
+            let div = document.createElement('div');
+            div.className = 'urun-satir';
+            div.innerHTML = `
+                <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
+                <div class="form-group" style="margin-bottom:10px;"><label>Ürün</label><select class="s-tur-secim">${seceneklerHTML}</select></div>
+                <div class="form-group" style="margin-bottom:10px;"><label>Miktar</label><input type="number" class="s-miktar-input" placeholder="0"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>Birim Fiyat (TL)</label><input type="number" class="s-fiyat-input" placeholder="0"></div>
+            `;
+            konteynir.appendChild(div);
         }
 
-        // SATIŞ YAP
-        function satisKaydet() {
+        // ÇOKLU SATIŞI KAYDET
+        function satislariKaydet() {
             let musteri = document.getElementById('s-musteri').value.trim();
-            let tur = document.getElementById('s-tur').value;
-            let miktar = parseFloat(document.getElementById('s-miktar').value) || 0;
-            let fiyat = parseFloat(document.getElementById('s-fiyat').value) || 0;
-            let tutar = miktar * fiyat;
-
-            if(!musteri || !tur || tutar <= 0) {
-                alert('Lütfen müşteri adı seçin, ürün belirleyin ve miktar/fiyat girin.');
+            if(!musteri) {
+                alert('Lütfen müşteri adı girin.');
                 return;
             }
 
-            if((veritabani.stoklar[tur] || 0) < miktar) {
-                alert('Uyarı: Stokta bu miktarda ürün bulunmuyor!');
+            let satirlar = document.querySelectorAll('.urun-satir');
+            if(satirlar.length === 0) {
+                alert('Lütfen en az bir ürün ekleyin.');
                 return;
             }
 
-            // Stoktan düş
-            veritabani.stoklar[tur] -= miktar;
+            let toplamSepetTutar = 0;
+            let eklenenler = [];
 
-            // Borca ve işlemlere ekle
-            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + tutar;
-            
-            veritabani.islemler.push({
-                tarih: tarihStr(),
-                tip: 'Satış',
-                musteri: musteri,
-                urun: tur,
-                miktar: miktar,
-                fiyat: fiyat,
-                tutar: tutar
+            for(let satir of satirlar) {
+                let tur = satir.querySelector('.s-tur-secim').value;
+                let miktar = parseFloat(satir.querySelector('.s-miktar-input').value) || 0;
+                let fiyat = parseFloat(satir.querySelector('.s-fiyat-input').value) || 0;
+                let tutar = miktar * fiyat;
+
+                if(!tur || miktar <= 0 || fiyat <= 0) {
+                    alert('Lütfen tüm ürün alanlarını eksiksiz doldurun.');
+                    return;
+                }
+
+                if((veritabani.stoklar[tur] || 0) < miktar) {
+                    alert('Hata: "' + tur + '" için stokta yeterli miktar yok!');
+                    return;
+                }
+
+                eklenenler.push({tur, miktar, fiyat, tutar});
+                toplamSepetTutar += tutar;
+            }
+
+            // Stoktan ve kasadan/borçtan düş-ekle
+            let ortakTarih = tarihStr();
+            eklenenler.forEach(item => {
+                veritabani.stoklar[item.tur] -= item.miktar;
+                veritabani.islemler.push({
+                    tarih: ortakTarih,
+                    tip: 'Satış',
+                    musteri: musteri,
+                    urun: item.tur,
+                    miktar: item.miktar,
+                    fiyat: item.fiyat,
+                    tutar: item.tutar
+                });
             });
 
+            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + toplamSepetTutar;
+
             kaydetVeri();
-            alert('Satış başarıyla kaydedildi, stoktan düşüldü ve borca yansıtıldı!');
-            document.getElementById('s-musteri').value = '';
-            document.getElementById('s-miktar').value = '';
-            document.getElementById('s-fiyat').value = '';
+            alert('Tüm ürün satışları başarıyla kaydedildi ve borca eklendi!');
             goHome();
         }
 
@@ -444,7 +477,6 @@
         }
 
         guncelleOzetler();
-        satisUrunleriniDoldur();
     </script>
 </body>
 </html>
