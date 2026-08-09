@@ -47,11 +47,12 @@
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .hidden { display: none !important; }
 
-        /* Fiş Yazdırma Stili */
+        /* Fiş Yazdırma Stili (Yalnızca fis-alani yazdırılır) */
         @media print {
             body * { visibility: hidden; }
             #fis-alani, #fis-alani * { visibility: visible; }
-            #fis-alani { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 20px; }
+            #fis-alani { position: absolute; left: 0; top: 0; width: 100%; background: white; padding: 10px; }
+            .gizle-print { display: none !important; }
         }
     </style>
 </head>
@@ -170,13 +171,16 @@
 
         <!-- FİŞ EKRANI -->
         <div id="screen-fis" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🖨️ Satış Fişi / Bilgi Fişi</div>
-            <div class="card">
-                <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px dashed #333; background: #fff; margin-bottom: 15px;">
+            <button class="btn-back gizle-print" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title gizle-print">🖨️ Satış Fişi / Bilgi Fişi</div>
+            <div class="card" style="border: none; box-shadow: none; padding: 0; background: transparent;">
+                <div id="fis-alani" style="font-family: monospace; padding: 20px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;">
                     <!-- Dinamik fiş içeriği -->
                 </div>
-                <button class="btn-green" onclick="window.print()">🖨️ Fişi Yazdır / PDF Kaydet</button>
+                <div class="gizle-print" style="display: flex; gap: 10px;">
+                    <button class="btn-green" style="margin-top:0;" onclick="window.print()">🖨️ Yazdır / PDF Kaydet</button>
+                    <button class="btn-back" style="margin-top:0;" onclick="openScreen('gecmis')">Geri Dön</button>
+                </div>
             </div>
         </div>
     </div>
@@ -551,10 +555,8 @@
             
             if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve miktar girin.'); return; }
             
-            // Mevcut stoka ekle
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
 
-            // Toplam giren stoğu takip etmek için kayıt tutalım
             if(!veritabani.girisler) veritabani.girisler = {};
             veritabani.girisler[urun] = (veritabani.girisler[urun] || 0) + miktar;
 
@@ -608,17 +610,16 @@
                     <div class="table-responsive">
                         <table>
                             <tr>
-                                <th style="width:23%;">Tarih</th>
-                                <th style="width:35%;">Alınan Ürünler & Detay</th>
-                                <th style="width:12%;">Tutar</th>
-                                <th style="width:12%;">Ödeme</th>
-                                <th style="width:9%;">Fiş</th>
-                                <th style="width:9%;">İşlem</th>
+                                <th style="width:25%;">Tarih</th>
+                                <th style="width:37%;">İşlem / Ürün Detay</th>
+                                <th style="width:13%;">Tutar</th>
+                                <th style="width:13%;">Ödeme</th>
+                                <th style="width:12%;">İşlem</th>
                             </tr>`;
                 
                 let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === m);
                 if(musteriIslemleri.length === 0) {
-                    html += `<tr><td colspan="6">Kayıt bulunmuyor.</td></tr>`;
+                    html += `<tr><td colspan="5">Kayıt bulunmuyor.</td></tr>`;
                 } else {
                     musteriIslemleri.forEach(islem => {
                         let tarihStr = formatliTarihGoster(islem.tarih);
@@ -632,6 +633,10 @@
                             } else {
                                 urunDetay = islem.aciklama || 'Satış';
                             }
+                            // Satış satırına fiş butonu eklendi
+                            if(islem.id) {
+                                urunDetay += `<br><button class="btn-secondary" style="padding:2px 6px; font-size:10px; margin-top:4px; margin-bottom:0;" onclick="fisGoster(${islem.id})">🖨️ Fişi Göster / Yazdır</button>`;
+                            }
                             satisTutarHucre = `<b>${islem.tutar} ₺</b>`;
                         } else {
                             urunDetay = `Ödeme: ${islem.aciklama || 'Nakit/Havale'}`;
@@ -639,14 +644,12 @@
                         }
 
                         let silBtn = islem.id ? `<button class="btn-danger" style="padding:4px 6px; font-size:10px;" onclick="islemSil(${islem.id})">Sil</button>` : '';
-                        let fisBtn = (islem.tip === 'Satış' && islem.id) ? `<button class="btn-secondary" style="padding:4px 6px; font-size:10px; margin-bottom:0;" onclick="fisGoster(${islem.id})">🖨️ Fiş</button>` : '-';
 
                         html += `<tr>
                             <td style="white-space:nowrap; font-size:11px;">${tarihStr}</td>
                             <td>${urunDetay}</td>
                             <td style="color:#dc2626;">${satisTutarHucre}</td>
                             <td>${odemeTutarHucre}</td>
-                            <td>${fisBtn}</td>
                             <td>${silBtn}</td>
                         </tr>`;
                     });
@@ -660,7 +663,6 @@
         function stoklariGoster() {
             let tumUrunler = new Set([...Object.keys(veritabani.stoklar || {}), ...Object.keys(veritabani.girisler || {})]);
             
-            // Satılanları hesapla
             let satilanlar = {};
             (veritabani.islemler || []).forEach(i => {
                 if(i.tip === 'Satış' && i.kalemler) {
@@ -677,7 +679,7 @@
             }
 
             tumUrunler.forEach(u => {
-                let toplamGiren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0)); // Geriye dönük uyum için
+                let toplamGiren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0));
                 let satilan = satilanlar[u] || 0;
                 let kalan = veritabani.stoklar[u] || 0;
 
@@ -755,7 +757,7 @@
                 </table>
                 <hr style="border:0; border-top:1px dashed #333; margin:10px 0;">
                 <div style="text-align:right; font-size:14px; font-weight:bold;">
-                    GENEL TOPLAM: ${islem.tutar} ŷ
+                    GENEL TOPLAM: ${islem.tutar} ₺
                 </div>
                 <div style="text-align:center; font-size:10px; margin-top:20px; color:#555;">
                     Bizi tercih ettiğiniz için teşekkür ederiz.<br>Demirkapi Ciftligi Sistemleri
