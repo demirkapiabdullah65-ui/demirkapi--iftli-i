@@ -83,14 +83,16 @@
                     <div class="menu-desc">Cebinden onayla</div>
                     <div id="menu-badge" class="badge hidden">0</div>
                 </div>
-                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle</div></div>
+                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Stoğa ürün ekle (Adet)</div></div>
                 <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Ödeme kaydı & açıklama</div></div>
                 <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
-                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok & Kritik</div><div class="menu-desc">Mevcut stok ve uyarılar</div></div>
-                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">7. Müşteriler</div><div class="menu-desc">Müşteri listesi & WhatsApp</div></div>
-                <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">8. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
-                <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">9. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
-                <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">10. Gider / Masraf</div><div class="menu-desc">Mazot, yem, bakım vb.</div></div>
+                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok & Kritik</div><div class="menu-desc">Adet bazlı stoklar</div></div>
+                <div class="menu-card" onclick="openScreen('sury')"><div class="menu-icon">🐄</div><div class="menu-title">7. Sürü / Hayvan Takibi</div><div class="menu-desc">Küpe, aşı & doğum</div></div>
+                <div class="menu-card" onclick="openScreen('finans')"><div class="menu-icon">📈</div><div class="menu-title">8. Gelişmiş Finans</div><div class="menu-desc">Alacak / Borç özeti</div></div>
+                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">9. Müşteriler</div><div class="menu-desc">WhatsApp hatırlatıcı</div></div>
+                <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
+                <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
+                <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Mazot, yem vb.</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -105,11 +107,11 @@
                 <div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
                 <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
                 <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                <label><b>Sepetteki Ürünler</b></label>
+                <label><b>Sepetteki Ürünler (Adet Bazlı)</b></label>
                 <div id="urunler-konteynir"></div>
                 <button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
                 <div class="form-group" style="margin-top:15px;"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Örn: Telefon satışı"></div>
+                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Örn: Telefon veya çiftlik mahsulü satışı"></div>
                 <button class="btn-green" onclick="satisTalebiGonder()">Onaya Gönder 🚀</button>
             </div>
         </div>
@@ -124,11 +126,11 @@
         <!-- 3. STOK EKLE -->
         <div id="screen-giris" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📥 Stoğa Ürün Ekle</div>
+            <div class="section-title">📥 Stoğa Ürün Ekle (Adet)</div>
             <div class="card">
                 <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Ürün adını yazın"></div>
                 <div class="form-group"><label>Miktar (Adet)</label><input type="number" id="g-miktar" placeholder="0"></div>
-                <div class="form-group"><label>Kritik Uyarı Sınırı (Opsiyonel)</label><input type="number" id="g-kritik" placeholder="Örn: 10 adedin altına düşerse uyar"></div>
+                <div class="form-group"><label>Kritik Uyarı Sınırı (Adet)</label><input type="number" id="g-kritik" placeholder="Örn: 5 adedin altına düşerse uyar"></div>
                 <button class="btn-green" onclick="stokEkle()">Stoğa Ürün Ekle</button>
             </div>
         </div>
@@ -159,18 +161,45 @@
         <!-- 6. STOK -->
         <div id="screen-stok" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📦 Stok Durumu & Kritik Uyarılar</div>
+            <div class="section-title">📦 Stok Durumu & Kritik Uyarılar (Adet Bazlı)</div>
             <div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
         </div>
 
-        <!-- 7. MÜŞTERİLER -->
+        <!-- 7. SÜRÜ / HAYVAN TAKİBİ -->
+        <div id="screen-sury" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🐄 Küçük Ölçekli Sürü & Hayvan Takibi</div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Yeni Hayvan Kaydı Ekle</h3>
+                <div class="form-group"><label>Küpe Numarası / Adı</label><input type="text" id="h-kupe" placeholder="Örn: TR-5401 veya Sarıkız"></div>
+                <div class="form-group"><label>Cinsi / Türü</label><input type="text" id="h-cins" placeholder="Örn: Simental İnek / Koyun"></div>
+                <div class="form-group"><label>Doğum / Alım Tarihi</label><input type="date" id="h-tarih"></div>
+                <div class="form-group"><label>Son Aşı Tarihi / Notu</label><input type="text" id="h-asi" placeholder="Örn: Şap Aşısı - 10.05.2026"></div>
+                <button class="btn-green" onclick="hayvanEkle()">Sürüye Hayvan Kaydet</button>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Mevcut Sürü Listesi</h3>
+                <div id="hayvan-listesi">Kayıtlı hayvan bulunmuyor.</div>
+            </div>
+        </div>
+
+        <!-- 8. GELİŞMİŞ FİNANS -->
+        <div id="screen-finans" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📈 Gelişmiş Finans & Alacak Özeti</div>
+            <div class="card" id="finans-ozet-alani">
+                <!-- Dinamik Özet Kartları -->
+            </div>
+        </div>
+
+        <!-- 9. MÜŞTERİLER -->
         <div id="screen-musteriler" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">👥 Müşteri Listesi & Borç Hatırlatıcı</div>
             <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
         </div>
 
-        <!-- 8. GÜNLÜK RAPOR -->
+        <!-- 10. GÜNLÜK RAPOR -->
         <div id="screen-gunluk" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📅 Günlük Satış Raporu</div>
@@ -184,7 +213,7 @@
             </div>
         </div>
 
-        <!-- 9. AYLIK KÂR / CİRO -->
+        <!-- 11. AYLIK KÂR / CİRO -->
         <div id="screen-aylik" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📊 Aylık Ciro ve Kâr Özeti</div>
@@ -197,7 +226,7 @@
             </div>
         </div>
 
-        <!-- 10. GİDER / MASRAF -->
+        <!-- 12. GİDER / MASRAF -->
         <div id="screen-gider" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💸 Çiftlik Gider / Masraf Girişi</div>
@@ -223,8 +252,7 @@
                 <div id="sesli-durum" style="font-weight: bold; font-size: 16px; color: #166534; margin-bottom: 15px;">Dinlemeye Hazır</div>
                 <div style="font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5;">
                     Mikrofon butonuna basıp konuşun:<br>
-                    <i>Örn: "Ahmet'ten 5000 lira tahsilat aldım"</i> veya<br>
-                    <i>"Mehmet'e 2 adet yem satıldı"</i>
+                    <i>Örn: "Ahmet'ten 5000 lira tahsilat aldım"</i>
                 </div>
                 <button class="btn-green" onclick="sesliDinlemeyiBaslat()" style="font-size: 18px; padding: 16px;">🎙️ Konuşmaya Başla</button>
                 <div id="sesli-sonuc" style="margin-top: 20px; font-weight: bold; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; text-align: left;"></div>
@@ -236,7 +264,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💾 Veri Yedekleme & Dışa Aktar</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini (stoklar, borçlar, satış geçmişi ve giderler) telefonuna veya bilgisayarına güvenli JSON dosyası olarak indirebilirsin.</p>
+                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini (stok adetleri, borçlar, hayvanlar ve giderler) güvenli JSON dosyası olarak indirebilirsin.</p>
                 <button class="btn-green" onclick="verileriDisaAktar()">📥 Tüm Verileri Yedekle (JSON İndir)</button>
             </div>
             <div class="card" style="margin-top: 15px;">
@@ -299,7 +327,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [] };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [] };
 
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
@@ -313,6 +341,7 @@
                 if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
                 if(!veritabani.girisler) veritabani.girisler = {};
                 if(!veritabani.giderler) veritabani.giderler = [];
+                if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
             }
 
             const yeniSayi = veritabani.bekleyenler.length;
@@ -323,6 +352,8 @@
             if (!document.getElementById('screen-musteriler').classList.contains('hidden')) musterileriGoster();
             if (!document.getElementById('screen-stok').classList.contains('hidden')) stoklariGoster();
             if (!document.getElementById('screen-borc').classList.contains('hidden')) borclariListele();
+            if (!document.getElementById('screen-sury').classList.contains('hidden')) hayvanlariGoster();
+            if (!document.getElementById('screen-finans').classList.contains('hidden')) gelismisFinansGoster();
             if (!document.getElementById('screen-gunluk').classList.contains('hidden')) gunlukRaporuGoster();
             if (!document.getElementById('screen-aylik').classList.contains('hidden')) aylikRaporuGoster();
             if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
@@ -331,7 +362,6 @@
         // Hava Durumu Çekme (Sakarya)
         async function havaDurumuGetir() {
             try {
-                // Sakarya koordinatları: 40.7569, 30.3783
                 let res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7569&longitude=30.3783&current_weather=true');
                 let data = await res.json();
                 if(data && data.current_weather) {
@@ -375,7 +405,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'musteriler', 'gunluk', 'aylik', 'gider', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -420,6 +450,8 @@
             if(name === 'onay') onayBekleyenleriGoster();
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
+            if(name === 'sury') hayvanlariGoster();
+            if(name === 'finans') gelismisFinansGoster();
             if(name === 'musteriler') musterileriGoster();
             if(name === 'gecmis') gecmisiGoster();
         }
@@ -435,7 +467,7 @@
                 seceneklerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
             } else {
                 keys.forEach(k => {
-                    seceneklerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]})</option>`;
+                    seceneklerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]} Adet)</option>`;
                 });
             }
 
@@ -532,7 +564,7 @@
             for(let item of talep.kalemler) {
                 let mevcutStok = veritabani.stoklar[item.tur] || 0;
                 if(mevcutStok < item.miktar) {
-                    alert('Hata: "' + item.tur + '" için stokta yeterli miktar yok! (Stok: ' + mevcutStok + ')');
+                    alert('Hata: "' + item.tur + '" için stokta yeterli adet yok! (Stok: ' + mevcutStok + ' Adet)');
                     return;
                 }
                 toplamSepetTutar += item.tutar;
@@ -573,7 +605,7 @@
 
             veritabani.bekleyenler.splice(index, 1);
             kaydetVeri();
-            alert('Satış onaylandı ve stoktan düşüldü!');
+            alert('Satış onaylandı ve stoktan adet bazlı düşüldü!');
             onayBekleyenleriGoster();
         }
 
@@ -638,6 +670,13 @@
             musterileriGoster();
         }
 
+        function hayvanSil(hayvanId) {
+            if(!confirm('Bu hayvanı sürü listesinden silmek istediğinize emin misiniz?')) return;
+            veritabani.hayvanlar = veritabani.hayvanlar.filter(h => h.id !== hayvanId);
+            kaydetVeri();
+            hayvanlariGoster();
+        }
+
         function bekleyenRozetGuncelle() {
             let badge = document.getElementById('menu-badge');
             let count = (veritabani.bekleyenler || []).length;
@@ -656,7 +695,7 @@
             let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
             let kritik = parseFloat(document.getElementById('g-kritik').value) || 0;
 
-            if(!urun || miktar <= 0) { alert('Ürün adı ve miktar girin.'); return; }
+            if(!urun || miktar <= 0) { alert('Ürün adı ve adet girin.'); return; }
             
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
             if(!veritabani.girisler) veritabani.girisler = {};
@@ -668,8 +707,97 @@
             }
 
             kaydetVeri();
-            alert('Stoğa eklendi!');
+            alert('Stoğa adet bazlı eklendi!');
             goHome();
+        }
+
+        function hayvanEkle() {
+            let kupe = document.getElementById('h-kupe').value.trim();
+            let cins = document.getElementById('h-cins').value.trim();
+            let tarih = document.getElementById('h-tarih').value;
+            let asi = document.getElementById('h-asi').value.trim();
+
+            if(!kupe || !cins) { alert('Lütfen küpe numarası ve cins/tür girin.'); return; }
+
+            if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
+            veritabani.hayvanlar.push({
+                id: Date.now(),
+                kupe: kupe,
+                cins: cins,
+                tarih: tarih || new Date().toISOString().split('T')[0],
+                asi: asi || 'Kayıt yok'
+            });
+
+            kaydetVeri();
+            alert('Hayvan sürüye başarıyla eklendi!');
+            document.getElementById('h-kupe').value = '';
+            document.getElementById('h-cins').value = '';
+            document.getElementById('h-tarih').value = '';
+            document.getElementById('h-asi').value = '';
+            hayvanlariGoster();
+        }
+
+        function hayvanlariGoster() {
+            let hayvanlar = veritabani.hayvanlar || [];
+            if(hayvanlar.length === 0) {
+                document.getElementById('hayvan-listesi').innerHTML = '<p>Sürüye kayıtlı hayvan bulunmuyor.</p>';
+                return;
+            }
+
+            let html = '<table><tr><th>Küpe No</th><th>Cins</th><th>Kayıt Tarihi</th><th>Aşı / Not</th><th>Sil</th></tr>';
+            hayvanlar.slice().reverse().forEach(h => {
+                html += `<tr>
+                    <td><b>${h.kupe}</b></td>
+                    <td>${h.cins}</td>
+                    <td>${h.tarih}</td>
+                    <td>${h.asi}</td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="hayvanSil(${h.id})">Sil</button></td>
+                </tr>`;
+            });
+            html += '</table>';
+            document.getElementById('hayvan-listesi').innerHTML = html;
+        }
+
+        function gelismisFinansGoster() {
+            let toplamAlacak = 0;
+            Object.values(veritabani.borclar || {}).forEach(b => toplamAlacak += b);
+
+            let toplamCiro = 0;
+            let toplamTahsilat = 0;
+            (veritabani.islemler || []).forEach(i => {
+                if(i.tip === 'Satış') toplamCiro += i.tutar;
+                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
+            });
+
+            let toplamGider = 0;
+            (veritabani.giderler || []).forEach(g => toplamGider += g.tutar);
+
+            let netKasa = toplamTahsilat - toplamGider;
+
+            document.getElementById('finans-ozet-alani').innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr; gap:12px;">
+                    <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
+                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Müşteri Alacakları (Borçlar)</div>
+                        <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamAlacak} ₺</div>
+                    </div>
+                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
+                        <div style="font-size:13px; color:#166534; font-weight:bold;">Toplam Ciro (Satışlar)</div>
+                        <div style="font-size:24px; font-weight:bold; color:#166534;">${toplamCiro} ₺</div>
+                    </div>
+                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
+                        <div style="font-size:13px; color:#1e40af; font-weight:bold;">Toplam Tahsil Edilen Para</div>
+                        <div style="font-size:24px; font-weight:bold; color:#2563eb;">${toplamTahsilat} ₺</div>
+                    </div>
+                    <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
+                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Çiftlik Giderleri</div>
+                        <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamGider} ₺</div>
+                    </div>
+                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;">
+                        <div style="font-size:13px; color:#6b21a8; font-weight:bold;">Net Kasa Durumu (Tahsilat - Gider)</div>
+                        <div style="font-size:24px; font-weight:bold; color:${netKasa >= 0 ? '#7c3aed':'#dc2626'};">${netKasa} ₺</div>
+                    </div>
+                </div>
+            `;
         }
 
         function tahsilatAl() {
@@ -781,16 +909,12 @@
 
         function sesliKomutuIsle(metin) {
             let mKucuk = metin.toLocaleLowerCase('tr-TR');
-            
-            // Örnek Tahsilat algılama: "ahmet'ten 5000 lira tahsilat aldım"
             if(mKucuk.includes('tahsilat') || mKucuk.includes('aldım') || mKucuk.includes('borç ödedi')) {
                 let rakamlar = metin.match(/\d+/g);
                 if(!rakamlar) { alert('Sesli komutta tutar algılanamadı.'); return; }
                 let tutar = parseFloat(rakamlar[rakamlar.length - 1]);
-                
-                // Müşteri adını yakalama basitçe kelimelerden ayıklama
                 let kelimeler = metin.split(' ');
-                let musteriAdi = kelimeler[0]; // İlk kelime isim kabul edilebilir
+                let musteriAdi = kelimeler[0];
                 
                 let tarihSimdi = new Date().toISOString().slice(0, 16);
                 veritabani.borclar[musteriAdi] = Math.max(0, (veritabani.borclar[musteriAdi] || 0) - tutar);
@@ -889,7 +1013,7 @@
                 }
             });
 
-            let html = '<table><tr><th>Ürün Adı</th><th>Giren</th><th>Satılan</th><th>Kalan</th><th>Durum</th></tr>';
+            let html = '<table><tr><th>Ürün Adı</th><th>Giren (Adet)</th><th>Satılan (Adet)</th><th>Kalan (Adet)</th><th>Durum</th></tr>';
             tumUrunler.forEach(u => {
                 let giren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0));
                 let satilan = satilanlar[u] || 0;
@@ -920,7 +1044,7 @@
 
             musteriler.forEach(m => {
                 let borc = veritabani.borclar[m] || 0;
-                let whatsappMesaj = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği'nden yazıyorum. Güncel bakiye/borç tutarınız ${borc} ₺'dir. Bilginize sunar, iyi günler dileriz.`);
+                let whatsappMesaj = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği'nden yazıyorum. Güncel borç bakiyeniz ${borc} ₺'dir. Bilginize sunar, iyi günler dileriz.`);
                 
                 html += `<div style="padding:10px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                             <div>
@@ -948,7 +1072,7 @@
             gununIslemleri.forEach(i => {
                 if(i.tip === 'Satış') {
                     toplamSatis += i.tutar;
-                    let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} adet)`).join(', ') : '';
+                    let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} Adet)`).join(', ') : '';
                     detayHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bbf7d0;">
                         <div style="font-weight:bold; color:#166534;">👤 ${i.musteri} (Satış)</div>
                         <div style="font-size:13px; color:#333;">Ürünler: ${urunlerStr}</div>
@@ -1041,7 +1165,7 @@
                         <div style="font-size:11px; color:#666; margin-bottom:4px;">📅 ${tarihStr} - SATIŞ</div>`;
                     if(i.kalemler) {
                         i.kalemler.forEach(k => {
-                            fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar}ad x ${k.fiyat}₺)</span><b>${k.tutar} ₺</b></div>`;
+                            fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar} Adet x ${k.fiyat}₺)</span><b>${k.tutar} ₺</b></div>`;
                         });
                     }
                     fisHtml += `</div>`;
