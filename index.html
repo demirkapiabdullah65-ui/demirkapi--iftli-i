@@ -93,6 +93,11 @@
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
                 <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
                 <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Mazot, yem vb.</div></div>
+                <!-- Eklenen 7 Özellik Modülü Kartı -->
+                <div class="menu-card" onclick="openScreen('fiyatlistesi')"><div class="menu-icon">🏷️</div><div class="menu-title">13. Fiyat Listesi</div><div class="menu-desc">Süt & ürün satış fiyatları</div></div>
+                <div class="menu-card" onclick="openScreen('vade')"><div class="menu-icon">⏳</div><div class="menu-title">14. Vade Takibi</div><div class="menu-desc">Çek / senet vadeleri</div></div>
+                <div class="menu-card" onclick="openScreen('banka')"><div class="menu-icon">🏦</div><div class="menu-title">15. Banka & Havale</div><div class="menu-desc">Banka tahsilat eşleştir</div></div>
+                <div class="menu-card" onclick="openScreen('hizlitahsilat')"><div class="menu-icon">⚡</div><div class="menu-title">16. Hızlı Tahsilat</div><div class="menu-desc">Tek tıkla ödeme düş</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -187,9 +192,7 @@
         <div id="screen-finans" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📈 Gelişmiş Finans & Alacak Özeti</div>
-            <div class="card" id="finans-ozet-alani">
-                <!-- Dinamik Özet Kartları -->
-            </div>
+            <div class="card" id="finans-ozet-alani"></div>
         </div>
 
         <!-- 9. MÜŞTERİLER -->
@@ -202,7 +205,7 @@
         <!-- 10. GÜNLÜK RAPOR -->
         <div id="screen-gunluk" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📅 Günlük Satış Raporu</div>
+            <div class="section-title">📅 Günlük Satış & Özet Raporu</div>
             <div class="card">
                 <div class="form-group">
                     <label>Tarih Seçin</label>
@@ -243,6 +246,62 @@
             </div>
         </div>
 
+        <!-- 13. FİYAT LİSTESİ (YENİ MODÜL) -->
+        <div id="screen-fiyatlistesi" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🏷️ Süt ve Çiftlik Ürün Fiyat Listesi</div>
+            <div class="card">
+                <div class="form-group"><label>Ürün / Çeşit Adı</label><input type="text" id="fl-urun" placeholder="Örn: İnek Sütü (Litre), Peynir (Kg)"></div>
+                <div class="form-group"><label>Satış Fiyatı (TL)</label><input type="number" id="fl-fiyat" placeholder="0"></div>
+                <button class="btn-green" onclick="fiyatEkle()">Fiyat Listesine Ekle / Güncelle</button>
+            </div>
+            <div class="card">
+                <div id="fiyatlar-listesi">Kayıtlı fiyat bulunmuyor.</div>
+            </div>
+        </div>
+
+        <!-- 14. VADE TAKİBİ - ÇEK/SENET (YENİ MODÜL) -->
+        <div id="screen-vade" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">⏳ Çek / Senet & Vade Takip Tablosu</div>
+            <div class="card">
+                <div class="form-group"><label>Borçlu / Müşteri Adı</label><input type="text" id="v-musteri" placeholder="Ad Soyad"></div>
+                <div class="form-group"><label>Vade Tarihi</label><input type="date" id="v-tarih"></div>
+                <div class="form-group"><label>Tutar (TL)</label><input type="number" id="v-tutar" placeholder="0"></div>
+                <div class="form-group"><label>Açıklama / Evrak No</label><input type="text" id="v-not" placeholder="Örn: Çek No: 12345"></div>
+                <button class="btn-green" onclick="vadeEkle()">Vade Kaydı Oluştur</button>
+            </div>
+            <div class="card">
+                <div id="vade-listesi">Kayıtlı vade bulunmuyor.</div>
+            </div>
+        </div>
+
+        <!-- 15. BANKA & HAVALE EŞLEŞTİRME (YENİ MODÜL) -->
+        <div id="screen-banka" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🏦 Banka Havale / Tahsilat Eşleştirme</div>
+            <div class="card">
+                <p style="font-size:13px; color:#555; line-height:1.5;">Banka hesabınıza gelen havaleleri doğrudan müşteri borçlarından düşmek için eşleştirin:</p>
+                <div class="form-group"><label>Banka İşlem Tarihi</label><input type="datetime-local" id="b-tarih"></div>
+                <div class="form-group"><label>Gönderen Müşteri Adı</label><input type="text" id="b-musteri" placeholder="Müşteri Adı"></div>
+                <div class="form-group"><label>Gelen Tutar (TL)</label><input type="number" id="b-tutar" placeholder="0"></div>
+                <div class="form-group"><label>Banka / Açıklama</label><input type="text" id="b-aciklama" placeholder="Garanti / Ziraat Havale"></div>
+                <button class="btn-green" onclick="bankaTahsilatIsle()">Havale ile Tahsilatı Düş</button>
+            </div>
+        </div>
+
+        <!-- 16. HIZLI TAHSİLAT (YENİ MODÜL) -->
+        <div id="screen-hizlitahsilat" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">⚡ Hızlı Borç Ödeme & Tahsilat</div>
+            <div class="card">
+                <div class="form-group"><label>Müşteri Seçin</label><select id="ht-musteri-sec"></select></div>
+                <div class="form-group"><label>Tahsil Edilecek Tutar (TL)</label><input type="number" id="ht-tutar" placeholder="0"></div>
+                <div class="form-group"><label>Açıklama</label><input type="text" id="ht-aciklama" value="Hızlı Tahsilat"></div>
+                <button class="btn-green" onclick="hizliTahsilatYap()">Tek Tıkla Borçtan Düş</button>
+            </div>
+        </div>
+
         <!-- SESLİ ASİSTAN EKRANI -->
         <div id="screen-sesli" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
@@ -264,7 +323,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💾 Veri Yedekleme & Dışa Aktar</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini (stok adetleri, borçlar, hayvanlar ve giderler) güvenli JSON dosyası olarak indirebilirsin.</p>
+                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini güvenli JSON dosyası olarak indirebilirsin.</p>
                 <button class="btn-green" onclick="verileriDisaAktar()">📥 Tüm Verileri Yedekle (JSON İndir)</button>
             </div>
             <div class="card" style="margin-top: 15px;">
@@ -284,7 +343,7 @@
         <!-- FİŞ EKRANI -->
         <div id="screen-fis" class="hidden">
             <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
-            <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
+            <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş / Makbuz</div>
             <div class="card">
                 <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
                 <div style="display: flex; gap: 10px; flex-direction: column;">
@@ -327,7 +386,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [] };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: {}, vadeler: [] };
 
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
@@ -342,6 +401,8 @@
                 if(!veritabani.girisler) veritabani.girisler = {};
                 if(!veritabani.giderler) veritabani.giderler = [];
                 if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
+                if(!veritabani.fiyatlar) veritabani.fiyatlar = {};
+                if(!veritabani.vadeler) veritabani.vadeler = [];
             }
 
             const yeniSayi = veritabani.bekleyenler.length;
@@ -357,6 +418,9 @@
             if (!document.getElementById('screen-gunluk').classList.contains('hidden')) gunlukRaporuGoster();
             if (!document.getElementById('screen-aylik').classList.contains('hidden')) aylikRaporuGoster();
             if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
+            if (!document.getElementById('screen-fiyatlistesi').classList.contains('hidden')) fiyatlariGoster();
+            if (!document.getElementById('screen-vade').classList.contains('hidden')) vadeleriGoster();
+            if (!document.getElementById('screen-hizlitahsilat').classList.contains('hidden')) hizliTahsilatMusterileriDoldur();
         });
 
         // Hava Durumu Çekme (Sakarya)
@@ -405,7 +469,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -430,6 +494,12 @@
                 document.getElementById('t-tutar').value = '';
                 document.getElementById('t-aciklama').value = '';
             }
+            if(name === 'banka') {
+                document.getElementById('b-tarih').value = simdikiTarihInputFormat();
+                document.getElementById('b-musteri').value = '';
+                document.getElementById('b-tutar').value = '';
+                document.getElementById('b-aciklama').value = '';
+            }
             if(name === 'gunluk') {
                 let bugun = new Date().toISOString().split('T')[0];
                 document.getElementById('rapor-tarih').value = bugun;
@@ -442,11 +512,11 @@
             }
             if(name === 'gider') {
                 document.getElementById('gider-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('gider-tur').value = '';
-                document.getElementById('gider-tutar').value = '';
-                document.getElementById('gider-aciklama').value = '';
                 giderListesiniGoster();
             }
+            if(name === 'fiyatlistesi') fiyatlariGoster();
+            if(name === 'vade') vadeleriGoster();
+            if(name === 'hizlitahsilat') hizliTahsilatMusterileriDoldur();
             if(name === 'onay') onayBekleyenleriGoster();
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
@@ -457,6 +527,137 @@
         }
 
         function goHome() { openScreen('menu'); }
+
+        // Yeni Eklenen Modül Fonksiyonları
+        function fiyatEkle() {
+            let urun = document.getElementById('fl-urun').value.trim();
+            let fiyat = parseFloat(document.getElementById('fl-fiyat').value) || 0;
+            if(!urun || fiyat <= 0) { alert('Ürün adı ve geçerli fiyat girin.'); return; }
+            if(!veritabani.fiyatlar) veritabani.fiyatlar = {};
+            veritabani.fiyatlar[urun] = fiyat;
+            kaydetVeri();
+            alert('Fiyat başarıyla kaydedildi!');
+            document.getElementById('fl-urun').value = '';
+            document.getElementById('fl-fiyat').value = '';
+            fiyatlariGoster();
+        }
+
+        function fiyatlariGoster() {
+            let fiyatlar = veritabani.fiyatlar || {};
+            let keys = Object.keys(fiyatlar);
+            if(keys.length === 0) {
+                document.getElementById('fiyatlar-listesi').innerHTML = '<p>Kayıtlı fiyat listesi bulunmuyor.</p>';
+                return;
+            }
+            let html = '<table><tr><th>Ürün / Çeşit</th><th>Satış Fiyatı</th><th>İşlem</th></tr>';
+            keys.forEach(k => {
+                html += `<tr><td><b>${k}</b></td><td style="color:#166534; font-weight:bold;">${fiyatlar[k]} ₺</td><td><button class="btn-danger" style="padding:4px 6px;" onclick="fiyatSil('${k}')">Sil</button></td></tr>`;
+            });
+            html += '</table>';
+            document.getElementById('fiyatlar-listesi').innerHTML = html;
+        }
+
+        function fiyatSil(urun) {
+            delete veritabani.fiyatlar[urun];
+            kaydetVeri();
+            fiyatlariGoster();
+        }
+
+        function vadeEkle() {
+            let musteri = document.getElementById('v-musteri').value.trim();
+            let tarih = document.getElementById('v-tarih').value;
+            let tutar = parseFloat(document.getElementById('v-tutar').value) || 0;
+            let notBilgi = document.getElementById('v-not').value.trim() || 'Çek/Senet';
+
+            if(!musteri || !tarih || tutar <= 0) { alert('Lütfen bilgileri eksiksiz doldurun.'); return; }
+            if(!veritabani.vadeler) veritabani.vadeler = [];
+            veritabani.vadeler.push({ id: Date.now(), musteri, tarih, tutar, notBilgi });
+            kaydetVeri();
+            alert('Vade kaydı oluşturuldu!');
+            document.getElementById('v-musteri').value = '';
+            document.getElementById('v-tarih').value = '';
+            document.getElementById('v-tutar').value = '';
+            document.getElementById('v-not').value = '';
+            vadeleriGoster();
+        }
+
+        function vadeleriGoster() {
+            let vadeler = veritabani.vadeler || [];
+            if(vadeler.length === 0) {
+                document.getElementById('vade-listesi').innerHTML = '<p>Kayıtlı vade bulunmuyor.</p>';
+                return;
+            }
+            let html = '<table><tr><th>Vade Tarihi</th><th>Müşteri</th><th>Açıklama</th><th>Tutar</th><th>Sil</th></tr>';
+            vadeler.slice().reverse().forEach(v => {
+                html += `<tr><td>${v.tarih}</td><td><b>${v.musteri}</b></td><td>${v.notBilgi}</td><td style="color:#dc2626; font-weight:bold;">${v.tutar} ₺</td><td><button class="btn-danger" style="padding:4px 6px;" onclick="vadeSil(${v.id})">Sil</button></td></tr>`;
+            });
+            html += '</table>';
+            document.getElementById('vade-listesi').innerHTML = html;
+        }
+
+        function vadeSil(id) {
+            veritabani.vadeler = veritabani.vadeler.filter(v => v.id !== id);
+            kaydetVeri();
+            vadeleriGoster();
+        }
+
+        function bankaTahsilatIsle() {
+            let tarih = document.getElementById('b-tarih').value;
+            let musteri = document.getElementById('b-musteri').value.trim();
+            let tutar = parseFloat(document.getElementById('b-tutar').value) || 0;
+            let aciklama = document.getElementById('b-aciklama').value.trim() || 'Banka Havalesi';
+
+            if(!tarih || !musteri || tutar <= 0) { alert('Eksiksiz doldurun.'); return; }
+
+            veritabani.borclar[musteri] = Math.max(0, (veritabani.borclar[musteri] || 0) - tutar);
+            veritabani.islemler.push({
+                id: Date.now(),
+                tarih: tarih,
+                tip: 'Tahsilat',
+                musteri: musteri,
+                kalemler: [],
+                tutar: tutar,
+                aciklama: 'Banka Eşleştirme: ' + aciklama
+            });
+
+            kaydetVeri();
+            alert('Banka havalesi tahsilat olarak borçtan düşüldü!');
+            goHome();
+        }
+
+        function hizliTahsilatMusterileriDoldur() {
+            let sec = document.getElementById('ht-musteri-sec');
+            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
+            let html = '';
+            musteriler.forEach(m => {
+                let bakiye = veritabani.borclar[m] || 0;
+                html += `<option value="${m}">${m} (Borç: ${bakiye} ₺)</option>`;
+            });
+            sec.innerHTML = html || '<option value="">Müşteri Bulunamadı</option>';
+        }
+
+        function hizliTahsilatYap() {
+            let musteri = document.getElementById('ht-musteri-sec').value;
+            let tutar = parseFloat(document.getElementById('ht-tutar').value) || 0;
+            let aciklama = document.getElementById('ht-aciklama').value.trim() || 'Hızlı Tahsilat';
+
+            if(!musteri || tutar <= 0) { alert('Müşteri seçin ve tutar girin.'); return; }
+
+            veritabani.borclar[musteri] = Math.max(0, (veritabani.borclar[musteri] || 0) - tutar);
+            veritabani.islemler.push({
+                id: Date.now(),
+                tarih: new Date().toISOString().slice(0, 16),
+                tip: 'Tahsilat',
+                musteri: musteri,
+                kalemler: [],
+                tutar: tutar,
+                aciklama: aciklama
+            });
+
+            kaydetVeri();
+            alert('Hızlı tahsilat başarıyla işlendi!');
+            goHome();
+        }
 
         function urunSatiriEkle() {
             let konteynir = document.getElementById('urunler-konteynir');
