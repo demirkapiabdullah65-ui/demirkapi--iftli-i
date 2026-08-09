@@ -37,11 +37,11 @@
         th { color: #666; font-weight: 600; background: #f9fafb; }
         .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
         
-        /* Alt Navigasyon Çubuğu */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; }
+        /* Sabit Alt Navigasyon Çubuğu ve Yazıları */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; flex: 1; }
         .nav-item.active { color: white; font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 3px; }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -157,7 +157,7 @@
         </div>
     </div>
 
-    <!-- Sabit Alt Navigasyon Çubuğu -->
+    <!-- Sabit Alt Navigasyon Çubuğu ve Yazıları -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="goHome()" id="nav-anasayfa">
             <span class="nav-icon">🏠</span>
@@ -191,7 +191,6 @@
         const db = firebase.database();
         let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [] };
 
-        // Canlı Veri Dinleme ve Bildirim
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -235,7 +234,6 @@
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
 
-            // Alt menü aktiflik durumunu güncelle
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if(name === 'menu') document.getElementById('nav-anasayfa')?.classList.add('active');
             if(name === 'satis') document.getElementById('nav-satis')?.classList.add('active');
@@ -443,7 +441,6 @@
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
             kaydetVeri();
             
-            // Eklendiği anda inputları temizle
             urunInput.value = '';
             miktarInput.value = '';
 
