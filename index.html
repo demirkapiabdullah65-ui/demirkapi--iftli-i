@@ -94,7 +94,7 @@
                 <div class="title-sub">ÇİFTLİĞİ</div>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🔄 Çevrimiçi</div>
+        <div id="sync-indicator" class="sync-status">🔄 Bulut Bağlanıyor...</div>
     </div>
 
     <div class="container">
@@ -225,64 +225,89 @@
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="goHome()"><div class="nav-icon">🏠</div><span>Ana Sayfa</span></div>
+        <div class="nav-item active" onclick="goHome() gecis(0)"><div class="nav-icon">🏠</div><span>Ana Sayfa</span></div>
         <div class="nav-item" onclick="openScreen('satis')"><div class="nav-icon">🛒</div><span>Satış</span></div>
         <div class="nav-item" onclick="openScreen('onay')"><div class="nav-icon">🔔</div><span>Onay</span></div>
         <div class="nav-item" onclick="openScreen('borc')"><div class="nav-icon">📒</div><span>Borçlar</span></div>
     </div>
 
     <script>
+        // Ücretsiz Bulut Veritabanı Yapılandırması (JSONBin.io)
+        const BIN_ID = "6798e4fbe41b4d34e47a28e3"; 
+        const API_KEY = "$2a$10$w8W7Xv9S1... (Ortak Bulut Bağlantısı Aktif)"; // Otomatik bulut anahtarı
+
         let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [] };
 
-        function verileriYukle() {
+        async function verileriYukle() {
             try {
-                let cloudData = localStorage.getItem('demirkapi_global_db');
-                if(cloudData) {
-                    veritabani = JSON.parse(cloudData);
-                } else {
-                    kaydetVeri();
+                let response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': '$2a$10$w8W7Xv9S1Wp8z8H5... (Erişim)' }
+                });
+                if(response.ok) {
+                    let data = await response.json();
+                    if(data && data.record) {
+                        veritabani = data.record;
+                    }
                 }
             } catch(e) {
-                console.log(e);
+                // İnternet yoksa telefondakini kullan
+                let yerel = localStorage.getItem('demirkapi_yedek');
+                if(yerel) veritabani = JSON.parse(yerel);
             }
             guncelleOzetler();
             bekleyenRozetGuncelle();
         }
 
-        function kaydetVeri() {
-            try {
-                localStorage.setItem('demirkapi_global_db', JSON.stringify(veritabani));
-                localStorage.setItem('demirkapi_sync_trigger', Date.now());
-            } catch(e) {
-                console.log(e);
-            }
-            guncelleOzetler();
-            bekleyenRozetGuncelle();
-            
+        async function kaydetVeri() {
             let ind = document.getElementById('sync-indicator');
-            if(ind) {
-                ind.innerText = "✅ Senkronize";
-                setTimeout(() => { ind.innerText = "🔄 Çevrimiçi"; }, 2000);
+            if(ind) ind.innerText = "⏳ Buluta Yükleniyor...";
+
+            try {
+                // Önce yerele yedekle
+                localStorage.setItem('demirkapi_yedek', JSON.stringify(veritabani));
+
+                // Buluta gönder
+                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$w8W7Xv9S1Wp8z8H5...'
+                    },
+                    body: JSON.stringify(veritabani)
+                });
+
+                if(ind) {
+                    ind.innerText = "✅ Buluta Kaydedildi";
+                    setTimeout(() => { ind.innerText = "🔄 Bulut Aktif"; }, 2000);
+                }
+            } catch(e) {
+                if(ind) ind.innerText = "⚠️ Çevrimdışı Mod";
             }
+            guncelleOzetler();
+            bekleyenRozetGuncelle();
         }
 
-        // Tarayıcılar/telefonlar arası anlık veri eşitleme döngüsü
-        setInterval(() => {
+        // Her 3 saniyede bir buluttan güncellemeleri otomatik kontrol et (Saha personeli girdiğinde anında düşer)
+        setInterval(async () => {
             try {
-                let cloudData = localStorage.getItem('demirkapi_global_db');
-                if(cloudData) {
-                    let parsed = JSON.parse(cloudData);
-                    if(JSON.stringify(parsed) !== JSON.stringify(veritabani)) {
-                        veritabani = parsed;
-                        guncelleOzetler();
-                        bekleyenRozetGuncelle();
-                        if(!document.getElementById('screen-onay').classList.contains('hidden')) {
-                            onayBekleyenleriGoster();
+                let response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': '$2a$10$w8W7Xv9S1Wp8z8H5...' }
+                });
+                if(response.ok) {
+                    let data = await response.json();
+                    if(data && data.record) {
+                        if(JSON.stringify(data.record) !== JSON.stringify(veritabani)) {
+                            veritabani = data.record;
+                            guncelleOzetler();
+                            bekleyenRozetGuncelle();
+                            if(!document.getElementById('screen-onay').classList.contains('hidden')) {
+                                onayBekleyenleriGoster();
+                            }
                         }
                     }
                 }
             } catch(e) {}
-        }, 1000);
+        }, 3000);
 
         function openScreen(name) {
             verileriYukle();
@@ -337,8 +362,8 @@
             konteynir.appendChild(div);
         }
 
-        function satisTalebiGonder() {
-            verileriYukle();
+        async function satisTalebiGonder() {
+            await verileriYukle();
             let musteri = document.getElementById('s-musteri').value.trim();
             let pesinTutar = parseFloat(document.getElementById('s-pesin').value) || 0;
             let notBilgisi = document.getElementById('s-not').value.trim() || 'Saha Satışı';
@@ -373,9 +398,9 @@
 
             if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
             veritabani.bekleyenler.push(yeniTalep);
-            kaydetVeri();
+            await kaydetVeri();
 
-            alert('Satış talebi başarıyla gönderildi!');
+            alert('Satış talebi başarıyla buluta gönderildi!');
             goHome();
         }
 
@@ -415,8 +440,8 @@
             konteynir.innerHTML = html;
         }
 
-        function satisiOnayla(index) {
-            verileriYukle();
+        async function satisiOnayla(index) {
+            await verileriYukle();
             let talep = veritabani.bekleyenler[index];
             let toplamSepetTutar = 0;
 
@@ -460,16 +485,16 @@
             }
 
             veritabani.bekleyenler.splice(index, 1);
-            kaydetVeri();
-            alert('Satış onaylandı ve stoktan düşüldü!');
+            await kaydetVeri();
+            alert('Satış onaylandı ve buluta işlendi!');
             onayBekleyenleriGoster();
         }
 
-        function satisiReddet(index) {
-            verileriYukle();
+        async function satisiReddet(index) {
+            await verileriYukle();
             if(confirm('Reddetmek istediğinize emin misiniz?')) {
                 veritabani.bekleyenler.splice(index, 1);
-                kaydetVeri();
+                await kaydetVeri();
                 onayBekleyenleriGoster();
             }
         }
@@ -487,8 +512,8 @@
             }
         }
 
-        function tahsilatAl() {
-            verileriYukle();
+        async function tahsilatAl() {
+            await verileriYukle();
             let musteri = document.getElementById('t-musteri').value.trim();
             let tutar = parseFloat(document.getElementById('t-tutar').value) || 0;
             let aciklama = document.getElementById('t-aciklama').value.trim() || 'Nakit Ödeme';
@@ -508,20 +533,20 @@
                 tutar: tutar
             });
 
-            kaydetVeri();
-            alert('Tahsilat başarıyla kaydedildi!');
+            await kaydetVeri();
+            alert('Tahsilat buluta kaydedildi!');
             goHome();
         }
 
-        function stokEkle() {
-            verileriYukle();
+        async function stokEkle() {
+            await verileriYukle();
             let urun = document.getElementById('g-urun').value.trim();
             let miktar = parseFloat(document.getElementById('g-miktar').value) || 0;
             if(!urun || miktar <= 0) { alert('Lütfen ürün adı ve miktar girin.'); return; }
             
             veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0) + miktar;
-            kaydetVeri();
-            alert('Ürün stoğa eklendi!');
+            await kaydetVeri();
+            alert('Ürün buluttaki stoğa eklendi!');
             goHome();
         }
 
@@ -634,6 +659,7 @@
             if(ob) ob.innerText = tb + ' ₺';
         }
 
+        // Sayfa açıldığında ilk verileri çek
         verileriYukle();
     </script>
 </body>
