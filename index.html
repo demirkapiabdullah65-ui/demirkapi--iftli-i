@@ -4,649 +4,804 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demirkapı Çiftliği & Özlem Yem</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2pdf.js for PDF export -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        :root {
+            --primary: #15803d;
+            --primary-dark: #166534;
+            --secondary: #f59e0b;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #dc2626;
+            --success: #16a34a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* HEADER */
+        header { background-color: var(--primary); color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-box { background: #fef08a; color: #854d0e; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+        .logo-text h1 { font-size: 16px; font-weight: 700; line-height: 1.2; }
+        .logo-text p { font-size: 11px; opacity: 0.9; }
+        
+        .header-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+        /* MAIN CONTAINER & SCREENS */
+        .main-content { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 80px; }
+        .screen { display: none; flex-direction: column; gap: 16px; }
+        .screen.active { display: flex; }
+
+        /* WEATHER WIDGET */
+        .weather-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 16px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .weather-info h3 { font-size: 13px; opacity: 0.9; margin-bottom: 4px; }
+        .weather-info .temp { font-size: 28px; font-weight: bold; }
+        .weather-info p { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+        .weather-icon { font-size: 36px; }
+
+        /* BANNER */
+        .banner-card { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 14px; border-radius: 14px; display: flex; align-items: center; gap: 12px; }
+        .banner-icon { font-size: 24px; }
+        .banner-text h4 { font-size: 14px; color: #065f46; font-weight: 700; }
+        .banner-text p { font-size: 12px; color: #047857; }
+
+        /* GRID MENU */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .menu-card { background: var(--card-bg); border: 1px solid #e5e7eb; padding: 16px; border-radius: 16px; text-align: center; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 110px; }
+        .menu-card:active { transform: scale(0.97); }
+        .menu-icon { font-size: 28px; margin-bottom: 8px; }
+        .menu-card h3 { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+        .menu-card p { font-size: 11px; color: var(--text-muted); line-height: 1.2; }
+
+        /* BOTTOM NAV BAR */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
+        .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item span.icon { font-size: 20px; }
+
+        /* FORM & CARDS */
+        .card { background: var(--card-bg); border: 1px solid #e5e7eb; padding: 16px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .card-title { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; outline: none; background: #f9fafb; }
+        .form-control:focus { border-color: var(--primary); background: white; }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-warning { background-color: var(--secondary); color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+        th { color: var(--text-muted); font-weight: 600; background: #f9fafb; }
+
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        .kalem-satir { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #f9fafb; padding: 8px; border-radius: 10px; border: 1px solid #e5e7eb; }
+        
+        .back-btn { background: none; border: none; color: var(--primary); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 pb-20">
+<body>
 
-    <!-- Üst Başlık (Header) -->
-    <header class="bg-emerald-800 text-white px-4 py-3 shadow-md sticky top-0 z-30 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="bg-yellow-400 text-emerald-900 font-bold p-2 rounded-xl shadow">
-                <i class="fa-solid fa-wheat-awn text-lg"></i>
-            </div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight tracking-wide">DEMİRKAPI</h1>
-                <p class="text-xs text-emerald-200 font-medium">ÇİFTLİĞİ & ÖZLEM YEM</p>
+    <header>
+        <div class="logo-area">
+            <div class="logo-box">🌾</div>
+            <div class="logo-text">
+                <h1>DEMİRKAPI</h1>
+                <p>ÇİFTLİĞİ & ÖZLEM YEM</p>
             </div>
         </div>
-        <div class="bg-emerald-700/80 border border-emerald-600 text-emerald-100 text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
-            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-            <span class="font-medium">Canlı Bulut</span>
+        <div class="header-badge" onclick="rolDegistir()">
+            <span id="header-rol-ikon">👑</span>
+            <span id="header-rol-yazi">Yönetici</span>
         </div>
     </header>
 
-    <!-- Ana İçerik Konteyneri -->
-    <main class="max-w-md mx-auto p-4 space-y-4">
-
-        <!-- Hava Durumu Kartı -->
-        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4 rounded-2xl shadow-lg relative overflow-hidden">
-            <div class="absolute right-3 top-3 text-6{-px} opacity-20">
-                <i class="fa-solid fa-cloud text-6xl"></i>
+    <div class="main-content">
+        
+        <!-- ANA SAYFA (GRID MENÜ) -->
+        <div id=" ekran-anasayfa" class="screen active">
+            
+            <div class="weather-card">
+                <div class="weather-info">
+                    <h3>📍 Sakarya Çiftlik Konumu</h3>
+                    <div class="temp">28°C</div>
+                    <p>Bulutlu - Tarla ve saha işleri için uygun.</p>
+                </div>
+                <div class="weather-icon">☁️</div>
             </div>
-            <div class="text-xs text-blue-100 font-medium flex items-center gap-1 mb-1">
-                <i class="fa-solid fa-location-dot text-red-400"></i> Sakarya Çiftlik Konumu
-            </div>
-            <div class="flex items-baseline gap-2">
-                <h2 class="text-3xl font-bold">28°C</h2>
-                <i class="fa-solid fa-cloud text-xl text-blue-200"></i>
-            </div>
-            <p class="text-xs text-blue-100 mt-1">Bulutlu - Tarla ve saha işleri için uygun.</p>
-        </div>
 
-        <h3 class="font-bold text-gray-700 text-base pt-1">Ana Sayfa</h3>
-
-        <!-- 0. Özlem Yem Bayilik Takibi (Özel Banner) -->
-        <div onclick="openScreen('ozlemyem')" class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm cursor-pointer hover:bg-emerald-100/60 transition flex items-center gap-4">
-            <div class="text-3xl bg-white p-3 rounded-xl shadow-sm border border-emerald-100 flex items-center justify-center">
-                🚛
-            </div>
-            <div class="flex-1">
-                <h4 class="font-bold text-emerald-900 text-sm">Özlem Yem Bayilik Takibi</h4>
-                <p class="text-xs text-emerald-700/80 mt-0.5">Araba plakası, yem adı, alış fiyatı & toplam araba tutarı</p>
-            </div>
-            <i class="fa-solid fa-chevron-right text-emerald-400 text-xs"></i>
-        </div>
-
-        <!-- Fonksiyonel Menü Grid (1'den 18'e Kadar) -->
-        <div class="grid grid-cols-2 gap-3">
-
-            <!-- 1. Satış / Giriş -->
-            <div onclick="openScreen('islem')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🛒</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">1. Satış / Giriş</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Telefondan talep gönder</p>
+            <div class="banner-card">
+                <div class="banner-icon">🚛</div>
+                <div class="banner-text">
+                    <h4>Özlem Yem Bayilik Takibi</h4>
+                    <p>Araba plakası, yem adı, alış fiyatı & toplam araba tutarı</p>
                 </div>
             </div>
 
-            <!-- 2. Onay Bekleyenler -->
-            <div onclick="openScreen('onay')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🔔</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">2. Onay Bekleyenler</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Cebinden onayla</p>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="ekranAc('satis')">
+                    <div class="menu-icon">🛒</div>
+                    <h3>1. Satış / Giriş</h3>
+                    <p>Telefondan talep gönder</p>
                 </div>
-            </div>
-
-            <!-- 3. Stok Ekle -->
-            <div onclick="openScreen('stok')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📥</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">3. Stok Ekle</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Stoğa ürün ekle (Adet)</p>
+                <div class="menu-card" onclick="ekranAc('onay')">
+                    <div class="menu-icon">🔔</div>
+                    <h3>2. Onay Bekleyenler</h3>
+                    <p>Cebinden onayla <span id="menu-onay-badge" class="badge badge-warning" style="display:none; margin-left:4px;">0</span></p>
                 </div>
-            </div>
-
-            <!-- 4. Tahsilat -->
-            <div onclick="openScreen('islem')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">💰</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">4. Tahsilat</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Ödeme kaydı & açıklama</p>
+                <div class="menu-card" onclick="ekranAc('stok_ekle')">
+                    <div class="menu-icon">📦</div>
+                    <h3>3. Stok Ekle</h3>
+                    <p>Stoğa ürün ekle (Adet)</p>
                 </div>
-            </div>
-
-            <!-- 5. Borç Takibi -->
-            <div onclick="openScreen('musteriler')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📒</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">5. Borç Takibi</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Müşteri detaylı borçlar</p>
+                <div class="menu-card" onclick="ekranAc('tahsilat')">
+                    <div class="menu-icon">💰</div>
+                    <h3>4. Tahsilat</h3>
+                    <p>Ödeme kaydı & açıklama</p>
                 </div>
-            </div>
-
-            <!-- 6. Stok & Kritik -->
-            <div onclick="openScreen('stok')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📦</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">6. Stok & Kritik</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Adet bazlı stoklar</p>
+                <div class="menu-card" onclick="ekranAc('borclar')">
+                    <div class="menu-icon">📖</div>
+                    <h3>5. Borç Takibi</h3>
+                    <p>Müşteri detaylı borçlar</p>
                 </div>
-            </div>
-
-            <!-- 7. Sürü / Hayvan Takibi -->
-            <div onclick="alert('Sürü / Hayvan Takibimodülü yakında aktifleşecek.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🐄</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">7. Sürü / Hayvan Takibi</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Küpe, aşı & doğum</p>
+                <div class="menu-card" onclick="ekranAc('stok_liste')">
+                    <div class="menu-icon">📦</div>
+                    <h3>6. Stok & Kritik</h3>
+                    <p>Adet bazlı stoklar</p>
                 </div>
-            </div>
-
-            <!-- 8. Gelişmiş Finans -->
-            <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📈</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">8. Gelişmiş Finans</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Alacak / Borç özeti</p>
+                <div class="menu-card" onclick="ekranAc('nakliye')">
+                    <div class="menu-icon">🚛</div>
+                    <h3>7. Nakliye / Lojistik</h3>
+                    <p>Yem, slaj, biçme takibi</p>
                 </div>
-            </div>
-
-            <!-- 9. Müşteriler -->
-            <div onclick="openScreen('musteriler')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">👥</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">9. Müşteriler</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">WhatsApp hatırlatıcı</p>
+                <div class="menu-card" onclick="ekranAc('finans')">
+                    <div class="menu-icon">📈</div>
+                    <h3>8. Gelişmiş Finans</h3>
+                    <p>Alacak / Borç özeti</p>
                 </div>
-            </div>
-
-            <!-- 10. Günlük Rapor -->
-            <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📅</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">10. Günlük Rapor</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Günlük satış & tahsilat</p>
+                <div class="menu-card" onclick="ekranAc('musteriler')">
+                    <div class="menu-icon">👥</div>
+                    <h3>9. Müşteriler</h3>
+                    <p>Cari hesaplar</p>
                 </div>
-            </div>
-
-            <!-- 11. Aylık Kâr / Ciro -->
-            <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📊</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">11. Aylık Kâr / Ciro</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Aylık finansal özet</p>
+                <div class="menu-card" onclick="ekranAc('gelirgider')">
+                    <div class="menu-icon">💸</div>
+                    <h3>12. Gider / Masraf</h3>
+                    <p>Mazot, yem vb.</p>
                 </div>
-            </div>
-
-            <!-- 12. Gider / Masraf -->
-            <div onclick="alert('Gider / Masraf modülü yakında eklenecek.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">💸</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">12. Gider / Masraf</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Mazot, yem vb.</p>
-                </div>
-            </div>
-
-            <!-- 13. Fiyat Listesi -->
-            <div onclick="openScreen('stok')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🏷️</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">13. Fiyat Listesi</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Süt & ürün satış fiyatları</p>
-                </div>
-            </div>
-
-            <!-- 14. Vade Takibi -->
-            <div onclick="alert('Vade takibi modülü aktif.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">⏳</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">14. Vade Takibi</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Çek / senet vadeleri</p>
-                </div>
-            </div>
-
-            <!-- 15. Banka & Havale -->
-            <div onclick="alert('Banka entegrasyonu aktif.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🏦</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">15. Banka & Havale</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Banka tahsilat eşleştir</p>
-                </div>
-            </div>
-
-            <!-- 16. Hızlı Tahsilat -->
-            <div onclick="openScreen('islem')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">⚡</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">16. Hızlı Tahsilat</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Tek tıkla ödeme düş</p>
-                </div>
-            </div>
-
-            <!-- 17. Fason Biçme & İşler -->
-            <div onclick="alert('Fason biçme modülü aktif.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🚜</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">17. Fason Biçme & İşler</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Tarla & biçme hizmetleri</p>
-                </div>
-            </div>
-
-            <!-- 18. Günlük Görevler -->
-            <div onclick="alert('Günlük görevler listesi boş.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">📋</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">18. Günlük Görevler</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Çiftlik iş planı & notlar</p>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Ekstra Araçlar: Sesli Asistan & Yedekleme & İşlem Geçmişi -->
-        <div class="grid grid-cols-2 gap-3">
-            <div onclick="alert('Sesli asistan aktif. Dinleniyor...')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">🎤</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">Sesli Asistan</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Konuşarak işlem yap</p>
-                </div>
-            </div>
-            <div onclick="verileriSifirla()" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
-                <div class="text-2xl mb-2">💾</div>
-                <div>
-                    <h4 class="font-bold text-sm text-gray-800">Yedek & Dışa Aktar</h4>
-                    <p class="text-[11px] text-gray-500 mt-0.5">Excel & JSON yedek</p>
+                <div class="menu-card" onclick="ekranAc('islem_gecmisi')">
+                    <div class="menu-icon">🧾</div>
+                    <h3>İşlem Geçmişi</h3>
+                    <p>Tüm hareketler</p>
                 </div>
             </div>
         </div>
 
-        <!-- Tam Genişlik İşlem Geçmişi -->
-        <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex items-center gap-4">
-            <div class="text-2xl bg-gray-50 p-3 rounded-xl">📄</div>
-            <div class="flex-1">
-                <h4 class="font-bold text-sm text-gray-800">İşlem Geçmişi</h4>
-                <p class="text-[11px] text-gray-500 mt-0.5">Tüm hareketler</p>
+        <!-- 1. SATIŞ / GİRİŞ EKRANI -->
+        <div id="ekran-satis" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">
+                    <span>Satış / Ürün Çıkışı</span>
+                    <span id="satis-mod-notu" style="font-size:11px; color:#d97706; font-weight:normal;"></span>
+                </div>
+                <div class="form-group">
+                    <label>Müşteri Seçin</label>
+                    <select id="satis-musteri" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>İşlem Tarihi</label>
+                    <input type="date" id="satis-tarih" class="form-control">
+                </div>
+
+                <div style="margin-top:10px;">
+                    <label style="font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:4px; display:block;">Ürün Kalemleri (Adet)</label>
+                    <div id="satis-kalemler-container"></div>
+                    <button class="btn" style="background:#e5e7eb; color:#374151; margin-top:8px;" onclick="yeniKalemEkle()">+ Ürün Ekle</button>
+                </div>
+
+                <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:16px; font-weight:700;">Toplam: <span id="satis-toplam">0</span> ₺</div>
+                    <button id="satis-buton" class="btn btn-success" style="width:auto; padding:10px 20px;" onclick="satisYap()">Satışı Tamamla</button>
+                </div>
             </div>
-            <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
         </div>
 
-    </main>
+        <!-- 2. ONAY BEKLEYENLER EKRANI -->
+        <div id="ekran-onay" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Bekleyen Satış Onayları (Personel)</div>
+                <div id="onay-liste-container">
+                    <p style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px;">Bekleyen satış onayı bulunmuyor.</p>
+                </div>
+            </div>
+        </div>
 
-    <!-- Modal / Ekran Görüntüleme Alanı (Uygulama İçi Tam Ekranlar) -->
-    <div id="modal-container" class="fixed inset-0 bg-white z-50 overflow-y-auto hidden">
-        <div class="bg-emerald-800 text-white px-4 py-3 flex items-center justify-between sticky top-0 shadow">
-            <h3 id="modal-title" class="font-bold text-base">Modül</h3>
-            <button onclick="closeModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold">Kapat X</button>
+        <!-- 3. STOK EKLE EKRANI -->
+        <div id="ekran-stok_ekle" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Stoğa Yeni Ürün Ekle (Adet)</div>
+                <div class="form-group">
+                    <label>Ürün Adı</label>
+                    <input type="text" id="yeni-stok-ad" class="form-control" placeholder="Örn: Özlem Sığır Besi Yemi">
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <input type="text" id="yeni-stok-kat" class="form-control" value="Yem">
+                </div>
+                <div class="form-group">
+                    <label>Miktar (Adet)</label>
+                    <input type="number" id="yeni-stok-miktar" class="form-control" placeholder="100">
+                </div>
+                <div class="form-group">
+                    <label>Satış Fiyatı (₺)</label>
+                    <input type="number" id="yeni-stok-fiyat" class="form-control" placeholder="450">
+                </div>
+                <button class="btn btn-primary" onclick="stokEkleKaydet()">Ürünü Kaydet</button>
+            </div>
         </div>
-        <div id="modal-content" class="p-4 max-w-md mx-auto space-y-4 pb-20">
-            <!-- Dinamik İçerik Buraya Gelecek -->
+
+        <!-- 4. TAHSİLAT EKRANI -->
+        <div id="ekran-tahsilat" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Müşteri Tahsilat / Ödeme Girişi</div>
+                <div class="form-group">
+                    <label>Müşteri Seç</label>
+                    <select id="tahsilat-musteri" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>İşlem Türü</label>
+                    <select id="tahsilat-tip" class="form-control">
+                        <option value="Tahsilat">Tahsilat (Ödeme Aldı)</option>
+                        <option value="Borc">Borç Ekle (Veresiye)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tutar (₺)</label>
+                    <input type="number" id="tahsilat-tutar" class="form-control" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <input type="text" id="tahsilat-aciklama" class="form-control" placeholder="Nakit, Havale vb.">
+                </div>
+                <button class="btn btn-success" onclick="tahsilatKaydet()">İşlemi Kaydet</button>
+            </div>
         </div>
+
+        <!-- 5. BORÇLAR / 9. MÜŞTERİLER EKRANI -->
+        <div id="ekran-borclar" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Yeni Müşteri Ekle</div>
+                <div class="form-group">
+                    <label>Müşteri / Firma Adı</label>
+                    <input type="text" id="yeni-mus-ad" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Telefon Numarası</label>
+                    <input type="text" id="yeni-mus-tel" class="form-control">
+                </div>
+                <button class="btn btn-primary" onclick="musteriEkleKaydet()">Müşteriyi Kaydet</button>
+            </div>
+            <div class="card" style="margin-top:12px;">
+                <div class="card-title">Müşteri Cari Hesaplar & Borçlar</div>
+                <table>
+                    <thead>
+                        <tr><th>Müşteri</th><th>Telefon</th><th>Bakiye</th></tr>
+                    </thead>
+                    <tbody id="musteri-tablo-liste"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 6. STOK LİSTE EKRANI -->
+        <div id="ekran-stok_liste" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Stok Listesi (Adet Bazlı)</div>
+                <table>
+                    <thead>
+                        <tr><th>Ürün Adı</th><th>Kategori</th><th>Miktar</th><th>Fiyat</th><th>İşlem</th></tr>
+                    </thead>
+                    <tbody id="stok-tablo-liste"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 7. NAKLİYE EKRANI -->
+        <div id="ekran-nakliye" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Nakliye & Lojistik Takibi</div>
+                <div class="form-group">
+                    <label>İş Türü</label>
+                    <select id="nak-tip" class="form-control">
+                        <option value="Nakliye Sevkiyatı">Nakliye Sevkiyatı</option>
+                        <option value="Slaj Dağıtımı">Slaj Dağıtımı</option>
+                        <option value="Yem Sevkiyatı">Yem Sevkiyatı</option>
+                        <option value="Biçme İşlemi">Biçme İşlemi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Müşteri / Çiftlik</label>
+                    <select id="nak-musteri" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>Tarih</label>
+                    <input type="date" id="nak-tarih" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Plaka / Şoför / Detay</label>
+                    <input type="text" id="nak-detay" class="form-control" placeholder="Örn: 54 AB 123 - Ahmet Şoför">
+                </div>
+                <button class="btn btn-primary" onclick="nakliyeKaydet()">Lojistik Kaydı Oluştur</button>
+                
+                <table style="margin-top:14px;">
+                    <thead>
+                        <tr><th>Tarih</th><th>Tür</th><th>Müşteri</th><th>Detay</th><th>İşlem</th></tr>
+                    </thead>
+                    <tbody id="nakliye-tablo-liste"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 8. FİNANS / 12. GİDER EKRANI -->
+        <div id="ekran-finans" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Finansal Özet & Giderler</div>
+                <div class="form-group">
+                    <label>İşlem Türü</label>
+                    <select id="gg-tip" class="form-control">
+                        <option value="Gelir">Gelir</option>
+                        <option value="Gider">Gider (Mazot, Gübre, Maaş vb.)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Kategori / Açıklama</label>
+                    <input type="text" id="gg-kat" class="form-control" placeholder="Örn: Mazot Gideri">
+                </div>
+                <div class="form-group">
+                    <label>Tutar (₺)</label>
+                    <input type="number" id="gg-tutar" class="form-control">
+                </div>
+                <button class="btn btn-primary" onclick="gelirGiderKaydet()">Kaydet</button>
+
+                <table style="margin-top:14px;">
+                    <thead>
+                        <tr><th>Tür</th><th>Açıklama</th><th>Tutar</th><th>Tarih</th></tr>
+                    </thead>
+                    <tbody id="gg-tablo-liste"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 9. MÜŞTERİLER EKRANI -->
+        <div id="ekran-musteriler" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Müşteriler & Cari Hesaplar</div>
+                <table>
+                    <thead>
+                        <tr><th>Adı</th><th>Telefon</th><th>Bakiye</th></tr>
+                    </thead>
+                    <tbody id="musteri-liste-ekran"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 12. GİDER / MASRAF EKRANI -->
+        <div id="ekran-gelirgider" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Gider & Masraf Yönetimi</div>
+                <div class="form-group">
+                    <label>Gider Türü / Açıklama</label>
+                    <input type="text" id="masraf-kat" class="form-control" placeholder="Örn: Traktör Mazotu">
+                </div>
+                <div class="form-group">
+                    <label>Tutar (₺)</label>
+                    <input type="number" id="masraf-tutar" class="form-control">
+                </div>
+                <button class="btn btn-danger" onclick="masrafKaydet()">Gideri Kaydet</button>
+            </div>
+        </div>
+
+        <!-- İŞLEM GEÇMİŞİ -->
+        <div id="ekran-islem_gecmisi" class="screen">
+            <button class="back-btn" onclick="ekranAc('anasayfa')">← Ana Sayfaya Dön</button>
+            <div class="card">
+                <div class="card-title">Tüm İşlem Geçmişi</div>
+                <table>
+                    <thead>
+                        <tr><th>Tarih</th><th>Müşteri</th><th>Tür</th><th>Tutar</th></tr>
+                    </thead>
+                    <tbody id="gecmis-tablo-liste"></tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Alt Navigasyon Çubuğu (Bottom Navigation Bar) -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-emerald-900 border-t border-emerald-800 text-white flex justify-around items-center py-2 z-40 shadow-lg">
-        <button onclick="location.reload()" class="flex flex-col items-center text-emerald-400 hover:text-white transition">
-            <i class="fa-solid fa-house text-lg mb-0.5"></i>
-            <span class="text-[10px] font-medium">Ana Sayfa</span>
+    <!-- ALT NAVİGASYON ÇUBUĞU -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="ekranAc('anasayfa')">
+            <span class="icon">🏠</span>
+            <span>Ana Sayfa</span>
         </button>
-        <button onclick="openScreen('ozlemyem')" class="flex flex-col items-center text-emerald-300 hover:text-white transition">
-            <i class="fa-solid fa-truck text-lg mb-0.5"></i>
-            <span class="text-[10px] font-medium">Özlem Yem</span>
+        <button class="nav-item" onclick="ekranAc('nakliye')">
+            <span class="icon">🚛</span>
+            <span>Özlem Yem</span>
         </button>
-        <button onclick="openScreen('onay')" class="flex flex-col items-center text-emerald-300 hover:text-white transition">
-            <i class="fa-solid fa-bell text-lg mb-0.5"></i>
-            <span class="text-[10px] font-medium">Onay</span>
+        <button class="nav-item" onclick="ekranAc('onay')">
+            <span class="icon">🔔</span>
+            <span>Onay</span>
         </button>
-        <button onclick="openScreen('musteriler')" class="flex flex-col items-center text-emerald-300 hover:text-white transition">
-            <i class="fa-solid fa-book text-lg mb-0.5"></i>
-            <span class="text-[10px] font-medium">Borçlar</span>
+        <button class="nav-item" onclick="ekranAc('borclar')">
+            <span class="icon">📖</span>
+            <span>Borçlar</span>
         </button>
     </nav>
 
-    <!-- JavaScript Uygulama Mantığı -->
     <script>
-        // Veritabanı (LocalStorage Destekli)
-        let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
-            stoklar: [],
-            musteriler: [],
+        // VERİTABANI VE BAŞLANGIÇ VERİLERİ
+        let db = {
+            rol: "yonetici", // "yonetici" (Abdullah) veya "personel"
+            stok: [
+                { id: 1, ad: "Özlem Sığır Besi Yemi", kategori: "Yem", miktar: 250, fiyat: 450 },
+                { id: 2, ad: "Özlem Süt Yemi", kategori: "Yem", miktar: 300, fiyat: 430 },
+                { id: 3, ad: "Mısır Silajı", kategori: "Slaj", miktar: 5000, fiyat: 2.5 }
+            ],
+            musteri: [
+                { id: 1, ad: "Ahmet Yılmaz", tel: "05321112233" },
+                { id: 2, ad: "Mehmet Demir", tel: "05334445566" }
+            ],
             islemler: [],
-            ozlemYemNakliye: []
+            nakliye: [],
+            gelirgider: [],
+            bekleyenOnaylar: []
         };
 
-        let aktifSepet = [];
-        let aktifMusteriFis = null;
-
-        function kaydet() {
-            localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
+        function verileriKaydet() {
+            try { localStorage.setItem('demirkapi_app_db_v2', JSON.stringify(db)); } catch(e){}
         }
 
-        function verileriSifirla() {
-            if(confirm("Tüm veriler sıfırlansın mı?")) {
-                localStorage.removeItem('demirkapi_db');
-                location.reload();
-            }
+        function verileriYukle() {
+            try {
+                let data = localStorage.getItem('demirkapi_app_db_v2');
+                if(data) db = JSON.parse(data);
+            } catch(e){}
         }
 
-        function closeModal() {
-            document.getElementById('modal-container').classList.add('hidden');
+        window.onload = function() {
+            verileriYukle();
+            document.getElementById('satis-tarih').valueAsDate = new Date();
+            document.getElementById('nak-tarih').valueAsDate = new Date();
+            guncelleArayuz();
+            yeniKalemEkle();
+        };
+
+        function ekranAc(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('ekran-' + id).classList.add('active');
+            guncelleArayuz();
         }
 
-        function openScreen(screenName) {
-            let container = document.getElementById('modal-container');
-            let titleEl = document.getElementById('modal-title');
-            let contentEl = document.getElementById('modal-content');
-            container.classList.remove('hidden');
-
-            if(screenName === 'dashboard') {
-                titleEl.innerText = "Finans & Günlük Rapor";
-                let toplamBorc = 0;
-                let toplamTahsilat = 0;
-                veritabani.musteriler.forEach(m => {
-                    let b = 0;
-                    veritabani.islemler.filter(i => i.musteri === m.ad).forEach(i => {
-                        if(i.tip === 'Satış') b += i.tutar;
-                        if(i.tip === 'Tahsilat') b -= i.tutar;
-                    });
-                    if(b > 0) toplamBorc += b;
-                });
-                veritabani.islemler.filter(i => i.tip === 'Tahsilat').forEach(i => toplamTahsilat += i.tutar);
-
-                let islemHtml = '';
-                [...veritabani.islemler].reverse().forEach(i => {
-                    islemHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
-                        <div><b>${i.tarih}</b> - ${i.musteri}<br><span class="text-gray-500">${i.aciklama || i.tip}</span></div>
-                        <div class="font-bold ${i.tip==='Satış'?'text-red-600':'text-emerald-600'}">${i.tutar} ₺</div>
-                    </div>`;
-                });
-
-                contentEl.innerHTML = `
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-red-50 border border-red-200 p-4 rounded-xl">
-                            <p class="text-xs text-red-500 font-medium">Toplam Alacak</p>
-                            <h3 class="text-xl font-bold text-red-700 mt-1">${toplamBorc} ₺</h3>
-                        </div>
-                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
-                            <p class="text-xs text-emerald-600 font-medium">Toplam Tahsilat</p>
-                            <h3 class="text-xl font-bold text-emerald-700 mt-1">${toplamTahsilat} ₺</h3>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-sm text-gray-700 pt-2">Tüm Hareketler</h4>
-                    <div class="space-y-2">${islemHtml || '<p class="text-xs text-gray-400 text-center py-4">Henüz işlem yok.</p>'}</div>
-                `;
-            }
-            else if(screenName === 'ozlemyem') {
-                titleEl.innerText = "Özlem Yem Bayilik Takibi";
-                let nakliyeHtml = '';
-                veritabani.ozlemYemNakliye.forEach((n, idx) => {
-                    nakliyeHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
-                        <div><b>Plaka:</b> ${n.plaka} | <b>Yem:</b> ${n.yemAdi}<br><b>Tutar:</b> ${n.tutar} ₺ (${n.miktar} adet)</div>
-                        <button onclick="veritabani.ozlemYemNakliye.splice(${idx},1);kaydet();openScreen('ozlemyem');" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
-                    </div>`;
-                });
-
-                contentEl.innerHTML = `
-                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
-                        <h4 class="font-bold text-sm text-emerald-900">Yeni Nakliye / Sevkiyat Ekle</h4>
-                        <form onsubmit="ozlemYemEkle(event)" class="space-y-3 text-xs">
-                            <div><label class="block text-gray-600 mb-1">Araba Plakası</label><input type="text" id="oy-plaka" required class="w-full border rounded-lg p-2" placeholder="Örn: 54 Z 1234"></div>
-                            <div><label class="block text-gray-600 mb-1">Yem Adı</label><input type="text" id="oy-yem" required class="w-full border rounded-lg p-2" placeholder="Örn: Süt Yemi"></div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div><label class="block text-gray-600 mb-1">Miktar (Adet)</label><input type="number" id="oy-miktar" required class="w-full border rounded-lg p-2" placeholder="0"></div>
-                                <div><label class="block text-gray-600 mb-1">Toplam Tutar (₺)</label><input type="number" step="0.01" id="oy-tutar" required class="w-full border rounded-lg p-2" placeholder="0.00"></div>
-                            </div>
-                            <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2 rounded-lg">Sevkiyatı Kaydet</button>
-                        </form>
-                    </div>
-                    <h4 class="font-bold text-sm text-gray-700 pt-2">Kayıtlı Sevkiyatlar</h4>
-                    <div class="space-y-2">${nakliyeHtml || '<p class="text-xs text-gray-400 text-center py-4">Kayıtlı sevkiyat bulunmuyor.</p>'}</div>
-                `;
-            }
-            else if(screenName === 'stok') {
-                titleEl.innerText = "Stok Yönetimi (Adet)";
-                let stokHtml = '';
-                veritabani.stoklar.forEach(s => {
-                    stokHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
-                        <div><b>${s.ad}</b><br>Miktar: ${s.adEt || s.miktar} Adet | Fiyat: ${s.fiyat} ₺</div>
-                        <button onclick="stokSil(${s.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
-                    </div>`;
-                });
-
-                contentEl.innerHTML = `
-                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
-                        <h4 class="font-bold text-sm text-emerald-900">Stoğa Ürün Ekle</h4>
-                        <form onsubmit="stokEkleModal(event)" class="space-y-3 text-xs">
-                            <div><label class="block text-gray-600 mb-1">Ürün Adı</label><input type="text" id="stok-ad" required class="w-full border rounded-lg p-2" placeholder="Örn: Süt Yemi, Silaj"></div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div><label class="block text-gray-600 mb-1">Miktar (Adet)</label><input type="number" id="stok-miktar" required class="w-full border rounded-lg p-2" placeholder="0"></div>
-                                <div><label class="block text-gray-600 mb-1">Birim Fiyat (₺)</label><input type="number" step="0.01" id="stok-fiyat" required class="w-full border rounded-lg p-2" placeholder="0.00"></div>
-                            </div>
-                            <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2 rounded-lg">Stok Kaydet</button>
-                        </form>
-                    </div>
-                    <h4 class="font-bold text-sm text-gray-700 pt-2">Stok Listesi</h4>
-                    <div class="space-y-2">${stokHtml || '<p class="text-xs text-gray-400 text-center py-4">Kayıtlı stok yok.</p>'}</div>
-                `;
-            }
-            else if(screenName === 'musteriler') {
-                titleEl.innerText = "Müşteriler & Borç Takibi";
-                let musteriHtml = '';
-                veritabani.musteriler.forEach(m => {
-                    let borc = 0;
-                    veritabani.islemler.filter(i => i.musteri === m.ad).forEach(i => {
-                        if(i.tip === 'Satış') borc += i.tutar;
-                        if(i.tip === 'Tahsilat') borc -= i.tutar;
-                    });
-                    musteriHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
-                        <div><b>${m.ad}</b> (${m.tel || 'Tel yok'})<br>Güncel Borç: <span class="font-bold ${borc>0?'text-red-600':'text-emerald-600'}">${borc} ₺</span></div>
-                        <div class="space-x-1">
-                            <button onclick="fisGoster('${m.ad}')" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded font-medium">Ekstre</button>
-                            <button onclick="musteriSil(${m.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
-                });
-
-                contentEl.innerHTML = `
-                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
-                        <h4 class="font-bold text-sm text-emerald-900">Yeni Müşteri Ekle</h4>
-                        <form onsubmit="musteriEkleModal(event)" class="space-y-3 text-xs">
-                            <div><label class="block text-gray-600 mb-1">Müşteri Ad Soyad</label><input type="text" id="m-ad" required class="w-full border rounded-lg p-2" placeholder="Örn: Ahmet Yılmaz"></div>
-                            <div><label class="block text-gray-600 mb-1">Telefon Numarası</label><input type="text" id="m-tel" class="w-full border rounded-lg p-2" placeholder="05XXXXXXXXX"></div>
-                            <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2 rounded-lg">Müşteri Kaydet</button>
-                        </form>
-                    </div>
-                    <h4 class="font-bold text-sm text-gray-700 pt-2">Müşteri Listesi</h4>
-                    <div class="space-y-2">${musteriHtml || '<p class="text-xs text-gray-400 text-center py-4">Kayıtlı müşteri yok.</p>'}</div>
-                `;
-            }
-            else if(screenName === 'islem' || screenName === 'hizlitahsilat') {
-                titleEl.innerText = "Satış veya Tahsilat Yap";
-                let musteriOpts = veritabani.musteriler.map(m => `<option value="${m.ad}">${m.ad}</option>`).join('');
-                let stokOpts = veritabani.stoklar.map(s => `<option value="${s.id}">${s.ad} (Stok: ${s.miktar} - ${s.fiyat}₺)</option>`).join('');
-
-                contentEl.innerHTML = `
-                    <form onsubmit="islemYapModal(event)" class="space-y-3 text-xs">
-                        <div>
-                            <label class="block text-gray-600 mb-1">İşlem Türü</label>
-                            <select id="islem-tip" onchange="islemTipiDegis()" class="w-full border rounded-lg p-2">
-                                <option value="Satış">Satış (Borçlandır & Stok Düş)</option>
-                                <option value="Tahsilat">Tahsilat (Ödeme Al)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-600 mb-1">Müşteri</label>
-                            <select id="islem-musteri" required class="w-full border rounded-lg p-2">${musteriOpts || '<option value="">Önce müşteri ekleyin</option>'}</select>
-                        </div>
-                        
-                        <div id="satis-alani" class="space-y-2 border p-3 rounded-lg bg-gray-50">
-                            <label class="block font-semibold text-gray-700">Ürün Seç</label>
-                            <select id="sepet-urun" class="w-full border rounded p-1.5">${stokOpts || '<option value="">Stok bulunamadı</option>'}</select>
-                            <div class="flex gap-2">
-                                <input type="number" id="sepet-miktar" value="1" min="1" class="w-20 border rounded p-1.5" placeholder="Adet">
-                                <button type="button" onclick="sepeteEkle()" class="flex-1 bg-blue-600 text-white py-1.5 rounded font-medium">Sepete Ekle</button>
-                            </div>
-                            <div id="sepet-listesi" class="space-y-1 pt-2"></div>
-                        </div>
-
-                        <div id="tahsilat-alani" class="space-y-2 border p-3 rounded-lg bg-gray-50 hidden">
-                            <div><label class="block text-gray-600 mb-1">Tahsil Edilen Tutar (₺)</label><input type="number" step="0.01" id="tahsilat-tutar" class="w-full border rounded-lg p-2" placeholder="0.00"></div>
-                            <div><label class="block text-gray-600 mb-1">Açıklama</label><input type="text" id="tahsilat-aciklama" class="w-full border rounded-lg p-2" placeholder="Nakit / Havale vb."></div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2.5 rounded-lg">İşlemi Tamamla</button>
-                    </form>
-                `;
-            }
-            else if(screenName === 'onay') {
-                titleEl.innerText = "Onay Bekleyenler";
-                contentEl.innerHTML = `
-                    <div class="text-center py-10 space-y-2">
-                        <i class="fa-solid fa-circle-check text-4xl text-emerald-500"></i>
-                        <h4 class="font-bold text-gray-700">Bekleyen Onay Yok</h4>
-                        <p class="text-xs text-gray-500">Cebinden onaylanacak bekleyen mobil talep bulunmuyor.</p>
-                    </div>
-                `;
-            }
-        }
-
-        function islemTipiDegis() {
-            let tip = document.getElementById('islem-tip').value;
-            if(tip === 'Satış') {
-                document.getElementById('satis-alani').classList.remove('hidden');
-                document.getElementById('tahsilat-alani').classList.add('hidden');
+        function rolDegistir() {
+            if(db.rol === "yonetici") {
+                db.rol = "personel";
+                alert("Personel moduna geçildi. Yaptığınız satışlar yönetici onayına düşecektir.");
             } else {
-                document.getElementById('satis-alani').classList.add('hidden');
-                document.getElementById('tahsilat-alani').classList.remove('hidden');
+                db.rol = "yonetici";
+                alert("Yönetici (Abdullah Demirkapı) moduna geçildi.");
             }
+            verileriKaydet();
+            guncelleArayuz();
         }
 
-        function sepeteEkle() {
-            let urunId = document.getElementById('sepet-urun').value;
-            let miktar = parseInt(document.getElementById('sepet-miktar').value);
-            let stok = veritabani.stoklar.find(s => s.id == urunId);
-            if(!stok) return alert("Ürün seçilmedi.");
-            if(stok.miktar < miktar) return alert("Yetersiz stok!");
-            
-            aktifSepet.push({ id: stok.id, ad: stok.ad, miktar, fiyat: stok.fiyat });
-            let html = '';
-            let toplam = 0;
-            aktifSepet.forEach((s, i) => {
-                let t = s.miktar * s.fiyat;
-                toplam += t;
-                html += `<div class="flex justify-between items-center text-[11px] bg-white p-1.5 border rounded"><span>${s.ad} (${s.miktar} ad x ${s.fiyat}₺)</span><b>${t} ₺</b></div>`;
+        function guncelleArayuz() {
+            let rolIkon = document.getElementById('header-rol-ikon');
+            let rolYazi = document.getElementById('header-rol-yazi');
+            let satisNotu = document.getElementById('satis-mod-notu');
+            let satisButon = document.getElementById('satis-buton');
+
+            if(db.rol === "yonetici") {
+                rolIkon.innerText = "👑";
+                rolYazi.innerText = "Yönetici";
+                satisNotu.innerText = "(Yönetici: Doğrudan stoktan düşer)";
+                satisButon.innerText = "Satışı Tamamla";
+                satisButon.className = "btn btn-success";
+            } else {
+                rolIkon.innerText = "👷";
+                rolYazi.innerText = "Personel";
+                satisNotu.innerText = "(Personel: Yönetici onayına gönderilir)";
+                satisButon.innerText = "Onaya Gönder";
+                satisButon.className = "btn btn-warning";
+            }
+
+            // Seçim kutularını doldur
+            let musOpts = '';
+            db.musteri.forEach(m => { musOpts += `<option value="${m.ad}">${m.ad}</option>`; });
+            document.getElementById('satis-musteri').innerHTML = musOpts;
+            document.getElementById('tahsilat-musteri').innerHTML = musOpts;
+            document.getElementById('nak-musteri').innerHTML = musOpts;
+
+            // Stok Listesi Tablosu
+            let stokHtml = '';
+            db.stok.forEach(s => {
+                stokHtml += `<tr><td>${s.ad}</td><td>${s.kategori}</td><td><b>${s.miktar}</b></td><td>${s.fiyat} ₺</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:11px; width:auto;" onclick="stokSil(${s.id})">Sil</button></td></tr>`;
             });
-            document.getElementById('sepet-listesi').innerHTML = html || 'Sepet boş';
-        }
+            document.getElementById('stok-tablo-liste').innerHTML = stokHtml;
 
-        function islemYapModal(e) {
-            e.preventDefault();
-            let tip = document.getElementById('islem-tip').value;
-            let musteri = document.getElementById('islem-musteri').value;
-            let bugun = new Date().toISOString().split('T')[0];
+            // Müşteriler & Borçlar Tablosu
+            let musHtml = '';
+            db.musteri.forEach(m => {
+                let bakiye = musteriBorcHesapla(m.ad);
+                musHtml += `<tr><td>${m.ad}</td><td>${m.tel}</td><td><span class="badge ${bakiye > 0 ? 'badge-danger':'badge-success'}">${bakiye} ₺</span></td></tr>`;
+            });
+            document.getElementById('musteri-tablo-liste').innerHTML = musHtml;
+            document.getElementById('musteri-liste-ekran').innerHTML = musHtml;
 
-            if(!musteri) return alert("Müşteri seçilmedi!");
+            // Nakliye Tablosu
+            let nakHtml = '';
+            db.nakliye.forEach((n, idx) => {
+                nakHtml += `<tr><td>${n.tarih}</td><td>${n.tip}</td><td>${n.musteri}</td><td>${n.detay}</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:11px; width:auto;" onclick="nakSil(${idx})">Sil</button></td></tr>`;
+            });
+            document.getElementById('nakliye-tablo-liste').innerHTML = nakHtml;
 
-            if(tip === 'Satış') {
-                if(aktifSepet.length === 0) return alert("Sepete ürün ekleyin!");
-                let toplamTutar = 0;
-                aktifSepet.forEach(item => {
-                    let s = veritabani.stoklar.find(st => st.id == item.id);
-                    if(s) s.miktar -= item.miktar;
-                    toplamTutar += item.miktar * item.fiyat;
-                });
-                veritabani.islemler.push({
-                    id: Date.now(),
-                    tarih: bugun,
-                    musteri: musteri,
-                    tip: 'Satış',
-                    tutar: toplamTutar,
-                    aciklama: aktifSepet.map(i => `${i.miktar} ad ${i.ad}`).join(', ')
-                });
-                aktifSepet = [];
-                alert("Satış başarıyla kaydedildi.");
+            // Gelir Gider Tablosu
+            let ggHtml = '';
+            db.gelirgider.forEach(g => {
+                ggHtml += `<tr><td><span class="badge ${g.tip==='Gelir'?'badge-success':'badge-danger'}">${g.tip}</span></td><td>${g.kategori}</td><td>${g.tutar} ₺</td><td>${g.tarih}</td></tr>`;
+            });
+            document.getElementById('gg-tablo-liste').innerHTML = ggHtml;
+
+            // İşlem Geçmişi
+            let gecmisHtml = '';
+            db.islemler.slice(-20).reverse().forEach(i => {
+                gecmisHtml += `<tr><td>${i.tarih}</td><td>${i.musteri}</td><td><span class="badge badge-success">${i.tip}</span></td><td>${i.tutar} ₺</td></tr>`;
+            });
+            document.getElementById('gecmis-tablo-liste').innerHTML = gecmisHtml;
+
+            // Onay Bekleyenler Badge ve Liste
+            let onaySayi = db.bekleyenOnaylar.length;
+            let badge = document.getElementById('menu-onay-badge');
+            if(onaySayi > 0) {
+                badge.innerText = onaySayi;
+                badge.style.display = 'inline-block';
             } else {
-                let tutar = parseFloat(document.getElementById('tahsilat-tutar').value);
-                let aciklama = document.getElementById('tahsilat-aciklama').value || 'Nakit Tahsilat';
-                if(!tutar || tutar <= 0) return alert("Geçerli tutar girin.");
-                veritabani.islemler.push({
-                    id: Date.now(),
-                    tarih: bugun,
-                    musteri: musteri,
-                    tip: 'Tahsilat',
-                    tutar: tutar,
-                    aciklama: aciklama
-                });
-                alert("Tahsilat kaydedildi.");
+                badge.style.display = 'none';
             }
-            kaydet();
-            closeModal();
+
+            let onayHtml = '';
+            if(onaySayi === 0) {
+                onayHtml = '<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:20px;">Bekleyen satış onayı bulunmuyor.</p>';
+            } else {
+                db.bekleyenOnaylar.forEach((o, idx) => {
+                    let kalemStr = o.kalemler.map(k => `${k.urun} (${k.miktar} ad x ${k.fiyat}₺)`).join(', ');
+                    onayHtml += `<div style="background:#f9fafb; border:1px solid #e5e7eb; padding:10px; border-radius:10px; margin-bottom:8px;">
+                        <div style="font-size:12px; color:var(--text-muted);">${o.tarih} - <b>${o.musteri}</b></div>
+                        <div style="font-size:13px; margin:4px 0;">${kalemStr}</div>
+                        <div style="font-size:14px; font-weight:bold; margin-bottom:8px;">Toplam: ${o.toplamTutar} ₺</div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-success" style="padding:6px; font-size:12px;" onclick="satisOnayla(${idx})">Onayla</button>
+                            <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="satisReddet(${idx})">Reddet</button>
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById('onay-liste-container').innerHTML = onayHtml;
         }
 
-        function ozlemYemEkle(e) {
-            e.preventDefault();
-            let plaka = document.getElementById('oy-plaka').value;
-            let yemAdi = document.getElementById('oy-yem').value;
-            let miktar = parseInt(document.getElementById('oy-miktar').value);
-            let tutar = parseFloat(document.getElementById('oy-tutar').value);
+        // SATIŞ İŞLEMLERİ
+        function yeniKalemEkle() {
+            let container = document.getElementById('satis-kalemler-container');
+            let div = document.createElement('div');
+            div.className = 'kalem-satir';
+            
+            let opts = '';
+            db.stok.forEach(s => { opts += `<option value="${s.ad}" data-fiyat="${s.fiyat}">${s.ad} (${s.miktar} ad)</option>`; });
 
-            veritabani.ozlemYemNakliye.push({ id: Date.now(), plaka, yemAdi, miktar, tutar });
-            kaydet();
-            openScreen('ozlemyem');
+            div.innerHTML = `
+                <select class="form-control urun-secim" onchange="fiyatGuncelle(this)">${opts}</select>
+                <input type="number" class="form-control urun-miktar" placeholder="Adet" value="1" style="width:70px;" oninput="toplamHesapla()">
+                <input type="number" class="form-control urun-fiyat" placeholder="Fiyat" style="width:80px;" oninput="toplamHesapla()">
+                <button class="btn btn-danger" style="width:auto; padding:8px 10px;" onclick="this.parentElement.remove(); toplamHesapla();">X</button>
+            `;
+            container.appendChild(div);
+            if(div.querySelector('.urun-secim').options.length > 0) {
+                div.querySelector('.urun-fiyat').value = div.querySelector('.urun-secim').options[0].getAttribute('data-fiyat');
+            }
+            toplamHesapla();
         }
 
-        function stokEkleModal(e) {
-            e.preventDefault();
-            let ad = document.getElementById('stok-ad').value;
-            let miktar = parseInt(document.getElementById('stok-miktar').value);
-            let fiyat = parseFloat(document.getElementById('stok-fiyat').value);
+        function fiyatGuncelle(sel) {
+            let fiyat = sel.options[sel.selectedIndex].getAttribute('data-fiyat');
+            sel.closest('.kalem-satir').querySelector('.urun-fiyat').value = fiyat;
+            toplamHesapla();
+        }
 
-            veritabani.stoklar.push({ id: Date.now(), ad, miktar, fiyat });
-            kaydet();
-            openScreen('stok');
+        function toplamHesapla() {
+            let toplam = 0;
+            document.querySelectorAll('.kalem-satir').forEach(satir => {
+                let m = Number(satir.querySelector('.urun-miktar').value) || 0;
+                let f = Number(satir.querySelector('.urun-fiyat').value) || 0;
+                toplam += m * f;
+            });
+            document.getElementById('satis-toplam').innerText = toplam;
+        }
+
+        function satisYap() {
+            let musteri = document.getElementById('satis-musteri').value;
+            let tarih = document.getElementById('satis-tarih').value;
+            let kalemler = [];
+            let toplamTutar = 0;
+
+            document.querySelectorAll('.kalem-satir').forEach(satir => {
+                let urun = satir.querySelector('.urun-secim').value;
+                let miktar = Number(satir.querySelector('.urun-miktar').value);
+                let fiyat = Number(satir.querySelector('.urun-fiyat').value);
+                kalemler.push({ urun, miktar, fiyat });
+                toplamTutar += miktar * fiyat;
+            });
+
+            if(kalemler.length === 0 || toplamTutar <= 0) {
+                alert("Lütfen ürün kalemi ekleyin.");
+                return;
+            }
+
+            if(db.rol === "yonetici") {
+                for(let k of kalemler) {
+                    let st = db.stok.find(s => s.ad === k.urun);
+                    if(st) {
+                        if(st.miktar < k.miktar) { alert(`Yetersiz stok! ${k.urun}`); return; }
+                        st.miktar -= k.miktar;
+                    }
+                }
+                db.islemler.push({ tip: 'Satış', musteri, tarih, tutar: toplamTutar });
+                verileriKaydet();
+                guncelleArayuz();
+                alert("Satış tamamlandı ve stoktan düşüldü.");
+                ekranAc('anasayfa');
+            } else {
+                db.bekleyenOnaylar.push({ musteri, tarih, kalemler, toplamTutar });
+                verileriKaydet();
+                guncelleArayuz();
+                alert("Satış talebi yönetici onayına gönderildi!");
+                ekranAc('anasayfa');
+            }
+        }
+
+        function satisOnayla(idx) {
+            let o = db.bekleyenOnaylar[idx];
+            for(let k of o.kalemler) {
+                let st = db.stok.find(s => s.ad === k.urun);
+                if(st) {
+                    if(st.miktar < k.miktar) { alert(`Yetersiz stok: ${k.urun}`); return; }
+                    st.miktar -= k.miktar;
+                }
+            }
+            db.islemler.push({ tip: 'Satış', musteri: o.musteri, tarih: o.tarih, tutar: o.toplamTutar });
+            db.bekleyenOnaylar.splice(idx, 1);
+            verileriKaydet();
+            guncelleArayuz();
+            alert("Satış onaylandı ve işlendi!");
+        }
+
+        function satisReddet(idx) {
+            if(confirm("Reddetmek istediğinize emin misiniz?")) {
+                db.bekleyenOnaylar.splice(idx, 1);
+                verileriKaydet();
+                guncelleArayuz();
+            }
+        }
+
+        // DİĞER FONKSİYONLAR
+        function stokEkleKaydet() {
+            let ad = document.getElementById('yeni-stok-ad').value;
+            let kat = document.getElementById('yeni-stok-kat').value;
+            let miktar = Number(document.getElementById('yeni-stok-miktar').value);
+            let fiyat = Number(document.getElementById('yeni-stok-fiyat').value);
+            if(!ad || !miktar) { alert("Alanları doldurun."); return; }
+            db.stok.push({ id: Date.now(), ad, kategori: kat, miktar, fiyat });
+            verileriKaydet();
+            guncelleArayuz();
+            alert("Ürün eklendi.");
+            ekranAc('anasayfa');
         }
 
         function stokSil(id) {
-            veritabani.stoklar = veritabani.stoklar.filter(s => s.id !== id);
-            kaydet();
-            openScreen('stok');
+            if(confirm("Silinsin mi?")) {
+                db.stok = db.stok.filter(s => s.id !== id);
+                verileriKaydet();
+                guncelleArayuz();
+            }
         }
 
-        function musteriEkleModal(e) {
-            e.preventDefault();
-            let ad = document.getElementById('m-ad').value;
-            let tel = document.getElementById('m-tel').value;
-            veritabani.musteriler.push({ id: Date.now(), ad, tel });
-            kaydet();
-            openScreen('musteriler');
+        function musteriEkleKaydet() {
+            let ad = document.getElementById('yeni-mus-ad').value;
+            let tel = document.getElementById('yeni-mus-tel').value;
+            if(!ad) { alert("Ad girin."); return; }
+            db.musteri.push({ id: Date.now(), ad, tel });
+            verileriKaydet();
+            guncelleArayuz();
+            alert("Müşteri eklendi.");
+            ekranAc('anasayfa');
         }
 
-        function musteriSil(id) {
-            veritabani.musteriler = veritabani.musteriler.filter(m => m.id !== id);
-            kaydet();
-            openScreen('musteriler');
-        }
-
-        function fisGoster(musteriAdi) {
-            let container = document.getElementById('modal-container');
-            let titleEl = document.getElementById('modal-title');
-            let contentEl = document.getElementById('modal-content');
-            container.classList.remove('hidden');
-            titleEl.innerText = musteriAdi + " - Hesap Ekstresi";
-
-            let borc = 0;
-            veritabani.islemler.filter(i => i.musteri === musteriAdi).forEach(i => {
-                if(i.tip === 'Satış') borc += i.tutar;
-                if(i.tip === 'Tahsilat') borc -= i.tutar;
+        function musteriBorcHesapla(ad) {
+            let b = 0;
+            db.islemler.filter(i => i.musteri === ad).forEach(i => {
+                if(i.tip === 'Satış' || i.tip === 'Borç') b += Number(i.tutar);
+                if(i.tip === 'Tahsilat') b -= Number(i.tutar);
             });
+            return b;
+        }
 
-            let detayHtml = '';
-            veritabani.islemler.filter(i => i.musteri === musteriAdi).forEach(i => {
-                detayHtml += `<div class="bg-gray-50 border p-2 rounded flex justify-between text-xs">
-                    <div><b>${i.tarih}</b> - ${i.tip}: ${i.aciklama}</div>
-                    <div class="font-bold ${i.tip==='Satış'?'text-red-600':'text-emerald-600'}">${i.tutar} ₺</div>
-                </div>`;
-            });
+        function tahsilatKaydet() {
+            let musteri = document.getElementById('tahsilat-musteri').value;
+            let tip = document.getElementById('tahsilat-tip').value;
+            let tutar = Number(document.getElementById('tahsilat-tutar').value);
+            if(!tutar) { alert("Tutar girin."); return; }
+            db.islemler.push({ tip, musteri, tarih: new Date().toISOString().split('T')[0], tutar });
+            verileriKaydet();
+            guncelleArayuz();
+            alert("İşlem kaydedildi.");
+            ekranAc('anasayfa');
+        }
 
-            contentEl.innerHTML = `
-                <div class="bg-white p-4 rounded-xl border space-y-3">
-                    <h4 class="font-bold text-center text-sm">DEMİRKAPI ÇİFTLİĞİ HESAP FİŞİ</h4>
-                    <p class="text-xs"><b>Müşteri:</b> ${musteriAdi}</p>
-                    <p class="text-xs"><b>Güncel Bakiye / Borç:</b> <span class="text-red-600 font-bold">${borc} ₺</span></p>
-                    <hr class="my-2">
-                    <div class="space-y-1">${detayHtml || '<p class="text-xs text-gray-400">İşlem geçmişi yok.</p>'}</div>
-                    <button onclick="window.print()" class="w-full bg-gray-800 text-white py-2 rounded text-xs font-medium mt-3">Fişi Yazdır / PDF İndir</button>
-                </div>
-            `;
+        function nakliyeKaydet() {
+            let tip = document.getElementById('nak-tip').value;
+            let musteri = document.getElementById('nak-musteri').value;
+            let tarih = document.getElementById('nak-tarih').value;
+            let detay = document.getElementById('nak-detay').value;
+            db.nakliye.push({ tip, musteri, tarih, detay });
+            verileriKaydet();
+            guncelleArayuz();
+            alert("Lojistik kaydedildi.");
+            ekranAc('anasayfa');
+        }
+
+        function nakSil(idx) {
+            db.nakliye.splice(idx, 1);
+            verileriKaydet();
+            guncelleArayuz();
+        }
+
+        function gelirGiderKaydet() {
+            let tip = document.getElementById('gg-tip').value;
+            let kategori = document.getElementById('gg-kat').value;
+            let tutar = Number(document.getElementById('gg-tutar').value);
+            if(!tutar) { alert("Tutar girin."); return; }
+            db.gelirgider.push({ tip, kategori, tutar, tarih: new Date().toISOString().split('T')[0] });
+            verileriKaydet();
+            guncelleArayuz();
+            alert("Gelir/Gider kaydedildi.");
+            ekranAc('anasayfa');
+        }
+
+        function masrafKaydet() {
+            let kat = document.getElementById('masraf-kat').value;
+            let tutar = Number(document.getElementById('masraf-tutar').value);
+            if(!tutar) { alert("Tutar girin."); return; }
+            db.gelirgider.push({ tip: 'Gider', kategori: kat, tutar, tarih: new Date().toISOString().split('T')[0] });
+            verileriKaydet();
+            guncelleArayuz();
+            alert("Gider kaydedildi.");
+            ekranAc('anasayfa');
         }
     </script>
 </body>
