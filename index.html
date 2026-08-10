@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demirkapı Çiftliği</title>
+    <title>Demirkapı Çiftliği & Özlem Yem Bayiliği</title>
     <!-- Firebase SDK'ları -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -53,7 +53,7 @@
             <div class="logo-box">🌾</div>
             <div>
                 <div class="title-main">DEMİRKAPI</div>
-                <div class="title-sub">ÇİFTLİĞİ</div>
+                <div class="title-sub">ÇİFTLİĞİ & ÖZLEM YEM</div>
             </div>
         </div>
         <div id="sync-indicator" class="sync-status">🔥 Canlı Bulut</div>
@@ -76,6 +76,13 @@
 
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
+                <!-- YENİ ÖZLEM YEM MODÜLÜ EN BAŞTA -->
+                <div class="menu-card" onclick="openScreen('ozlemyem')" style="background: #f0fdf4; border: 2px solid #166534; grid-column: span 2;">
+                    <div class="menu-icon">🚚</div>
+                    <div class="menu-title" style="color: #166534; font-size: 18px;">Özlem Yem Bayilik Takibi</div>
+                    <div class="menu-desc">Araba plakası, yem adı, alış fiyatı & toplam araba tutarı</div>
+                </div>
+
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş</div><div class="menu-desc">Telefondan talep gönder</div></div>
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
@@ -93,7 +100,6 @@
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
                 <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
                 <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Mazot, yem vb.</div></div>
-                <!-- Eklenen Modüller -->
                 <div class="menu-card" onclick="openScreen('fiyatlistesi')"><div class="menu-icon">🏷️</div><div class="menu-title">13. Fiyat Listesi</div><div class="menu-desc">Süt & ürün satış fiyatları</div></div>
                 <div class="menu-card" onclick="openScreen('vade')"><div class="menu-icon">⏳</div><div class="menu-title">14. Vade Takibi</div><div class="menu-desc">Çek / senet vadeleri</div></div>
                 <div class="menu-card" onclick="openScreen('banka')"><div class="menu-icon">🏦</div><div class="menu-title">15. Banka & Havale</div><div class="menu-desc">Banka tahsilat eşleştir</div></div>
@@ -103,6 +109,26 @@
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
+            </div>
+        </div>
+
+        <!-- ÖZLEM YEM BAYİLİK EKRANI -->
+        <div id="screen-ozlemyem" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">🚚 Özlem Yem Bayilik Araba & Alış Takibi</div>
+            <div class="card">
+                <div class="form-group"><label>Tarih ve Saat</label><input type="datetime-local" id="oy-tarih"></div>
+                <div class="form-group"><label>Araba Plakası</label><input type="text" id="oy-plaka" placeholder="Örn: 54 AB 123"></div>
+                <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                <label><b>Yem Kalemleri ve Alış Fiyatları</b></label>
+                <div id="oy-yemler-konteynir"></div>
+                <button class="btn-secondary" onclick="oyYemSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Yem Ekle</button>
+                <div id="oy-canli-toplam" style="background:#f0fdf4; border:1px solid #bbf7d0; padding:12px; border-radius:10px; text-align:center; font-weight:bold; color:#166534; font-size:18px; margin-bottom:15px;">Araba Toplam Alış Fiyatı: 0 ₺</div>
+                <button class="btn-green" onclick="ozlemYemKaydet()">Özlem Yem Araba Sevkıyatını Kaydet 🚀</button>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px; color:#166534;">Geçmiş Özlem Yem Sevkiyatları</h3>
+                <div id="oy-gecmis-listesi">Kayıtlı sevkiyat bulunmuyor.</div>
             </div>
         </div>
 
@@ -332,7 +358,7 @@
             </div>
         </div>
 
-        <!-- 18. GÜNLÜK GÖREVLER & NOTLAR (YENİ EKLENEN ÖZELLİK) -->
+        <!-- 18. GÜNLÜK GÖREVLER & NOTLAR -->
         <div id="screen-gunlukgorev" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📋 Günlük Çiftlik Görevleri & Notlar</div>
@@ -412,9 +438,9 @@
             <span class="nav-icon">🏠</span>
             <span>Ana Sayfa</span>
         </button>
-        <button class="nav-item" onclick="openScreen('satis')" id="nav-satis">
-            <span class="nav-icon">🛒</span>
-            <span>Satış</span>
+        <button class="nav-item" onclick="openScreen('ozlemyem')" id="nav-ozlemyem-nav">
+            <span class="nav-icon">🚚</span>
+            <span>Özlem Yem</span>
         </button>
         <button class="nav-item" onclick="openScreen('onay')" id="nav-onay">
             <span class="nav-icon">🔔</span>
@@ -438,7 +464,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: [], vadeler: [], fasonIsler: [], gorevler: [] };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], fiyatlar: [], vadeler: [], fasonIsler: [], gorevler: [], ozlemYemSevkler: [] };
 
         let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
@@ -457,6 +483,7 @@
                 if(!veritabani.vadeler) veritabani.vadeler = [];
                 if(!veritabani.fasonIsler) veritabani.fasonIsler = [];
                 if(!veritabani.gorevler) veritabani.gorevler = [];
+                if(!veritabani.ozlemYemSevkler) veritabani.ozlemYemSevkler = [];
             }
 
             const yeniSayi = veritabani.bekleyenler.length;
@@ -477,6 +504,7 @@
             if (!document.getElementById('screen-hizlitahsilat').classList.contains('hidden')) hizliTahsilatMusterileriDoldur();
             if (!document.getElementById('screen-fason').classList.contains('hidden')) fasonIsleriGoster();
             if (!document.getElementById('screen-gunlukgorev').classList.contains('hidden')) gorevleriGoster();
+            if (!document.getElementById('screen-ozlemyem').classList.contains('hidden')) ozlemYemGecmisiGoster();
         });
 
         // Hava Durumu Çekme (Sakarya)
@@ -525,7 +553,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'fason', 'gunlukgorev', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'fiyatlistesi', 'vade', 'banka', 'hizlitahsilat', 'fason', 'gunlukgorev', 'sesli', 'yedek', 'gecmis', 'fis', 'ozlemyem'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -535,7 +563,15 @@
             if(name === 'satis') document.getElementById('nav-satis')?.classList.add('active');
             if(name === 'onay') document.getElementById('nav-onay')?.classList.add('active');
             if(name === 'borc') document.getElementById('nav-borc')?.classList.add('active');
+            if(name === 'ozlemyem') document.getElementById('nav-ozlemyem-nav')?.classList.add('active');
 
+            if(name === 'ozlemyem') {
+                document.getElementById('oy-tarih').value = simdikiTarihInputFormat();
+                document.getElementById('oy-plaka').value = '';
+                document.getElementById('oy-yemler-konteynir').innerHTML = '';
+                oyYemSatiriEkle();
+                ozlemYemGecmisiGoster();
+            }
             if(name === 'satis') {
                 document.getElementById('s-tarih').value = simdikiTarihInputFormat();
                 document.getElementById('urunler-konteynir').innerHTML = '';
@@ -597,6 +633,127 @@
         }
 
         function goHome() { openScreen('menu'); }
+
+        // ÖZLEM YEM BAYİLİK FONKSİYONLARI
+        function oyYemSatiriEkle() {
+            let konteynir = document.getElementById('oy-yemler-konteynir');
+            let div = document.createElement('div');
+            div.className = 'urun-satir';
+            div.innerHTML = `
+                <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove(); oyToplamHesapla();">Sil</button>
+                <div class="form-group" style="margin-bottom:10px;"><label>Yem Adı / Çeşidi</label><input type="text" class="oy-yem-adi" placeholder="Örn: Süt Yemi, Besi Yemi vb."></div>
+                <div class="form-group" style="margin-bottom:0;"><label>Alış Fiyatı (TL)</label><input type="number" class="oy-alis-fiyat" placeholder="0" oninput="oyToplamHesapla()"></div>
+            `;
+            konteynir.appendChild(div);
+        }
+
+        function oyToplamHesapla() {
+            let satirlar = document.querySelectorAll('.urun-satir');
+            let toplam = 0;
+            satirlar.forEach(s => {
+                let input = s.querySelector('.oy-alis-fiyat');
+                if(input) {
+                    toplam += parseFloat(input.value) || 0;
+                }
+            });
+            document.getElementById('oy-canli-toplam').innerText = `Araba Toplam Alış Fiyatı: ${toplam} ₺`;
+            return toplam;
+        }
+
+        function ozlemYemKaydet() {
+            let tarih = document.getElementById('oy-tarih').value;
+            let plaka = document.getElementById('oy-plaka').value.trim();
+
+            if(!tarih || !plaka) {
+                alert('Lütfen tarih ve araba plakasını eksiksiz girin.');
+                return;
+            }
+
+            let satirlar = document.querySelectorAll('.urun-satir');
+            if(satirlar.length === 0) {
+                alert('Lütfen en az bir yem kalemi ekleyin.');
+                return;
+            }
+
+            let yemler = [];
+            let arabaToplam = 0;
+
+            for(let satir of satirlar) {
+                let yemAdi = satir.querySelector('.oy-yem-adi').value.trim();
+                let alisFiyati = parseFloat(satir.querySelector('.oy-alis-fiyat').value) || 0;
+
+                if(!yemAdi || alisFiyati <= 0) {
+                    alert('Lütfen tüm yem adlarını ve alış fiyatlarını eksiksiz doldurun.');
+                    return;
+                }
+                yemler.push({ yemAdi, alisFiyati });
+                arabaToplam += alisFiyati;
+            }
+
+            let sevkId = Date.now();
+            if(!veritabani.ozlemYemSevkler) veritabani.ozlemYemSevkler = [];
+
+            veritabani.ozlemYemSevkler.push({
+                id: sevkId,
+                tarih: tarih,
+                plaka: plaka,
+                yemler: yemler,
+                arabaToplam: arabaToplam
+            });
+
+            // Özlem yem alışını otomatik gider/masraf veya kasaya da yansıtabiliriz veya ayrı tutabiliriz
+            if(!veritabani.giderler) veritabani.giderler = [];
+            veritabani.giderler.push({
+                id: sevkId,
+                tarih: tarih,
+                tur: 'Özlem Yem Alımı (Plaka: ' + plaka + ')',
+                tutar: arabaToplam,
+                aciklama: 'Özlem Yem Bayilik Araba Sevkiyatı'
+            });
+
+            kaydetVeri();
+            alert('Özlem Yem araba sevkiyatı başarıyla kaydedildi! Araba Toplam Alış Fiyatı: ' + arabaToplam + ' ₺');
+            document.getElementById('oy-plaka').value = '';
+            document.getElementById('oy-yemler-konteynir').innerHTML = '';
+            oyYemSatiriEkle();
+            ozlemYemGecmisiGoster();
+        }
+
+        function ozlemYemGecmisiGoster() {
+            let sevkler = veritabani.ozlemYemSevkler || [];
+            if(sevkler.length === 0) {
+                document.getElementById('oy-gecmis-listesi').innerHTML = '<p>Kayıtlı Özlem Yem sevkiyatı bulunmuyor.</p>';
+                return;
+            }
+
+            let html = '';
+            sevkler.slice().reverse().forEach(s => {
+                let yemDetayListe = '<ul style="margin:5px 0; padding-left:15px; font-size:13px;">';
+                s.yemler.forEach(y => {
+                    yemDetayListe += `<li><b>${y.yemAdi}</b>: ${y.alisFiyati} ₺ (Alış)</li>`;
+                });
+                yemDetayListe += '</ul>';
+
+                html += `<div style="background:#f9fafb; padding:12px; border-radius:10px; margin-bottom:12px; border:1px solid #e2e8f0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:6px;">
+                        <span style="font-size:12px; color:#666;">📅 ${formatliTarihGoster(s.tarih)}</span>
+                        <button class="btn-danger" style="padding:3px 6px; font-size:11px;" onclick="ozlemYemSil(${s.id})">Sil</button>
+                    </div>
+                    <div style="font-size:15px; font-weight:bold; color:#166534; margin-bottom:4px;">🚚 Araba Plakası: ${s.plaka}</div>
+                    <div style="font-size:13px; color:#444;">Yemler: ${yemDetayListe}</div>
+                    <div style="font-size:15px; font-weight:bold; color:#dc2626; margin-top:6px; text-align:right;">Araba Toplam Alış Fiyatı: ${s.arabaToplam} ₺</div>
+                </div>`;
+            });
+            document.getElementById('oy-gecmis-listesi').innerHTML = html;
+        }
+
+        function ozlemYemSil(id) {
+            if(!confirm('Bu Özlem Yem sevkiyatını silmek istediğinize emin misiniz?')) return;
+            veritabani.ozlemYemSevkler = veritabani.ozlemYemSevkler.filter(s => s.id !== id);
+            veritabani.giderler = veritabani.giderler.filter(g => g.id !== id);
+            kaydetVeri();
+            ozlemYemGecmisiGoster();
+        }
 
         // Günlük Görevler & Notlar Fonksiyonları
         function gorevEkle() {
@@ -1238,7 +1395,7 @@
                         <div style="font-size:24px; font-weight:bold; color:#2563eb;">${toplamTahsilat} ₺</div>
                     </div>
                     <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
-                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Çiftlik Giderleri</div>
+                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Çiftlik & Yem Giderleri</div>
                         <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamGider} ₺</div>
                     </div>
                     <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;">
@@ -1603,7 +1760,7 @@
             let bakiye = veritabani.borclar[musteriAdi] || 0;
 
             let fisHtml = `
-                <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
+                <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ & ÖZLEM YEM</div>
                 <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
                 <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;">
                     <div><b>Müşteri:</b> ${musteriAdi}</div>
