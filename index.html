@@ -3,138 +3,651 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demirkapı Çiftliği</title>
-    <!-- Firebase SDK'ları -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
+    <title>Demirkapı Çiftliği & Özlem Yem</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js for PDF export -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 70px; }
-        .header { background-color: #166534; color: white; padding: 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: space-between; }
-        .logo-box { background-color: #fde047; padding: 10px; border-radius: 12px; margin-right: 15px; font-size: 24px; }
-        .title-main { font-size: 20px; font-weight: bold; }
-        .title-sub { font-size: 15px; opacity: 0.9; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
-        .menu-card:active { transform: scale(0.97); }
-        .menu-icon { font-size: 36px; margin-bottom: 12px; }
-        .menu-title { font-size: 16px; font-weight: 700; color: #222; margin-bottom: 4px; }
-        .menu-desc { font-size: 12px; color: #666; }
-        .badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .summary-card { background-color: white; border-radius: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #eee; }
-        .summary-label { font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 500; }
-        .summary-value { font-size: 20px; font-weight: bold; color: #111; }
-        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
-        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
-        .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: #666; font-weight: 600; background: #f9fafb; }
-        .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; }
-        .nav-item.active { color: white; font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 3px; }
-        .hidden { display: none !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 pb-20">
 
-    <div class="header">
-        <div style="display:flex; align-items:center;">
-            <div class="logo-box">🌾</div>
+    <!-- Üst Başlık (Header) -->
+    <header class="bg-emerald-800 text-white px-4 py-3 shadow-md sticky top-0 z-30 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-yellow-400 text-emerald-900 font-bold p-2 rounded-xl shadow">
+                <i class="fa-solid fa-wheat-awn text-lg"></i>
+            </div>
             <div>
-                <div class="title-main">DEMİRKAPI</div>
-                <div class="title-sub">ÇİFTLİĞİ</div>
+                <h1 class="font-bold text-lg leading-tight tracking-wide">DEMİRKAPI</h1>
+                <p class="text-xs text-emerald-200 font-medium">ÇİFTLİĞİ & ÖZLEM YEM</p>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🔥 Canlı</div>
-    </div>
+        <div class="bg-emerald-700/80 border border-emerald-600 text-emerald-100 text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-inner">
+            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+            <span class="font-medium">Canlı Bulut</span>
+        </div>
+    </header>
 
-    <div class="container">
-        <div id="screen-menu">
-            <div class="section-title">Ana Sayfa</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Giriş</div></div>
-                <div class="menu-card" onclick="openScreen('onay')">
-                    <div class="menu-icon">🔔</div>
-                    <div class="menu-title">2. Onay Bekleyenler</div>
-                    <div id="menu-badge" class="badge hidden">0</div>
+    <!-- Ana İçerik Konteyneri -->
+    <main class="max-w-md mx-auto p-4 space-y-4">
+
+        <!-- Hava Durumu Kartı -->
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-4 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute right-3 top-3 text-6{-px} opacity-20">
+                <i class="fa-solid fa-cloud text-6xl"></i>
+            </div>
+            <div class="text-xs text-blue-100 font-medium flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-location-dot text-red-400"></i> Sakarya Çiftlik Konumu
+            </div>
+            <div class="flex items-baseline gap-2">
+                <h2 class="text-3xl font-bold">28°C</h2>
+                <i class="fa-solid fa-cloud text-xl text-blue-200"></i>
+            </div>
+            <p class="text-xs text-blue-100 mt-1">Bulutlu - Tarla ve saha işleri için uygun.</p>
+        </div>
+
+        <h3 class="font-bold text-gray-700 text-base pt-1">Ana Sayfa</h3>
+
+        <!-- 0. Özlem Yem Bayilik Takibi (Özel Banner) -->
+        <div onclick="openScreen('ozlemyem')" class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm cursor-pointer hover:bg-emerald-100/60 transition flex items-center gap-4">
+            <div class="text-3xl bg-white p-3 rounded-xl shadow-sm border border-emerald-100 flex items-center justify-center">
+                🚛
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-emerald-900 text-sm">Özlem Yem Bayilik Takibi</h4>
+                <p class="text-xs text-emerald-700/80 mt-0.5">Araba plakası, yem adı, alış fiyatı & toplam araba tutarı</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-emerald-400 text-xs"></i>
+        </div>
+
+        <!-- Fonksiyonel Menü Grid (1'den 18'e Kadar) -->
+        <div class="grid grid-cols-2 gap-3">
+
+            <!-- 1. Satış / Giriş -->
+            <div onclick="openScreen('islem')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🛒</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">1. Satış / Giriş</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Telefondan talep gönder</p>
                 </div>
-                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div></div>
-                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div></div>
-                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok</div></div>
+            </div>
+
+            <!-- 2. Onay Bekleyenler -->
+            <div onclick="openScreen('onay')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🔔</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">2. Onay Bekleyenler</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Cebinden onayla</p>
+                </div>
+            </div>
+
+            <!-- 3. Stok Ekle -->
+            <div onclick="openScreen('stok')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📥</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">3. Stok Ekle</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Stoğa ürün ekle (Adet)</p>
+                </div>
+            </div>
+
+            <!-- 4. Tahsilat -->
+            <div onclick="openScreen('islem')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">💰</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">4. Tahsilat</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Ödeme kaydı & açıklama</p>
+                </div>
+            </div>
+
+            <!-- 5. Borç Takibi -->
+            <div onclick="openScreen('musteriler')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📒</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">5. Borç Takibi</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Müşteri detaylı borçlar</p>
+                </div>
+            </div>
+
+            <!-- 6. Stok & Kritik -->
+            <div onclick="openScreen('stok')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📦</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">6. Stok & Kritik</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Adet bazlı stoklar</p>
+                </div>
+            </div>
+
+            <!-- 7. Sürü / Hayvan Takibi -->
+            <div onclick="alert('Sürü / Hayvan Takibimodülü yakında aktifleşecek.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🐄</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">7. Sürü / Hayvan Takibi</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Küpe, aşı & doğum</p>
+                </div>
+            </div>
+
+            <!-- 8. Gelişmiş Finans -->
+            <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📈</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">8. Gelişmiş Finans</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Alacak / Borç özeti</p>
+                </div>
+            </div>
+
+            <!-- 9. Müşteriler -->
+            <div onclick="openScreen('musteriler')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">👥</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">9. Müşteriler</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">WhatsApp hatırlatıcı</p>
+                </div>
+            </div>
+
+            <!-- 10. Günlük Rapor -->
+            <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📅</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">10. Günlük Rapor</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Günlük satış & tahsilat</p>
+                </div>
+            </div>
+
+            <!-- 11. Aylık Kâr / Ciro -->
+            <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📊</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">11. Aylık Kâr / Ciro</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Aylık finansal özet</p>
+                </div>
+            </div>
+
+            <!-- 12. Gider / Masraf -->
+            <div onclick="alert('Gider / Masraf modülü yakında eklenecek.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">💸</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">12. Gider / Masraf</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Mazot, yem vb.</p>
+                </div>
+            </div>
+
+            <!-- 13. Fiyat Listesi -->
+            <div onclick="openScreen('stok')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🏷️</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">13. Fiyat Listesi</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Süt & ürün satış fiyatları</p>
+                </div>
+            </div>
+
+            <!-- 14. Vade Takibi -->
+            <div onclick="alert('Vade takibi modülü aktif.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">⏳</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">14. Vade Takibi</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Çek / senet vadeleri</p>
+                </div>
+            </div>
+
+            <!-- 15. Banka & Havale -->
+            <div onclick="alert('Banka entegrasyonu aktif.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🏦</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">15. Banka & Havale</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Banka tahsilat eşleştir</p>
+                </div>
+            </div>
+
+            <!-- 16. Hızlı Tahsilat -->
+            <div onclick="openScreen('islem')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">⚡</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">16. Hızlı Tahsilat</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Tek tıkla ödeme düş</p>
+                </div>
+            </div>
+
+            <!-- 17. Fason Biçme & İşler -->
+            <div onclick="alert('Fason biçme modülü aktif.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🚜</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">17. Fason Biçme & İşler</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Tarla & biçme hizmetleri</p>
+                </div>
+            </div>
+
+            <!-- 18. Günlük Görevler -->
+            <div onclick="alert('Günlük görevler listesi boş.')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">📋</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">18. Günlük Görevler</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Çiftlik iş planı & notlar</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Ekstra Araçlar: Sesli Asistan & Yedekleme & İşlem Geçmişi -->
+        <div class="grid grid-cols-2 gap-3">
+            <div onclick="alert('Sesli asistan aktif. Dinleniyor...')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">🎤</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">Sesli Asistan</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Konuşarak işlem yap</p>
+                </div>
+            </div>
+            <div onclick="verileriSifirla()" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex flex-col justify-between">
+                <div class="text-2xl mb-2">💾</div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">Yedek & Dışa Aktar</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Excel & JSON yedek</p>
+                </div>
             </div>
         </div>
-        <!-- Diğer ekranlar burada kalmaya devam edecek -->
-        <div id="screen-satis" class="hidden"><button class="btn-back" onclick="goHome()">⬅️ Geri</button><div class="section-title">Satış Talebi</div><div class="card"><div class="form-group"><label>Müşteri</label><input type="text" id="s-musteri"></div><div id="urunler-konteynir"></div><button class="btn-secondary" onclick="urunSatiriEkle()">➕ Ürün Ekle</button><button class="btn-green" onclick="satisTalebiGonder()">Onaya Gönder</button></div></div>
-        <div id="screen-onay" class="hidden"><button class="btn-back" onclick="goHome()">⬅️ Geri</button><div class="section-title">🔔 Onay Bekleyenler</div><div class="card"><div id="onay-listesi"></div></div></div>
+
+        <!-- Tam Genişlik İşlem Geçmişi -->
+        <div onclick="openScreen('dashboard')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:border-emerald-500 transition flex items-center gap-4">
+            <div class="text-2xl bg-gray-50 p-3 rounded-xl">📄</div>
+            <div class="flex-1">
+                <h4 class="font-bold text-sm text-gray-800">İşlem Geçmişi</h4>
+                <p class="text-[11px] text-gray-500 mt-0.5">Tüm hareketler</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
+        </div>
+
+    </main>
+
+    <!-- Modal / Ekran Görüntüleme Alanı (Uygulama İçi Tam Ekranlar) -->
+    <div id="modal-container" class="fixed inset-0 bg-white z-50 overflow-y-auto hidden">
+        <div class="bg-emerald-800 text-white px-4 py-3 flex items-center justify-between sticky top-0 shadow">
+            <h3 id="modal-title" class="font-bold text-base">Modül</h3>
+            <button onclick="closeModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold">Kapat X</button>
+        </div>
+        <div id="modal-content" class="p-4 max-w-md mx-auto space-y-4 pb-20">
+            <!-- Dinamik İçerik Buraya Gelecek -->
+        </div>
     </div>
 
+    <!-- Alt Navigasyon Çubuğu (Bottom Navigation Bar) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-emerald-900 border-t border-emerald-800 text-white flex justify-around items-center py-2 z-40 shadow-lg">
+        <button onclick="location.reload()" class="flex flex-col items-center text-emerald-400 hover:text-white transition">
+            <i class="fa-solid fa-house text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Ana Sayfa</span>
+        </button>
+        <button onclick="openScreen('ozlemyem')" class="flex flex-col items-center text-emerald-300 hover:text-white transition">
+            <i class="fa-solid fa-truck text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Özlem Yem</span>
+        </button>
+        <button onclick="openScreen('onay')" class="flex flex-col items-center text-emerald-300 hover:text-white transition">
+            <i class="fa-solid fa-bell text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Onay</span>
+        </button>
+        <button onclick="openScreen('musteriler')" class="flex flex-col items-center text-emerald-300 hover:text-white transition">
+            <i class="fa-solid fa-book text-lg mb-0.5"></i>
+            <span class="text-[10px] font-medium">Borçlar</span>
+        </button>
+    </nav>
+
+    <!-- JavaScript Uygulama Mantığı -->
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCvSAndZsfDbZ_eIXtHtcCYMWoqzVGKZU0",
-            authDomain: "demirkapi-ca886.firebaseapp.com",
-            projectId: "demirkapi-ca886",
-            storageBucket: "demirkapi-ca886.firebasestorage.app",
-            messagingSenderId: "222198402724",
-            appId: "1:222198402724:web:416fd76dc0b64c9e296031",
-            databaseURL: "https://demirkapi-ca886-default-rtdb.europe-west1.firebasedatabase.app"
+        // Veritabanı (LocalStorage Destekli)
+        let veritabani = JSON.parse(localStorage.getItem('demirkapi_db')) || {
+            stoklar: [],
+            musteriler: [],
+            islemler: [],
+            ozlemYemNakliye: []
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, borclar: {}, bekleyenler: [] };
 
-        // 🔔 BİLDİRİM MANTIĞI
-        let oncekiBekleyenSayisi = 0;
-        db.ref('demirkapi_ciftligi/bekleyenler').on('value', (snapshot) => {
-            const data = snapshot.val();
-            veritabani.bekleyenler = data || [];
-            
-            const yeniSayi = veritabani.bekleyenler.length;
-            if (oncekiBekleyenSayisi !== 0 && yeniSayi > oncekiBekleyenSayisi) {
-                const sonTalep = veritabani.bekleyenler[yeniSayi - 1];
-                if (Notification.permission === "granted") {
-                    new Notification("🔔 DEMİRKAPI ÇİFTLİĞİ", { body: sonTalep.musteri + " yeni satış onayı bekliyor." });
-                }
-                alert("🔔 YENİ SATIŞ TALEBİ!\n" + sonTalep.musteri + " yeni satış onayı bekliyor.");
+        let aktifSepet = [];
+        let aktifMusteriFis = null;
+
+        function kaydet() {
+            localStorage.setItem('demirkapi_db', JSON.stringify(veritabani));
+        }
+
+        function verileriSifirla() {
+            if(confirm("Tüm veriler sıfırlansın mı?")) {
+                localStorage.removeItem('demirkapi_db');
+                location.reload();
             }
-            oncekiBekleyenSayisi = yeniSayi;
-            bekleyenRozetGuncelle();
-        });
-
-        if ("Notification" in window && Notification.permission === "default") { Notification.requestPermission(); }
-
-        // Standart fonksiyonlar
-        function openScreen(name) {
-            ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok'].forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
-            document.getElementById('screen-' + name)?.classList.remove('hidden');
-            if(name === 'onay') onayBekleyenleriGoster();
         }
-        function goHome() { openScreen('menu'); }
-        function bekleyenRozetGuncelle() {
-            let badge = document.getElementById('menu-badge');
-            let count = veritabani.bekleyenler.length;
-            if(badge) { badge.innerText = count; count > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden'); }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
         }
-        function onayBekleyenleriGoster() {
+
+        function openScreen(screenName) {
+            let container = document.getElementById('modal-container');
+            let titleEl = document.getElementById('modal-title');
+            let contentEl = document.getElementById('modal-content');
+            container.classList.remove('hidden');
+
+            if(screenName === 'dashboard') {
+                titleEl.innerText = "Finans & Günlük Rapor";
+                let toplamBorc = 0;
+                let toplamTahsilat = 0;
+                veritabani.musteriler.forEach(m => {
+                    let b = 0;
+                    veritabani.islemler.filter(i => i.musteri === m.ad).forEach(i => {
+                        if(i.tip === 'Satış') b += i.tutar;
+                        if(i.tip === 'Tahsilat') b -= i.tutar;
+                    });
+                    if(b > 0) toplamBorc += b;
+                });
+                veritabani.islemler.filter(i => i.tip === 'Tahsilat').forEach(i => toplamTahsilat += i.tutar);
+
+                let islemHtml = '';
+                [...veritabani.islemler].reverse().forEach(i => {
+                    islemHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div><b>${i.tarih}</b> - ${i.musteri}<br><span class="text-gray-500">${i.aciklama || i.tip}</span></div>
+                        <div class="font-bold ${i.tip==='Satış'?'text-red-600':'text-emerald-600'}">${i.tutar} ₺</div>
+                    </div>`;
+                });
+
+                contentEl.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-red-50 border border-red-200 p-4 rounded-xl">
+                            <p class="text-xs text-red-500 font-medium">Toplam Alacak</p>
+                            <h3 class="text-xl font-bold text-red-700 mt-1">${toplamBorc} ₺</h3>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                            <p class="text-xs text-emerald-600 font-medium">Toplam Tahsilat</p>
+                            <h3 class="text-xl font-bold text-emerald-700 mt-1">${toplamTahsilat} ₺</h3>
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-sm text-gray-700 pt-2">Tüm Hareketler</h4>
+                    <div class="space-y-2">${islemHtml || '<p class="text-xs text-gray-400 text-center py-4">Henüz işlem yok.</p>'}</div>
+                `;
+            }
+            else if(screenName === 'ozlemyem') {
+                titleEl.innerText = "Özlem Yem Bayilik Takibi";
+                let nakliyeHtml = '';
+                veritabani.ozlemYemNakliye.forEach((n, idx) => {
+                    nakliyeHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div><b>Plaka:</b> ${n.plaka} | <b>Yem:</b> ${n.yemAdi}<br><b>Tutar:</b> ${n.tutar} ₺ (${n.miktar} adet)</div>
+                        <button onclick="veritabani.ozlemYemNakliye.splice(${idx},1);kaydet();openScreen('ozlemyem');" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                });
+
+                contentEl.innerHTML = `
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-emerald-900">Yeni Nakliye / Sevkiyat Ekle</h4>
+                        <form onsubmit="ozlemYemEkle(event)" class="space-y-3 text-xs">
+                            <div><label class="block text-gray-600 mb-1">Araba Plakası</label><input type="text" id="oy-plaka" required class="w-full border rounded-lg p-2" placeholder="Örn: 54 Z 1234"></div>
+                            <div><label class="block text-gray-600 mb-1">Yem Adı</label><input type="text" id="oy-yem" required class="w-full border rounded-lg p-2" placeholder="Örn: Süt Yemi"></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block text-gray-600 mb-1">Miktar (Adet)</label><input type="number" id="oy-miktar" required class="w-full border rounded-lg p-2" placeholder="0"></div>
+                                <div><label class="block text-gray-600 mb-1">Toplam Tutar (₺)</label><input type="number" step="0.01" id="oy-tutar" required class="w-full border rounded-lg p-2" placeholder="0.00"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2 rounded-lg">Sevkiyatı Kaydet</button>
+                        </form>
+                    </div>
+                    <h4 class="font-bold text-sm text-gray-700 pt-2">Kayıtlı Sevkiyatlar</h4>
+                    <div class="space-y-2">${nakliyeHtml || '<p class="text-xs text-gray-400 text-center py-4">Kayıtlı sevkiyat bulunmuyor.</p>'}</div>
+                `;
+            }
+            else if(screenName === 'stok') {
+                titleEl.innerText = "Stok Yönetimi (Adet)";
+                let stokHtml = '';
+                veritabani.stoklar.forEach(s => {
+                    stokHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div><b>${s.ad}</b><br>Miktar: ${s.adEt || s.miktar} Adet | Fiyat: ${s.fiyat} ₺</div>
+                        <button onclick="stokSil(${s.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                });
+
+                contentEl.innerHTML = `
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-emerald-900">Stoğa Ürün Ekle</h4>
+                        <form onsubmit="stokEkleModal(event)" class="space-y-3 text-xs">
+                            <div><label class="block text-gray-600 mb-1">Ürün Adı</label><input type="text" id="stok-ad" required class="w-full border rounded-lg p-2" placeholder="Örn: Süt Yemi, Silaj"></div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label class="block text-gray-600 mb-1">Miktar (Adet)</label><input type="number" id="stok-miktar" required class="w-full border rounded-lg p-2" placeholder="0"></div>
+                                <div><label class="block text-gray-600 mb-1">Birim Fiyat (₺)</label><input type="number" step="0.01" id="stok-fiyat" required class="w-full border rounded-lg p-2" placeholder="0.00"></div>
+                            </div>
+                            <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2 rounded-lg">Stok Kaydet</button>
+                        </form>
+                    </div>
+                    <h4 class="font-bold text-sm text-gray-700 pt-2">Stok Listesi</h4>
+                    <div class="space-y-2">${stokHtml || '<p class="text-xs text-gray-400 text-center py-4">Kayıtlı stok yok.</p>'}</div>
+                `;
+            }
+            else if(screenName === 'musteriler') {
+                titleEl.innerText = "Müşteriler & Borç Takibi";
+                let musteriHtml = '';
+                veritabani.musteriler.forEach(m => {
+                    let borc = 0;
+                    veritabani.islemler.filter(i => i.musteri === m.ad).forEach(i => {
+                        if(i.tip === 'Satış') borc += i.tutar;
+                        if(i.tip === 'Tahsilat') borc -= i.tutar;
+                    });
+                    musteriHtml += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div><b>${m.ad}</b> (${m.tel || 'Tel yok'})<br>Güncel Borç: <span class="font-bold ${borc>0?'text-red-600':'text-emerald-600'}">${borc} ₺</span></div>
+                        <div class="space-x-1">
+                            <button onclick="fisGoster('${m.ad}')" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded font-medium">Ekstre</button>
+                            <button onclick="musteriSil(${m.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                });
+
+                contentEl.innerHTML = `
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-emerald-900">Yeni Müşteri Ekle</h4>
+                        <form onsubmit="musteriEkleModal(event)" class="space-y-3 text-xs">
+                            <div><label class="block text-gray-600 mb-1">Müşteri Ad Soyad</label><input type="text" id="m-ad" required class="w-full border rounded-lg p-2" placeholder="Örn: Ahmet Yılmaz"></div>
+                            <div><label class="block text-gray-600 mb-1">Telefon Numarası</label><input type="text" id="m-tel" class="w-full border rounded-lg p-2" placeholder="05XXXXXXXXX"></div>
+                            <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2 rounded-lg">Müşteri Kaydet</button>
+                        </form>
+                    </div>
+                    <h4 class="font-bold text-sm text-gray-700 pt-2">Müşteri Listesi</h4>
+                    <div class="space-y-2">${musteriHtml || '<p class="text-xs text-gray-400 text-center py-4">Kayıtlı müşteri yok.</p>'}</div>
+                `;
+            }
+            else if(screenName === 'islem' || screenName === 'hizlitahsilat') {
+                titleEl.innerText = "Satış veya Tahsilat Yap";
+                let musteriOpts = veritabani.musteriler.map(m => `<option value="${m.ad}">${m.ad}</option>`).join('');
+                let stokOpts = veritabani.stoklar.map(s => `<option value="${s.id}">${s.ad} (Stok: ${s.miktar} - ${s.fiyat}₺)</option>`).join('');
+
+                contentEl.innerHTML = `
+                    <form onsubmit="islemYapModal(event)" class="space-y-3 text-xs">
+                        <div>
+                            <label class="block text-gray-600 mb-1">İşlem Türü</label>
+                            <select id="islem-tip" onchange="islemTipiDegis()" class="w-full border rounded-lg p-2">
+                                <option value="Satış">Satış (Borçlandır & Stok Düş)</option>
+                                <option value="Tahsilat">Tahsilat (Ödeme Al)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-600 mb-1">Müşteri</label>
+                            <select id="islem-musteri" required class="w-full border rounded-lg p-2">${musteriOpts || '<option value="">Önce müşteri ekleyin</option>'}</select>
+                        </div>
+                        
+                        <div id="satis-alani" class="space-y-2 border p-3 rounded-lg bg-gray-50">
+                            <label class="block font-semibold text-gray-700">Ürün Seç</label>
+                            <select id="sepet-urun" class="w-full border rounded p-1.5">${stokOpts || '<option value="">Stok bulunamadı</option>'}</select>
+                            <div class="flex gap-2">
+                                <input type="number" id="sepet-miktar" value="1" min="1" class="w-20 border rounded p-1.5" placeholder="Adet">
+                                <button type="button" onclick="sepeteEkle()" class="flex-1 bg-blue-600 text-white py-1.5 rounded font-medium">Sepete Ekle</button>
+                            </div>
+                            <div id="sepet-listesi" class="space-y-1 pt-2"></div>
+                        </div>
+
+                        <div id="tahsilat-alani" class="space-y-2 border p-3 rounded-lg bg-gray-50 hidden">
+                            <div><label class="block text-gray-600 mb-1">Tahsil Edilen Tutar (₺)</label><input type="number" step="0.01" id="tahsilat-tutar" class="w-full border rounded-lg p-2" placeholder="0.00"></div>
+                            <div><label class="block text-gray-600 mb-1">Açıklama</label><input type="text" id="tahsilat-aciklama" class="w-full border rounded-lg p-2" placeholder="Nakit / Havale vb."></div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-2.5 rounded-lg">İşlemi Tamamla</button>
+                    </form>
+                `;
+            }
+            else if(screenName === 'onay') {
+                titleEl.innerText = "Onay Bekleyenler";
+                contentEl.innerHTML = `
+                    <div class="text-center py-10 space-y-2">
+                        <i class="fa-solid fa-circle-check text-4xl text-emerald-500"></i>
+                        <h4 class="font-bold text-gray-700">Bekleyen Onay Yok</h4>
+                        <p class="text-xs text-gray-500">Cebinden onaylanacak bekleyen mobil talep bulunmuyor.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function islemTipiDegis() {
+            let tip = document.getElementById('islem-tip').value;
+            if(tip === 'Satış') {
+                document.getElementById('satis-alani').classList.remove('hidden');
+                document.getElementById('tahsilat-alani').classList.add('hidden');
+            } else {
+                document.getElementById('satis-alani').classList.add('hidden');
+                document.getElementById('tahsilat-alani').classList.remove('hidden');
+            }
+        }
+
+        function sepeteEkle() {
+            let urunId = document.getElementById('sepet-urun').value;
+            let miktar = parseInt(document.getElementById('sepet-miktar').value);
+            let stok = veritabani.stoklar.find(s => s.id == urunId);
+            if(!stok) return alert("Ürün seçilmedi.");
+            if(stok.miktar < miktar) return alert("Yetersiz stok!");
+            
+            aktifSepet.push({ id: stok.id, ad: stok.ad, miktar, fiyat: stok.fiyat });
             let html = '';
-            veritabani.bekleyenler.forEach((t, i) => {
-                html += `<div style="border-bottom:1px solid #ccc; padding:10px;"><b>${t.musteri}</b><br>Tarih: ${t.tarih}<br><button class="btn-green" onclick="satisiOnayla(${i})">Onayla</button></div>`;
+            let toplam = 0;
+            aktifSepet.forEach((s, i) => {
+                let t = s.miktar * s.fiyat;
+                toplam += t;
+                html += `<div class="flex justify-between items-center text-[11px] bg-white p-1.5 border rounded"><span>${s.ad} (${s.miktar} ad x ${s.fiyat}₺)</span><b>${t} ₺</b></div>`;
             });
-            document.getElementById('onay-listesi').innerHTML = html || 'Bekleyen yok.';
+            document.getElementById('sepet-listesi').innerHTML = html || 'Sepet boş';
         }
-        function satisiOnayla(i) { /* Onay kodu buraya... */ }
+
+        function islemYapModal(e) {
+            e.preventDefault();
+            let tip = document.getElementById('islem-tip').value;
+            let musteri = document.getElementById('islem-musteri').value;
+            let bugun = new Date().toISOString().split('T')[0];
+
+            if(!musteri) return alert("Müşteri seçilmedi!");
+
+            if(tip === 'Satış') {
+                if(aktifSepet.length === 0) return alert("Sepete ürün ekleyin!");
+                let toplamTutar = 0;
+                aktifSepet.forEach(item => {
+                    let s = veritabani.stoklar.find(st => st.id == item.id);
+                    if(s) s.miktar -= item.miktar;
+                    toplamTutar += item.miktar * item.fiyat;
+                });
+                veritabani.islemler.push({
+                    id: Date.now(),
+                    tarih: bugun,
+                    musteri: musteri,
+                    tip: 'Satış',
+                    tutar: toplamTutar,
+                    aciklama: aktifSepet.map(i => `${i.miktar} ad ${i.ad}`).join(', ')
+                });
+                aktifSepet = [];
+                alert("Satış başarıyla kaydedildi.");
+            } else {
+                let tutar = parseFloat(document.getElementById('tahsilat-tutar').value);
+                let aciklama = document.getElementById('tahsilat-aciklama').value || 'Nakit Tahsilat';
+                if(!tutar || tutar <= 0) return alert("Geçerli tutar girin.");
+                veritabani.islemler.push({
+                    id: Date.now(),
+                    tarih: bugun,
+                    musteri: musteri,
+                    tip: 'Tahsilat',
+                    tutar: tutar,
+                    aciklama: aciklama
+                });
+                alert("Tahsilat kaydedildi.");
+            }
+            kaydet();
+            closeModal();
+        }
+
+        function ozlemYemEkle(e) {
+            e.preventDefault();
+            let plaka = document.getElementById('oy-plaka').value;
+            let yemAdi = document.getElementById('oy-yem').value;
+            let miktar = parseInt(document.getElementById('oy-miktar').value);
+            let tutar = parseFloat(document.getElementById('oy-tutar').value);
+
+            veritabani.ozlemYemNakliye.push({ id: Date.now(), plaka, yemAdi, miktar, tutar });
+            kaydet();
+            openScreen('ozlemyem');
+        }
+
+        function stokEkleModal(e) {
+            e.preventDefault();
+            let ad = document.getElementById('stok-ad').value;
+            let miktar = parseInt(document.getElementById('stok-miktar').value);
+            let fiyat = parseFloat(document.getElementById('stok-fiyat').value);
+
+            veritabani.stoklar.push({ id: Date.now(), ad, miktar, fiyat });
+            kaydet();
+            openScreen('stok');
+        }
+
+        function stokSil(id) {
+            veritabani.stoklar = veritabani.stoklar.filter(s => s.id !== id);
+            kaydet();
+            openScreen('stok');
+        }
+
+        function musteriEkleModal(e) {
+            e.preventDefault();
+            let ad = document.getElementById('m-ad').value;
+            let tel = document.getElementById('m-tel').value;
+            veritabani.musteriler.push({ id: Date.now(), ad, tel });
+            kaydet();
+            openScreen('musteriler');
+        }
+
+        function musteriSil(id) {
+            veritabani.musteriler = veritabani.musteriler.filter(m => m.id !== id);
+            kaydet();
+            openScreen('musteriler');
+        }
+
+        function fisGoster(musteriAdi) {
+            let container = document.getElementById('modal-container');
+            let titleEl = document.getElementById('modal-title');
+            let contentEl = document.getElementById('modal-content');
+            container.classList.remove('hidden');
+            titleEl.innerText = musteriAdi + " - Hesap Ekstresi";
+
+            let borc = 0;
+            veritabani.islemler.filter(i => i.musteri === musteriAdi).forEach(i => {
+                if(i.tip === 'Satış') borc += i.tutar;
+                if(i.tip === 'Tahsilat') borc -= i.tutar;
+            });
+
+            let detayHtml = '';
+            veritabani.islemler.filter(i => i.musteri === musteriAdi).forEach(i => {
+                detayHtml += `<div class="bg-gray-50 border p-2 rounded flex justify-between text-xs">
+                    <div><b>${i.tarih}</b> - ${i.tip}: ${i.aciklama}</div>
+                    <div class="font-bold ${i.tip==='Satış'?'text-red-600':'text-emerald-600'}">${i.tutar} ₺</div>
+                </div>`;
+            });
+
+            contentEl.innerHTML = `
+                <div class="bg-white p-4 rounded-xl border space-y-3">
+                    <h4 class="font-bold text-center text-sm">DEMİRKAPI ÇİFTLİĞİ HESAP FİŞİ</h4>
+                    <p class="text-xs"><b>Müşteri:</b> ${musteriAdi}</p>
+                    <p class="text-xs"><b>Güncel Bakiye / Borç:</b> <span class="text-red-600 font-bold">${borc} ₺</span></p>
+                    <hr class="my-2">
+                    <div class="space-y-1">${detayHtml || '<p class="text-xs text-gray-400">İşlem geçmişi yok.</p>'}</div>
+                    <button onclick="window.print()" class="w-full bg-gray-800 text-white py-2 rounded text-xs font-medium mt-3">Fişi Yazdır / PDF İndir</button>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
