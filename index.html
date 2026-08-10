@@ -364,7 +364,7 @@
             <div class="section-title">📋 Günlük Çiftlik Görevleri & Notlar</div>
             <div class="card">
                 <h3 style="margin-top:0; font-size:16px; color:#166534;">Yeni Görev / Not Ekle</h3>
-                <div class="form-group"><label>Yapılacak İş / Görev Başlığı</label><input type="text" id=" gorev-baslik" placeholder="Örn: Yem karma makinesi bakımı yapılacak"></div>
+                <div class="form-group"><label>Yapılacak İş / Görev Başlığı</label><input type="text" id="gorev-baslik" placeholder="Örn: Yem karma makinesi bakımı yapılacak"></div>
                 <div class="form-group"><label>Öncelik Durumu</label>
                     <select id="gorev-oncelik">
                         <option value="Normal">Normal</option>
@@ -602,7 +602,7 @@
                 fasonIsleriGoster();
             }
             if(name === 'gunlukgorev') {
-                document.getElementById(' gorev-baslik').value = '';
+                document.getElementById('gorev-baslik').value = '';
                 document.getElementById('gorev-not').value = '';
                 gorevleriGoster();
             }
@@ -701,7 +701,6 @@
                 arabaToplam: arabaToplam
             });
 
-            // Özlem yem alışını otomatik gider/masraf veya kasaya da yansıtabiliriz veya ayrı tutabiliriz
             if(!veritabani.giderler) veritabani.giderler = [];
             veritabani.giderler.push({
                 id: sevkId,
@@ -757,7 +756,7 @@
 
         // Günlük Görevler & Notlar Fonksiyonları
         function gorevEkle() {
-            let baslik = document.getElementById(' gorev-baslik').value.trim();
+            let baslik = document.getElementById('gorev-baslik').value.trim();
             let oncelik = document.getElementById('gorev-oncelik').value;
             let notBilgi = document.getElementById('gorev-not').value.trim() || 'Açıklama yok';
 
@@ -778,7 +777,7 @@
 
             kaydetVeri();
             alert('Günlük görev başarıyla eklendi!');
-            document.getElementById(' gorev-baslik').value = '';
+            document.getElementById('gorev-baslik').value = '';
             document.getElementById('gorev-not').value = '';
             gorevleriGoster();
         }
@@ -1683,126 +1682,145 @@
                     toplamSatis += i.tutar;
                     let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} Adet)`).join(', ') : '';
                     detayHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bbf7d0;">
-                        <div style="font-weight:bold; color:#166534;">👤 ${i.musteri} (Satış / Hizmet)</div>
-                        <div style="font-size:13px; color:#333;">Ürünler: ${urunlerStr}</div>
-                        <div style="font-size:13px; font-weight:bold; color:#dc2626; margin-top:4px;">Tutar: ${i.tutar} ₺</div>
+                        <b>Satış:</b> ${i.musteri} - ${i.tutar} ₺ <br><span style="font-size:12px; color:#555;">${urunlerStr}</span>
                     </div>`;
-                } else {
+                } else if(i.tip === 'Tahsilat') {
                     toplamTahsilat += i.tutar;
                     detayHtml += `<div style="background:#eff6ff; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bfdbfe;">
-                        <div style="font-weight:bold; color:#1e40af;">💰 ${i.musteri} (Tahsilat / Ödeme)</div>
-                        <div style="font-size:13px; color:#333;">Açıklama: ${i.aciklama}</div>
-                        <div style="font-size:13px; font-weight:bold; color:#2563eb; margin-top:4px;">Alınan: ${i.tutar} ₺</div>
+                        <b>Tahsilat:</b> ${i.musteri} - ${i.tutar} ₺ <br><span style="font-size:12px; color:#555;">${i.aciklama}</span>
                     </div>`;
                 }
             });
 
             document.getElementById('rapor-ozet').innerHTML = `
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;">
-                        <div style="font-size:12px; color:#555;">Toplam Satış & Hizmet</div>
-                        <div style="font-weight:bold; color:#dc2626; font-size:16px;">${toplamSatis} ₺</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center; margin-bottom:15px;">
+                    <div style="background:#f0fdf4; padding:10px; border-radius:8px; border:1px solid #bbf7d0;">
+                        <div style="font-size:12px; color:#166534;">Günlük Toplam Satış</div>
+                        <div style="font-size:18px; font-weight:bold; color:#166534;">${toplamSatis} ₺</div>
                     </div>
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;">
-                        <div style="font-size:12px; color:#555;">Toplam Tahsilat</div>
-                        <div style="font-weight:bold; color:#166534; font-size:16px;">${toplamTahsilat} ₺</div>
+                    <div style="background:#eff6ff; padding:10px; border-radius:8px; border:1px solid #bfdbfe;">
+                        <div style="font-size:12px; color:#1e40af;">Günlük Toplam Tahsilat</div>
+                        <div style="font-size:18px; font-weight:bold; color:#2563eb;">${toplamTahsilat} ₺</div>
                     </div>
                 </div>
             `;
-            document.getElementById('rapor-detay').innerHTML = detayHtml || '<p style="text-align:center; color:#666;">Bu tarihte işlem bulunamadı.</p>';
+            document.getElementById('rapor-detay').innerHTML = detayHtml || '<p>Bu tarihte işlem bulunmuyor.</p>';
         }
 
         function aylikRaporuGoster() {
             let secilenAy = document.getElementById('aylik-tarih').value;
             if(!secilenAy) return;
 
-            let aylikSatislar = (veritabani.islemler || []).filter(i => i.tip === 'Satış' && i.tarih.startsWith(secilenAy));
-            let aylikTahsilatlar = (veritabani.islemler || []).filter(i => i.tip === 'Tahsilat' && i.tarih.startsWith(secilenAy));
-            let aylikGiderler = (veritabani.giderler || []).filter(g => g.tarih.startsWith(secilenAy));
+            let ayIslemleri = veritabani.islemler.filter(i => i.tarih.startsWith(secilenAy));
+            let ayGiderleri = (veritabani.giderler || []).filter(g => g.tarih.startsWith(secilenAy));
 
-            let toplamCiro = aylikSatislar.reduce((toplam, i) => toplam + i.tutar, 0);
-            let toplamTahsilat = aylikTahsilatlar.reduce((toplam, i) => toplam + i.tutar, 0);
-            let toplamGider = aylikGiderler.reduce((toplam, g) => toplam + g.tutar, 0);
-            let netKarTahmini = toplamTahsilat - toplamGider;
+            let toplamCiro = 0;
+            let toplamTahsilat = 0;
+            ayIslemleri.forEach(i => {
+                if(i.tip === 'Satış') toplamCiro += i.tutar;
+                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
+            });
+
+            let toplamGider = 0;
+            ayGiderleri.forEach(g => toplamGider += g.tutar);
+            let netKari = toplamTahsilat - toplamGider;
 
             document.getElementById('aylik-ozet-alani').innerHTML = `
-                <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
-                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
-                        <div style="font-size:13px; color:#166534; font-weight:bold;">Aylık Toplam Ciro (Satış & Hizmetler)</div>
-                        <div style="font-size:22px; font-weight:bold; color:#166534;">${toplamCiro} ₺</div>
+                <div style="display:grid; grid-template-columns:1fr; gap:10px;">
+                    <div style="background:#f0fdf4; padding:12px; border-radius:10px; border:1px solid #bbf7d0;">
+                        <b>Aylık Toplam Ciro:</b> <span style="color:#166534; float:right; font-weight:bold;">${toplamCiro} ₺</span>
                     </div>
-                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
-                        <div style="font-size:13px; color:#1e40af; font-weight:bold;">Aylık Tahsil Edilen Para</div>
-                        <div style="font-size:22px; font-weight:bold; color:#2563eb;">${toplamTahsilat} ₺</div>
+                    <div style="background:#eff6ff; padding:12px; border-radius:10px; border:1px solid #bfdbfe;">
+                        <b>Aylık Toplam Tahsilat:</b> <span style="color:#2563eb; float:right; font-weight:bold;">${toplamTahsilat} ₺</span>
                     </div>
-                    <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
-                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Aylık Toplam Gider / Masraf</div>
-                        <div style="font-size:22px; font-weight:bold; color:#dc2626;">${toplamGider} ₺</div>
+                    <div style="background:#fef2f2; padding:12px; border-radius:10px; border:1px solid #fecaca;">
+                        <b>Aylık Toplam Gider:</b> <span style="color:#dc2626; float:right; font-weight:bold;">${toplamGider} ₺</span>
                     </div>
-                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;">
-                        <div style="font-size:13px; color:#6b21a8; font-weight:bold;">Net Nakit Dengesi (Tahsilat - Gider)</div>
-                        <div style="font-size:22px; font-weight:bold; color:${netKarTahmini >= 0 ? '#7c3aed':'#dc2626'};">${netKarTahmini} ₺</div>
+                    <div style="background:#faf5ff; padding:12px; border-radius:10px; border:1px solid #e9d5ff;">
+                        <b>Aylık Net Kasa:</b> <span style="color:#7c3aed; float:right; font-weight:bold;">${netKari} ₺</span>
                     </div>
                 </div>
             `;
         }
 
         function gecmisiGoster() {
-            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Tutar</th><th>Sil</th></tr>';
-            veritabani.islemler.slice().reverse().forEach(i => {
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td><b>${i.tutar} ₺</b></td><td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td></tr>`;
+            let islemler = veritabani.islemler || [];
+            if(islemler.length === 0) {
+                document.getElementById('gecmis-listesi').innerHTML = '<p>Henüz işlem bulunmuyor.</p>';
+                return;
+            }
+
+            let html = '<table><tr><th>Tarih</th><th>Tip</th><th>Müşteri</th><th>Tutar</th><th>Detay</th><th>Sil</th></tr>';
+            islemler.slice().reverse().forEach(i => {
+                let detay = i.tip === 'Satış' ? (i.kalemler ? i.kalemler.map(k=>`${k.tur} (${k.miktar}ad)`).join(', ') : i.aciklama) : i.aciklama;
+                html += `<tr>
+                    <td style="font-size:11px;">${formatliTarihGoster(i.tarih)}</td>
+                    <td><b>${i.tip}</b></td>
+                    <td>${i.musteri}</td>
+                    <td style="color:${i.tip==='Satış'?'#dc2626':'#2563eb'}; font-weight:bold;">${i.tutar} ₺</td>
+                    <td style="font-size:11px;">${detay}</td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td>
+                </tr>`;
             });
-            document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'Kayıt yok.';
+            html += '</table>';
+            document.getElementById('gecmis-listesi').innerHTML = html;
         }
 
+        let aktifMusteriFis = '';
         function musteriOzetFisGoster(musteriAdi) {
-            let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
-            let bakiye = veritabani.borclar[musteriAdi] || 0;
-
+            aktifMusteriFis = musteriAdi;
+            let borc = veritabani.borclar[musteriAdi] || 0;
             let fisHtml = `
-                <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ & ÖZLEM YEM</div>
-                <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
-                <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;">
-                    <div><b>Müşteri:</b> ${musteriAdi}</div>
-                    <div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</div>
-                </div>`;
+                <div style="text-align:center; border-bottom:2px dashed #333; padding-bottom:10px; margin-bottom:10px;">
+                    <h2 style="margin:0; font-size:18px;">DEMİRKAPI ÇİFTLİĞİ & ÖZLEM YEM</h2>
+                    <p style="margin:2px 0; font-size:12px;">Sakarya / Erenler - Canlı Hesap Özeti</p>
+                    <p style="margin:2px 0; font-size:11px;">Tarih: ${new Date().toLocaleString('tr-TR')}</p>
+                </div>
+                <div style="margin-bottom:10px; font-size:14px;">
+                    <b>Sayın Müşterimiz:</b> ${musteriAdi}<br>
+                    <b>Güncel Borç / Bakiye:</b> <span style="color:#dc2626; font-weight:bold;">${borc} ₺</span>
+                </div>
+                <h4 style="margin:10px 0 5px 0; border-bottom:1px solid #333; font-size:13px;">Son Hareketler</h4>
+                <table style="width:100%; font-size:11px;">
+                    <tr><th>Tarih</th><th>İşlem</th><th>Tutar</th></tr>
+            `;
 
-            musteriIslemleri.forEach(i => {
-                let tarihStr = formatliTarihGoster(i.tarih);
-                if(i.tip === 'Satış') {
-                    fisHtml += `<div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px;">
-                        <div style="font-size:11px; color:#666; margin-bottom:4px;">📅 ${tarihStr} - SATIŞ / HİZMET</div>`;
-                    if(i.kalemler) {
-                        i.kalemler.forEach(k => {
-                            fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar} x ${k.fiyat}₺)</span><b>${k.tutar} ₺</b></div>`;
-                        });
-                    }
-                    fisHtml += `</div>`;
-                } else {
-                    fisHtml += `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;">
-                        <div style="font-size:11px; color:#166534; margin-bottom:4px;">📅 ${tarihStr} - TAHSİLAT</div>
-                        <div style="font-size:12px;">${i.aciklama}: <b>-${i.tutar} ₺</b></div></div>`;
-                }
+            veritabani.islemler.filter(i => i.musteri === musteriAdi).forEach(i => {
+                fisHtml += `<tr>
+                    <td>${formatliTarihGoster(i.tarih).slice(0,10)}</td>
+                    <td>${i.tip} (${i.aciklama || 'Satış'})</td>
+                    <td>${i.tutar} ₺</td>
+                </tr>`;
             });
 
-            fisHtml += `<div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;">
-                <div style="font-size:11px; color:#991b1b; font-weight:bold;">GÜNCEL KALAN BORÇ</div>
-                <div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiye} ₺</div>
-            </div>`;
+            fisHtml += `</table>
+                <div style="text-align:center; margin-top:20px; font-size:11px; border-top:1px dashed #333; padding-top:10px;">
+                    Teşekkür eder, bol kazançlar dileriz.<br>Demirkapı Çiftliği Finans Departmanı
+                </div>
+            `;
 
             document.getElementById('fis-alani').innerHTML = fisHtml;
             openScreen('fis');
         }
 
-        function fisPdfIndir() {
-            html2pdf().from(document.getElementById('fis-alani')).save('Demirkapi_Fis.pdf');
+        function fisYazdir() {
+            let icerik = document.getElementById('fis-alani').innerHTML;
+            let yeniPencere = window.open('', '_blank');
+            yeniPencere.document.write('<html><head><title>Fiş Çıktısı</title></head><body style="font-family:monospace; padding:20px;">' + icerik + '</body></html>');
+            yeniPencere.document.close();
+            yeniPencere.print();
         }
 
-        function fisYazdir() {
-            let win = window.open('', '_blank');
-            win.document.write('<html><body>' + document.getElementById('fis-alani').innerHTML + '</body></html>');
-            win.print();
-            win.close();
+        function fisPdfIndir() {
+            let element = document.getElementById('fis-alani');
+            let opt = {
+                margin:       10,
+                filename:     `Demirkapi_Hesap_Ozeti_${aktifMusteriFis}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         }
     </script>
 </body>
