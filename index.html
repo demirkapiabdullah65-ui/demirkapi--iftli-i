@@ -109,7 +109,7 @@
     <div class="main-content">
         
         <!-- ANA SAYFA (GRID MENÜ) -->
-        <div id=" ekran-anasayfa" class="screen active">
+        <div id="ekran-anasayfa" class="screen active">
             
             <div class="weather-card">
                 <div class="weather-info">
@@ -457,9 +457,8 @@
     </nav>
 
     <script>
-        // VERİTABANI VE BAŞLANGIÇ VERİLERİ
         let db = {
-            rol: "yonetici", // "yonetici" (Abdullah) veya "personel"
+            rol: "yonetici",
             stok: [
                 { id: 1, ad: "Özlem Sığır Besi Yemi", kategori: "Yem", miktar: 250, fiyat: 450 },
                 { id: 2, ad: "Özlem Süt Yemi", kategori: "Yem", miktar: 300, fiyat: 430 },
@@ -503,10 +502,10 @@
         function rolDegistir() {
             if(db.rol === "yonetici") {
                 db.rol = "personel";
-                alert("Personel moduna geçildi. Yaptığınız satışlar yönetici onayına düşecektir.");
+                alert("Personel moduna geçildi. Yaptığınız satışlar onayınıza düşecektir.");
             } else {
                 db.rol = "yonetici";
-                alert("Yönetici (Abdullah Demirkapı) moduna geçildi.");
+                alert("Yönetici moduna geçildi.");
             }
             verileriKaydet();
             guncelleArayuz();
@@ -532,21 +531,18 @@
                 satisButon.className = "btn btn-warning";
             }
 
-            // Seçim kutularını doldur
             let musOpts = '';
             db.musteri.forEach(m => { musOpts += `<option value="${m.ad}">${m.ad}</option>`; });
             document.getElementById('satis-musteri').innerHTML = musOpts;
             document.getElementById('tahsilat-musteri').innerHTML = musOpts;
             document.getElementById('nak-musteri').innerHTML = musOpts;
 
-            // Stok Listesi Tablosu
             let stokHtml = '';
             db.stok.forEach(s => {
                 stokHtml += `<tr><td>${s.ad}</td><td>${s.kategori}</td><td><b>${s.miktar}</b></td><td>${s.fiyat} ₺</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:11px; width:auto;" onclick="stokSil(${s.id})">Sil</button></td></tr>`;
             });
             document.getElementById('stok-tablo-liste').innerHTML = stokHtml;
 
-            // Müşteriler & Borçlar Tablosu
             let musHtml = '';
             db.musteri.forEach(m => {
                 let bakiye = musteriBorcHesapla(m.ad);
@@ -555,28 +551,24 @@
             document.getElementById('musteri-tablo-liste').innerHTML = musHtml;
             document.getElementById('musteri-liste-ekran').innerHTML = musHtml;
 
-            // Nakliye Tablosu
             let nakHtml = '';
             db.nakliye.forEach((n, idx) => {
                 nakHtml += `<tr><td>${n.tarih}</td><td>${n.tip}</td><td>${n.musteri}</td><td>${n.detay}</td><td><button class="btn btn-danger" style="padding:4px 8px; font-size:11px; width:auto;" onclick="nakSil(${idx})">Sil</button></td></tr>`;
             });
             document.getElementById('nakliye-tablo-liste').innerHTML = nakHtml;
 
-            // Gelir Gider Tablosu
             let ggHtml = '';
             db.gelirgider.forEach(g => {
                 ggHtml += `<tr><td><span class="badge ${g.tip==='Gelir'?'badge-success':'badge-danger'}">${g.tip}</span></td><td>${g.kategori}</td><td>${g.tutar} ₺</td><td>${g.tarih}</td></tr>`;
             });
             document.getElementById('gg-tablo-liste').innerHTML = ggHtml;
 
-            // İşlem Geçmişi
             let gecmisHtml = '';
             db.islemler.slice(-20).reverse().forEach(i => {
                 gecmisHtml += `<tr><td>${i.tarih}</td><td>${i.musteri}</td><td><span class="badge badge-success">${i.tip}</span></td><td>${i.tutar} ₺</td></tr>`;
             });
             document.getElementById('gecmis-tablo-liste').innerHTML = gecmisHtml;
 
-            // Onay Bekleyenler Badge ve Liste
             let onaySayi = db.bekleyenOnaylar.length;
             let badge = document.getElementById('menu-onay-badge');
             if(onaySayi > 0) {
@@ -606,7 +598,6 @@
             document.getElementById('onay-liste-container').innerHTML = onayHtml;
         }
 
-        // SATIŞ İŞLEMLERİ
         function yeniKalemEkle() {
             let container = document.getElementById('satis-kalemler-container');
             let div = document.createElement('div');
@@ -709,7 +700,6 @@
             }
         }
 
-        // DİĞER FONKSİYONLAR
         function stokEkleKaydet() {
             let ad = document.getElementById('yeni-stok-ad').value;
             let kat = document.getElementById('yeni-stok-kat').value;
