@@ -93,8 +93,8 @@
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük satış & tahsilat</div></div>
                 <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
                 <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Mazot, yem vb.</div></div>
-                <div class="menu-card" onclick="openScreen('silaj')"><div class="menu-icon">🌽</div><div class="menu-title">13. Alınan Silajlar</div><div class="menu-desc">Tarladan alınan mısır / silaj</div></div>
-                <div class="menu-card" onclick="openScreen('tarla')"><div class="menu-icon">🚜</div><div class="menu-title">14. Biçilen Tarlalar</div><div class="menu-desc">Para karşılığı biçilen tarlalar</div></div>
+                <div class="menu-card" onclick="openScreen('silaj')"><div class="menu-icon">🌽</div><div class="menu-title">13. Alınan Silajlar</div><div class="menu-desc">Ton veya Dönüm bazlı</div></div>
+                <div class="menu-card" onclick="openScreen('tarla')"><div class="menu-icon">🚜</div><div class="menu-title">14. Biçilen Tarlalar</div><div class="menu-desc">Ton veya Dönüm bazlı</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak işlem yap</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedek & Dışa Aktar</div><div class="menu-desc">Excel & JSON yedekle</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -189,9 +189,7 @@
         <div id="screen-finans" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📈 Gelişmiş Finans & Alacak Özeti</div>
-            <div class="card" id="finans-ozet-alani">
-                <!-- Dinamik Özet Kartları -->
-            </div>
+            <div class="card" id="finans-ozet-alani"></div>
         </div>
 
         <!-- 9. MÜŞTERİLER -->
@@ -245,17 +243,27 @@
             </div>
         </div>
 
-        <!-- 13. ALINAN SİLAJLAR -->
+        <!-- 13. ALINAN SİLAJLAR (Ton veya Dönüm Seçmeli) -->
         <div id="screen-silaj" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🌽 Alınan Silajlar</div>
             <div class="card">
-                <p style="font-size:13px;color:#555;line-height:1.5;margin-top:0;">Başkasının tarlasındaki mısırı kendimiz alıp biçtiğimizde burada kayıt tut. Tarla sahibi, ton, ton fiyatı ve ödenecek tutar ayrı takip edilir.</p>
+                <p style="font-size:13px;color:#555;line-height:1.5;margin-top:0;">İşlemi ister <b>Ton</b> ister <b>Dönüm</b> olarak girin; ne yazarsanız o birim üzerinden hesaplanır ve kaydedilir[span_0](start_span)[span_0](end_span).</p>
                 <div class="form-group"><label>Tarih</label><input type="datetime-local" id="silaj-tarih"></div>
                 <div class="form-group"><label>Tarla Sahibi</label><input type="text" id="silaj-sahip" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Tarla / Köy</label><input type="text" id="silaj-tarla" placeholder="Örn: Kaynarca - Merkez tarla"></div>
-                <div class="form-group"><label>Alınan Mısır / Silaj (Ton)</label><input type="number" step="0.01" id="silaj-ton" placeholder="0"></div>
-                <div class="form-group"><label>Ton Fiyatı (TL)</label><input type="number" step="0.01" id="silaj-fiyat" placeholder="0" oninput="silajToplamHesapla()"></div>
+                
+                <div class="form-group">
+                    <label>Ölçü Birimi Seçin</label>
+                    <select id="silaj-birim" onchange="silajBirimDegisti()">
+                        <option value="Ton">Ton</option>
+                        <option value="Dönüm">Dönüm</option>
+                    </select>
+                </div>
+
+                <div class="form-group"><label id="silaj-miktar-label">Miktar (Ton)</label><input type="number" step="0.01" id="silaj-miktar" placeholder="0" oninput="silajToplamHesapla()"></div>
+                <div class="form-group"><label id="silaj-fiyat-label">Birim Fiyat (Ton Fiyatı - TL)</label><input type="number" step="0.01" id="silaj-fiyat" placeholder="0" oninput="silajToplamHesapla()"></div>
+                
                 <div id="silaj-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam: 0 ₺</div>
                 <div class="form-group"><label>Ödenen Tutar (TL)</label><input type="number" step="0.01" id="silaj-odenen" placeholder="0" oninput="silajToplamHesapla()"></div>
                 <div class="form-group"><label>Not</label><input type="text" id="silaj-not" placeholder="Açıklama"></div>
@@ -267,17 +275,27 @@
             </div>
         </div>
 
-        <!-- 14. BİÇİLEN TARLALAR -->
+        <!-- 14. BİÇİLEN TARLALAR (Ton veya Dönüm Seçmeli) -->
         <div id="screen-tarla" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🚜 Biçilen Tarlalar</div>
             <div class="card">
-                <p style="font-size:13px;color:#555;line-height:1.5;margin-top:0;">Mısırı tarlada bırakıp sadece biçim hizmeti verdiğimiz işleri burada takip et. Tarla sahibi, dönüm, biçim fiyatı ve alınan para ayrı görünür.</p>
+                <p style="font-size:13px;color:#555;line-height:1.5;margin-top:0;">İşlemi ister <b>Ton</b> ister <b>Dönüm</b> olarak girin; ne yazarsanız o birim üzerinden hesaplanır ve kaydedilir[span_1](start_span)[span_1](end_span).</p>
                 <div class="form-group"><label>Tarih</label><input type="datetime-local" id="tarla-tarih"></div>
                 <div class="form-group"><label>Tarla Sahibi</label><input type="text" id="tarla-sahip" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Tarla / Köy</label><input type="text" id="tarla-konum" placeholder="Örn: Hendek - X Köyü"></div>
-                <div class="form-group"><label>Biçilen Alan (Dönüm)</label><input type="number" step="0.01" id="tarla-donum" placeholder="0" oninput="tarlaToplamHesapla()"></div>
-                <div class="form-group"><label>Dönüm Fiyatı (TL)</label><input type="number" step="0.01" id="tarla-fiyat" placeholder="0" oninput="tarlaToplamHesapla()"></div>
+                
+                <div class="form-group">
+                    <label>Ölçü Birimi Seçin</label>
+                    <select id="tarla-birim" onchange="tarlaBirimDegisti()">
+                        <option value="Dönüm">Dönüm</option>
+                        <option value="Ton">Ton</option>
+                    </select>
+                </div>
+
+                <div class="form-group"><label id="tarla-miktar-label">Miktar (Dönüm)</label><input type="number" step="0.01" id="tarla-miktar" placeholder="0" oninput="tarlaToplamHesapla()"></div>
+                <div class="form-group"><label id="tarla-fiyat-label">Birim Fiyat (Dönüm Fiyatı - TL)</label><input type="number" step="0.01" id="tarla-fiyat" placeholder="0" oninput="tarlaToplamHesapla()"></div>
+                
                 <div id="tarla-toplam" style="background:#eff6ff;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#1e40af;">Biçim Ücreti: 0 ₺</div>
                 <div class="form-group"><label>Alınan Para (TL)</label><input type="number" step="0.01" id="tarla-alinan" placeholder="0" oninput="tarlaToplamHesapla()"></div>
                 <div class="form-group"><label>Not</label><input type="text" id="tarla-not" placeholder="Örn: Mazot müşteriye ait"></div>
@@ -310,7 +328,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">💾 Veri Yedekleme & Dışa Aktar</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini (stok adetleri, borçlar, hayvanlar ve giderler) güvenli JSON dosyası olarak indirebilirsin.</p>
+                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini güvenli JSON dosyası olarak indirebilirsin.</p>
                 <button class="btn-green" onclick="verileriDisaAktar()">📥 Tüm Verileri Yedekle (JSON İndir)</button>
             </div>
             <div class="card" style="margin-top: 15px;">
@@ -375,7 +393,6 @@
         const db = firebase.database();
         let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [] };
 
-        let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -392,8 +409,6 @@
                 if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
             }
 
-            const yeniSayi = veritabani.bekleyenler.length;
-            oncekiBekleyenSayisi = yeniSayi;
             bekleyenRozetGuncelle();
 
             if (!document.getElementById('screen-onay').classList.contains('hidden')) onayBekleyenleriGoster();
@@ -409,7 +424,6 @@
             if (!document.getElementById('screen-tarla').classList.contains('hidden')) tarlalariGoster();
         });
 
-        // Hava Durumu Çekme (Sakarya)
         async function havaDurumuGetir() {
             try {
                 let res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7569&longitude=30.3783&current_weather=true');
@@ -501,22 +515,24 @@
                 document.getElementById('silaj-tarih').value = simdikiTarihInputFormat();
                 document.getElementById('silaj-sahip').value = '';
                 document.getElementById('silaj-tarla').value = '';
-                document.getElementById('silaj-ton').value = '';
+                document.getElementById('silaj-birim').value = 'Ton';
+                document.getElementById('silaj-miktar').value = '';
                 document.getElementById('silaj-fiyat').value = '';
                 document.getElementById('silaj-odenen').value = '';
                 document.getElementById('silaj-not').value = '';
-                silajToplamHesapla();
+                silajBirimDegisti();
                 silajlariGoster();
             }
             if(name === 'tarla') {
                 document.getElementById('tarla-tarih').value = simdikiTarihInputFormat();
                 document.getElementById('tarla-sahip').value = '';
                 document.getElementById('tarla-konum').value = '';
-                document.getElementById('tarla-donum').value = '';
+                document.getElementById('tarla-birim').value = 'Dönüm';
+                document.getElementById('tarla-miktar').value = '';
                 document.getElementById('tarla-fiyat').value = '';
                 document.getElementById('tarla-alinan').value = '';
                 document.getElementById('tarla-not').value = '';
-                tarlaToplamHesapla();
+                tarlaBirimDegisti();
                 tarlalariGoster();
             }
             if(name === 'onay') onayBekleyenleriGoster();
@@ -942,11 +958,19 @@
             document.getElementById('gider-listesi').innerHTML = html;
         }
 
+        // SİLAJ İŞLEMLERİ (Ton veya Dönüm)
+        function silajBirimDegisti() {
+            let birim = document.getElementById('silaj-birim').value;
+            document.getElementById('silaj-miktar-label').innerText = `Miktar (${birim})`;
+            document.getElementById('silaj-fiyat-label').innerText = `Birim Fiyat (${birim} Fiyatı - TL)`;
+            silajToplamHesapla();
+        }
+
         function silajToplamHesapla() {
-            let ton = parseFloat(document.getElementById('silaj-ton').value) || 0;
+            let miktar = parseFloat(document.getElementById('silaj-miktar').value) || 0;
             let fiyat = parseFloat(document.getElementById('silaj-fiyat').value) || 0;
             let odenen = parseFloat(document.getElementById('silaj-odenen').value) || 0;
-            let toplam = ton * fiyat;
+            let toplam = miktar * fiyat;
             let kalan = Math.max(0, toplam - odenen);
             document.getElementById('silaj-toplam').innerHTML = `Toplam: <b>${toplam.toFixed(2)} ₺</b> | Ödenecek Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
         }
@@ -955,15 +979,18 @@
             let tarih = document.getElementById('silaj-tarih').value;
             let sahip = document.getElementById('silaj-sahip').value.trim();
             let tarla = document.getElementById('silaj-tarla').value.trim();
-            let ton = parseFloat(document.getElementById('silaj-ton').value) || 0;
+            let birim = document.getElementById('silaj-birim').value;
+            let miktar = parseFloat(document.getElementById('silaj-miktar').value) || 0;
             let fiyat = parseFloat(document.getElementById('silaj-fiyat').value) || 0;
             let odenen = parseFloat(document.getElementById('silaj-odenen').value) || 0;
             let not = document.getElementById('silaj-not').value.trim() || '';
-            if(!tarih || !sahip || ton <= 0 || fiyat <= 0) { alert('Tarih, tarla sahibi, ton ve ton fiyatını eksiksiz doldurun.'); return; }
-            let toplam = ton * fiyat;
+
+            if(!tarih || !sahip || miktar <= 0 || fiyat <= 0) { alert('Tarih, tarla sahibi, miktar ve birim fiyatı eksiksiz doldurun.'); return; }
+            let toplam = miktar * fiyat;
             if(odenen > toplam) { alert('Ödenen tutar toplamdan fazla olamaz.'); return; }
+
             if(!veritabani.silajlar) veritabani.silajlar = [];
-            veritabani.silajlar.push({ id: Date.now(), tarih, sahip, tarla, ton, fiyat, toplam, odenen, kalan: toplam - odenen, not });
+            veritabani.silajlar.push({ id: Date.now(), tarih, sahip, tarla, birim, miktar, fiyat, toplam, odenen, kalan: toplam - odenen, not });
             kaydetVeri();
             alert('Silaj alımı kaydedildi!');
             silajlariGoster();
@@ -980,23 +1007,35 @@
         function silajlariGoster() {
             let liste = veritabani.silajlar || [];
             if(liste.length === 0) { document.getElementById('silaj-listesi').innerHTML = '<p>Kayıtlı silaj alımı yok.</p>'; return; }
-            let toplamTon = liste.reduce((a,x) => a + Number(x.ton || 0), 0);
+            
+            let toplamTon = liste.filter(x => x.birim === 'Ton').reduce((a,x) => a + Number(x.miktar || 0), 0);
+            let toplamDonum = liste.filter(x => x.birim === 'Dönüm').reduce((a,x) => a + Number(x.miktar || 0), 0);
             let toplamTutar = liste.reduce((a,x) => a + Number(x.toplam || 0), 0);
             let toplamKalan = liste.reduce((a,x) => a + Number(x.kalan || 0), 0);
-            let html = `<div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:12px;font-size:13px;"><b>Toplam Alınan:</b> ${toplamTon.toFixed(2)} ton &nbsp; | &nbsp; <b>Toplam:</b> ${toplamTutar.toFixed(2)} ₺ &nbsp; | &nbsp; <b>Kalan Ödeme:</b> <span style="color:#dc2626;font-weight:bold;">${toplamKalan.toFixed(2)} ₺</span></div>`;
-            html += '<div class="table-responsive"><table><tr><th>Tarih</th><th>Sahibi</th><th>Tarla</th><th>Ton</th><th>Toplam</th><th>Kalan</th><th>Sil</th></tr>';
+
+            let html = `<div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:12px;font-size:13px;"><b>Toplam:</b> ${toplamTon.toFixed(2)} ton / ${toplamDonum.toFixed(2)} dönüm &nbsp; | &nbsp; <b>Tutar:</b> ${toplamTutar.toFixed(2)} ₺ &nbsp; | &nbsp; <b>Kalan:</b> <span style="color:#dc2626;font-weight:bold;">${toplamKalan.toFixed(2)} ₺</span></div>`;
+            html += '<div class="table-responsive"><table><tr><th>Tarih</th><th>Sahibi</th><th>Miktar</th><th>Toplam</th><th>Kalan</th><th>Sil</th></tr>';
             liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.sahip}</b></td><td>${x.tarla || '-'}</td><td>${Number(x.ton).toFixed(2)}</td><td>${Number(x.toplam).toFixed(2)} ₺</td><td style="color:${x.kalan > 0 ? '#dc2626':'#166534'};font-weight:bold;">${Number(x.kalan).toFixed(2)} ₺</td><td><button class="btn-danger" onclick="silajSil(${x.id})">Sil</button></td></tr>`;
+                let birimStr = x.birim || 'Ton';
+                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.sahip}</b></td><td>${Number(x.miktar).toFixed(2)} ${birimStr}</td><td>${Number(x.toplam).toFixed(2)} ₺</td><td style="color:${x.kalan > 0 ? '#dc2626':'#166534'};font-weight:bold;">${Number(x.kalan).toFixed(2)} ₺</td><td><button class="btn-danger" onclick="silajSil(${x.id})">Sil</button></td></tr>`;
             });
             html += '</table></div>';
             document.getElementById('silaj-listesi').innerHTML = html;
         }
 
+        // BİÇİLEN TARLALAR İŞLEMLERİ (Dönüm veya Ton)
+        function tarlaBirimDegisti() {
+            let birim = document.getElementById('tarla-birim').value;
+            document.getElementById('tarla-miktar-label').innerText = `Miktar (${birim})`;
+            document.getElementById('tarla-fiyat-label').innerText = `Birim Fiyat (${birim} Fiyatı - TL)`;
+            tarlaToplamHesapla();
+        }
+
         function tarlaToplamHesapla() {
-            let donum = parseFloat(document.getElementById('tarla-donum').value) || 0;
+            let miktar = parseFloat(document.getElementById('tarla-miktar').value) || 0;
             let fiyat = parseFloat(document.getElementById('tarla-fiyat').value) || 0;
             let alinan = parseFloat(document.getElementById('tarla-alinan').value) || 0;
-            let toplam = donum * fiyat;
+            let toplam = miktar * fiyat;
             let kalan = Math.max(0, toplam - alinan);
             document.getElementById('tarla-toplam').innerHTML = `Biçim Ücreti: <b>${toplam.toFixed(2)} ₺</b> | Alınacak Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
         }
@@ -1005,15 +1044,18 @@
             let tarih = document.getElementById('tarla-tarih').value;
             let sahip = document.getElementById('tarla-sahip').value.trim();
             let konum = document.getElementById('tarla-konum').value.trim();
-            let donum = parseFloat(document.getElementById('tarla-donum').value) || 0;
+            let birim = document.getElementById('tarla-birim').value;
+            let miktar = parseFloat(document.getElementById('tarla-miktar').value) || 0;
             let fiyat = parseFloat(document.getElementById('tarla-fiyat').value) || 0;
             let alinan = parseFloat(document.getElementById('tarla-alinan').value) || 0;
             let not = document.getElementById('tarla-not').value.trim() || '';
-            if(!tarih || !sahip || donum <= 0 || fiyat <= 0) { alert('Tarih, tarla sahibi, dönüm ve dönüm fiyatını eksiksiz doldurun.'); return; }
-            let toplam = donum * fiyat;
+
+            if(!tarih || !sahip || miktar <= 0 || fiyat <= 0) { alert('Tarih, tarla sahibi, miktar ve birim fiyatı eksiksiz doldurun.'); return; }
+            let toplam = miktar * fiyat;
             if(alinan > toplam) { alert('Alınan para toplam biçim ücretinden fazla olamaz.'); return; }
+
             if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
-            veritabani.bicilenTarlalar.push({ id: Date.now(), tarih, sahip, konum, donum, fiyat, toplam, alinan, kalan: toplam - alinan, not });
+            veritabani.bicilenTarlalar.push({ id: Date.now(), tarih, sahip, konum, birim, miktar, fiyat, toplam, alinan, kalan: toplam - alinan, not });
             kaydetVeri();
             alert('Biçilen tarla kaydedildi!');
             tarlalariGoster();
@@ -1030,13 +1072,17 @@
         function tarlalariGoster() {
             let liste = veritabani.bicilenTarlalar || [];
             if(liste.length === 0) { document.getElementById('tarla-listesi').innerHTML = '<p>Kayıtlı tarla biçimi yok.</p>'; return; }
-            let toplamDonum = liste.reduce((a,x) => a + Number(x.donum || 0), 0);
+            
+            let toplamDonum = liste.filter(x => x.birim === 'Dönüm' || !x.birim).reduce((a,x) => a + Number(x.miktar || 0), 0);
+            let toplamTon = liste.filter(x => x.birim === 'Ton').reduce((a,x) => a + Number(x.miktar || 0), 0);
             let toplamUcret = liste.reduce((a,x) => a + Number(x.toplam || 0), 0);
             let toplamKalan = liste.reduce((a,x) => a + Number(x.kalan || 0), 0);
-            let html = `<div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:12px;font-size:13px;"><b>Toplam Biçilen:</b> ${toplamDonum.toFixed(2)} dönüm &nbsp; | &nbsp; <b>Toplam Ücret:</b> ${toplamUcret.toFixed(2)} ₺ &nbsp; | &nbsp; <b>Alınacak:</b> <span style="color:#dc2626;font-weight:bold;">${toplamKalan.toFixed(2)} ₺</span></div>`;
-            html += '<div class="table-responsive"><table><tr><th>Tarih</th><th>Sahibi</th><th>Tarla</th><th>Dönüm</th><th>Ücret</th><th>Kalan</th><th>Sil</th></tr>';
+
+            let html = `<div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:12px;font-size:13px;"><b>Toplam:</b> ${toplamDonum.toFixed(2)} dönüm / ${toplamTon.toFixed(2)} ton &nbsp; | &nbsp; <b>Ücret:</b> ${toplamUcret.toFixed(2)} ₺ &nbsp; | &nbsp; <b>Alınacak:</b> <span style="color:#dc2626;font-weight:bold;">${toplamKalan.toFixed(2)} ₺</span></div>`;
+            html += '<div class="table-responsive"><table><tr><th>Tarih</th><th>Sahibi</th><th>Miktar</th><th>Ücret</th><th>Kalan</th><th>Sil</th></tr>';
             liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.sahip}</b></td><td>${x.konum || '-'}</td><td>${Number(x.donum).toFixed(2)}</td><td>${Number(x.toplam).toFixed(2)} ₺</td><td style="color:${x.kalan > 0 ? '#dc2626':'#166534'};font-weight:bold;">${Number(x.kalan).toFixed(2)} ₺</td><td><button class="btn-danger" onclick="tarlaSil(${x.id})">Sil</button></td></tr>`;
+                let birimStr = x.birim || 'Dönüm';
+                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.sahip}</b></td><td>${Number(x.miktar).toFixed(2)} ${birimStr}</td><td>${Number(x.toplam).toFixed(2)} ₺</td><td style="color:${x.kalan > 0 ? '#dc2626':'#166534'};font-weight:bold;">${Number(x.kalan).toFixed(2)} ₺</td><td><button class="btn-danger" onclick="tarlaSil(${x.id})">Sil</button></td></tr>`;
             });
             html += '</table></div>';
             document.getElementById('tarla-listesi').innerHTML = html;
@@ -1068,7 +1114,7 @@
                 sesliKomutuIsle(konusmaMetni);
             };
 
-            recognition.onerror = function(event) {
+            recognition.onerror = function() {
                 document.getElementById('sesli-durum').innerText = 'Algılama hatası, tekrar deneyin.';
                 document.getElementById('mic-icon').innerText = '🎤';
             };
@@ -1107,7 +1153,6 @@
             }
         }
 
-        // Veri Yedekleme (JSON Dışa Aktar / İçe Aktar)
         function verileriDisaAktar() {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
             let downloadAnchor = document.createElement('a');
