@@ -119,7 +119,7 @@
             </div>
         </div>
 
-        <!-- 2. ONAY BEKLEYENLER (Düzeltme Özellikli) -->
+        <!-- 2. ONAY BEKLEYENLER -->
         <div id="screen-onay" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🔔 Onay Bekleyen İşlemler & Düzeltme</div>
@@ -292,9 +292,11 @@
                 <div class="form-group"><label>İşlem Türü</label><select id="nak-tur"><option value="Nakliye">Nakliye (Genel Taşıma)</option><option value="TopTaşıma">Top Taşıma</option></select></div>
                 <div class="form-group"><label>Araç Plakası</label><input type="text" id="nak-plaka" placeholder="Örn: 54 AB 123"></div>
                 <div class="form-group"><label>Güzergah / Nereden - Nereye</label><input type="text" id="nak-guzergah" placeholder="Örn: Tarladan Çiftliğe"></div>
-                <div class="form-group"><label>Toplam Tutar (TL)</label><input type="number" step="0.01" id="nak-tutar" placeholder="0"></div>
+                <div class="form-group"><label id="nak-adet-label">Adet / Miktar</label><input type="number" step="0.01" id="nak-adet" placeholder="0" value="1" oninput="nakliyeToplamHesapla()"></div>
+                <div class="form-group"><label id="nak-fiyat-label">Birim Fiyat / Tutar (TL)</label><input type="number" step="0.01" id="nak-birim-fiyat" placeholder="0" oninput="nakliyeToplamHesapla()"></div>
+                <div id="nak-toplam-gosterge" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Tutar: 0.00 ₺</div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="nak-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Nakliye', {tarih: document.getElementById('nak-tarih').value, tur: document.getElementById('nak-tur').value, plaka: document.getElementById('nak-plaka').value, guzergah: document.getElementById('nak-guzergah').value, tutar: document.getElementById('nak-tutar').value, not: document.getElementById('nak-not').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="nakliyeTalepGonder()">Onaya Gönder 🚀</button>
             </div>
             <div class="card">
                 <h3 style="margin-top:0;color:#166534;">Geçmiş Nakliye ve Top Taşımaları</h3>
@@ -320,16 +322,24 @@
                         <option value="OdemGonderildi">Özlem Yeme Para Yollandı (Borç Düşer)</option>
                     </select>
                 </div>
+                
                 <div id="ozem-yem-alanlari">
                     <div class="form-group"><label>Araç Plakası</label><input type="text" id="ozem-plaka" placeholder="Örn: 54 ZP 789"></div>
-                    <div class="form-group"><label>Yem Detayları / Açıklama</label><input type="text" id="ozem-detay" placeholder="Örn: 20 çuval süt yemi"></div>
-                    <div class="form-group"><label>Yemlerin Toplam Tutarı (TL)</label><input type="number" step="0.01" id="ozem-tutar" placeholder="0"></div>
+                    
+                    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                    <label><b>Sevkiyat İçindeki Yem Kalemleri</b></label>
+                    <div id="ozem-urunler-konteynir"></div>
+                    <button class="btn-secondary" onclick="ozemUrunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Yem Ekle</button>
+                    
+                    <div id="ozem-genel-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Yem Tutarı: 0.00 ₺</div>
                 </div>
+
                 <div id="ozem-odeme-alanlari" class="hidden">
                     <div class="form-group"><label>Özlem Yeme Yollanan Para (TL)</label><input type="number" step="0.01" id="ozem-odenen" placeholder="0"></div>
                 </div>
+                
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="ozem-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('OzemYem', {tarih: document.getElementById('ozem-tarih').value, tip: document.getElementById('ozem-islem-tipi').value, plaka: document.getElementById('ozem-plaka').value, detay: document.getElementById('ozem-detay').value, tutar: document.getElementById('ozem-tutar').value, odenen: document.getElementById('ozem-odenen').value, not: document.getElementById('ozem-not').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="ozemYemTalepGonder()">Onaya Gönder 🚀</button>
             </div>
             <div class="card">
                 <h3 style="margin-top:0; color:#166534;">Özlem Yem Hareket Geçmişi</h3>
@@ -561,18 +571,20 @@
                 document.getElementById('nak-tarih').value = simdikiTarihInputFormat();
                 document.getElementById('nak-plaka').value = '';
                 document.getElementById('nak-guzergah').value = '';
-                document.getElementById('nak-tutar').value = '';
+                document.getElementById('nak-adet').value = '1';
+                document.getElementById('nak-birim-fiyat').value = '';
                 document.getElementById('nak-not').value = '';
+                nakliyeToplamHesapla();
                 nakliyeleriGoster();
             }
             if(name === 'ozemyem') {
                 document.getElementById('ozem-tarih').value = simdikiTarihInputFormat();
                 document.getElementById('ozem-plaka').value = '';
-                document.getElementById('ozem-detay').value = '';
-                document.getElementById('ozem-tutar').value = '';
+                document.getElementById('ozem-urunler-konteynir').innerHTML = '';
                 document.getElementById('ozem-odenen').value = '';
                 document.getElementById('ozem-not').value = '';
                 ozemTipDegisti();
+                ozemUrunSatiriEkle();
                 ozemYemGoster();
             }
             if(name === 'onay') onayBekleyenleriGoster();
@@ -609,7 +621,6 @@
             konteynir.appendChild(div);
         }
 
-        // BÜTÜN İŞLEMLER ONAYA GİDER
         function talepGonder(tip, veri) {
             if(tip === 'Satış') {
                 if(!veri.tarih || !veri.musteri) { alert('Lütfen tarih ve müşteri adı girin.'); return; }
@@ -642,21 +653,101 @@
                 if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
                 veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
                 veri.kalan = Math.max(0, veri.toplam - (parseFloat(veri.alinan) || 0));
-            } else if(tip === 'Nakliye') {
-                if(!veri.tarih || !veri.plaka || parseFloat(veri.tutar) <= 0) { alert('Plaka ve tutar girin.'); return; }
-            } else if(tip === 'OzemYem') {
-                if(!veri.tarih) { alert('Tarih seçin.'); return; }
-                if(veri.tip === 'YemGelis') {
-                    if(!veri.plaka || parseFloat(veri.tutar) <= 0) { alert('Plaka ve tutar girin.'); return; }
-                } else {
-                    if(parseFloat(veri.odenen) <= 0) { alert('Yollanan para miktarını girin.'); return; }
-                }
             }
 
             let yeniTalep = { id: Date.now(), tip: tip, veri: veri, not: veri.not || veri.aciklama || '' };
             veritabani.bekleyenler.push(yeniTalep);
             kaydetVeri();
             alert('İşlem başarıyla onaya gönderildi!');
+            goHome();
+        }
+
+        // Nakliye ve Top Taşıma İşlemi (Adet x Birim Fiyat Desteğiyle)
+        function nakliyeToplamHesapla() {
+            let adet = parseFloat(document.getElementById('nak-adet').value) || 0;
+            let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
+            let toplam = adet * fiyat;
+            document.getElementById('nak-toplam-gosterge').innerHTML = `Toplam Tutar: <b>${toplam.toFixed(2)} ₺</b>`;
+        }
+
+        function nakliyeTalepGonder() {
+            let tarih = document.getElementById('nak-tarih').value;
+            let tur = document.getElementById('nak-tur').value;
+            let plaka = document.getElementById('nak-plaka').value;
+            let guzergah = document.getElementById('nak-guzergah').value;
+            let adet = parseFloat(document.getElementById('nak-adet').value) || 1;
+            let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
+            let tutar = adet * fiyat;
+            let not = document.getElementById('nak-not').value;
+
+            if(!tarih || !plaka || tutar <= 0) { alert('Lütfen tarih, plaka ve geçerli bir tutar girin.'); return; }
+
+            let veri = { tarih, tur, plaka, guzergah, adet, fiyat, tutar, not };
+            let yeniTalep = { id: Date.now(), tip: 'Nakliye', veri: veri, not: not };
+            veritabani.bekleyenler.push(yeniTalep);
+            kaydetVeri();
+            alert('Nakliye / Top Taşıma onaya gönderildi!');
+            goHome();
+        }
+
+        // Özlem Yem Çoklu Ürün Desteği
+        function ozemUrunSatiriEkle() {
+            let konteynir = document.getElementById('ozem-urunler-konteynir');
+            let div = document.createElement('div');
+            div.className = 'urun-satir';
+            div.innerHTML = `
+                <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove(); ozemToplamHesapla();">Sil</button>
+                <div class="form-group" style="margin-bottom:10px;"><label>Yem Adı / Detayı</label><input type="text" class="ozem-urun-adi" placeholder="Örn: 20 çuval süt yemi"></div>
+                <div class="form-group" style="margin-bottom:10px;"><label>Miktar (Adet/Çuval/Ton)</label><input type="number" class="ozem-miktar" placeholder="0" oninput="ozemToplamHesapla()"></div>
+                <div class="form-group" style="margin-bottom:0;"><label>Toplam Tutar (TL)</label><input type="number" step="0.01" class="ozem-tutar" placeholder="0" oninput="ozemToplamHesapla()"></div>
+            `;
+            konteynir.appendChild(div);
+        }
+
+        function ozemToplamHesapla() {
+            let tutarlar = document.querySelectorAll('.ozem-tutar');
+            let genelToplam = 0;
+            tutarlar.forEach(inp => {
+                genelToplam += parseFloat(inp.value) || 0;
+            });
+            document.getElementById('ozem-genel-toplam').innerHTML = `Toplam Yem Tutarı: <b>${genelToplam.toFixed(2)} ₺</b>`;
+        }
+
+        function ozemYemTalepGonder() {
+            let tarih = document.getElementById('ozem-tarih').value;
+            let tip = document.getElementById('ozem-islem-tipi').value;
+            let plaka = document.getElementById('ozem-plaka').value;
+            let not = document.getElementById('ozem-not').value;
+            let odenen = parseFloat(document.getElementById('ozem-odenen').value) || 0;
+
+            if(!tarih) { alert('Lütfen tarih seçin.'); return; }
+
+            let kalemler = [];
+            let toplamTutar = 0;
+
+            if(tip === 'YemGelis') {
+                if(!plaka) { alert('Lütfen plaka girin.'); return; }
+                let satirlar = document.querySelectorAll('#ozem-urunler-konteynir .urun-satir');
+                if(satirlar.length === 0) { alert('Lütfen en az bir yem kalemi ekleyin.'); return; }
+                
+                for(let satir of satirlar) {
+                    let ad = satir.querySelector('.ozem-urun-adi').value;
+                    let miktar = parseFloat(satir.querySelector('.ozem-miktar').value) || 0;
+                    let tutar = parseFloat(satir.querySelector('.ozem-tutar').value) || 0;
+                    if(!ad || tutar <= 0) { alert('Lütfen ürün adı ve tutarını eksiksiz doldurun.'); return; }
+                    kalemler.push({ad, miktar, tutar});
+                    toplamTutar += tutar;
+                }
+            } else {
+                if(odenen <= 0) { alert('Lütfen gönderilen tutarı girin.'); return; }
+                toplamTutar = odenen;
+            }
+
+            let veri = { tarih, tip, plaka, kalemler, tutar: toplamTutar, odenen, not };
+            let yeniTalep = { id: Date.now(), tip: 'OzemYem', veri: veri, not: not };
+            veritabani.bekleyenler.push(yeniTalep);
+            kaydetVeri();
+            alert('Özlem Yem işlemi onaya gönderildi!');
             goHome();
         }
 
@@ -688,10 +779,11 @@
                 } else if(talep.tip === 'Tarla') {
                     detayHTML = `<b>Tarla Biçimi</b> - Sahip: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Ücret: ${v.toplam} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'Nakliye') {
-                    detayHTML = `<b>Nakliye / Top Taşıma</b> - Tür: <b>${v.tur}</b>, Plaka: <b>${v.plaka}</b>, Güzergah: ${v.guzergah}, Tutar: ${v.tutar} ₺<br>Not: ${v.not || '-'}`;
+                    detayHTML = `<b>Nakliye / Top Taşıma</b> - Tür: <b>${v.tur}</b>, Plaka: <b>${v.plaka}</b>, Adet: ${v.adet || 1}, Tutar: ${v.tutar} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'OzemYem') {
                     let turText = v.tip === 'YemGelis' ? 'Özlem Yem Fabrikadan Sevkiyat' : 'Özlem Yeme Para Gönderimi';
-                    detayHTML = `<b>${turText}</b><br>Plaka: ${v.plaka || '-'} | Yem Tutar: ${v.tutar || 0} ₺ | Gönderilen: ${v.odenen || 0} ₺<br>Not: ${v.not || '-'}`;
+                    let yemDetayStr = v.kalemler ? v.kalemler.map(k => `• ${k.ad} (${k.tutar} ₺)`).join('<br>') : '';
+                    detayHTML = `<b>${turText}</b><br>Plaka: ${v.plaka || '-'}<br>${yemDetayStr} Toplam Tutar: ${v.tutar || 0} ₺<br>Not: ${v.not || '-'}`;
                 }
 
                 html += `<div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
@@ -759,10 +851,10 @@
                 veritabani.bicilenTarlalar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, konum: v.konum, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, alinan: parseFloat(v.alinan) || 0, kalan: v.kalan, not: v.not });
             } else if(talep.tip === 'Nakliye') {
                 if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
-                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, tutar: parseFloat(v.tutar), not: v.not });
+                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, adet: v.adet || 1, tutar: parseFloat(v.tutar), not: v.not });
             } else if(talep.tip === 'OzemYem') {
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
-                veritabani.ozemYemler.push({ id: Date.now(), tarih: v.tarih, tip: v.tip, plaka: v.plaka, detay: v.detay, tutar: parseFloat(v.tutar) || 0, odenen: parseFloat(v.odenen) || 0, not: v.not });
+                veritabani.ozemYemler.push({ id: Date.now(), tarih: v.tarih, tip: v.tip, plaka: v.plaka, kalemler: v.kalemler, tutar: parseFloat(v.tutar) || 0, odenen: parseFloat(v.odenen) || 0, not: v.not });
             }
 
             veritabani.bekleyenler.splice(index, 1);
@@ -974,9 +1066,9 @@
         function nakliyeleriGoster() {
             let liste = veritabani.nakliyeler || [];
             if(liste.length === 0) { document.getElementById('nakliye-listesi').innerHTML = '<p>Kayıt bulunmuyor.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Tür / Plaka</th><th>Güzergah</th><th>Tutar</th><th>Not</th><th>Sil</th></tr>';
+            let html = '<table><tr><th>Tarih</th><th>Tür / Plaka</th><th>Güzergah</th><th>Adet</th><th>Tutar</th><th>Sil</th></tr>';
             liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.tur}</b><br>${x.plaka}</td><td>${x.guzergah}</td><td style="color:#dc2626;font-weight:bold;">${x.tutar} ₺</td><td>${x.not || '-'}</td><td><button class="btn-danger" onclick="nakliyeSil(${x.id})">Sil</button></td></tr>`;
+                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.tur}</b><br>${x.plaka}</td><td>${x.guzergah}</td><td>${x.adet || 1}</td><td style="color:#dc2626;font-weight:bold;">${x.tutar} ₺</td><td><button class="btn-danger" onclick="nakliyeSil(${x.id})">Sil</button></td></tr>`;
             });
             html += '</table>';
             document.getElementById('nakliye-listesi').innerHTML = html;
@@ -1008,10 +1100,11 @@
             let html = '<table><tr><th>Tarih</th><th>İşlem / Plaka</th><th>Detay</th><th>Yem Tutar</th><th>Gönderilen</th><th>Sil</th></tr>';
             liste.slice().reverse().forEach(x => {
                 let baslik = x.tip === 'YemGelis' ? 'Yem Gelişi' : 'Para Gönderimi';
+                let kalemStr = x.kalemler ? x.kalemler.map(k => `• ${k.ad} (${k.tutar} ₺)`).join('<br>') : (x.detay || x.not || '-');
                 html += `<tr>
                     <td>${formatliTarihGoster(x.tarih)}</td>
                     <td><b>${baslik}</b><br>${x.plaka || '-'}</td>
-                    <td>${x.detay || x.not || '-'}</td>
+                    <td>${kalemStr}</td>
                     <td style="color:#dc2626;">${x.tutar ? x.tutar + ' ₺' : '-'}</td>
                     <td style="color:#166534;">${x.odenen ? x.odenen + ' ₺' : '-'}</td>
                     <td><button class="btn-danger" onclick="ozemSil(${x.id})">Sil</button></td>
