@@ -115,7 +115,7 @@
                 <button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
                 <div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick=" talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value, pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value, pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
             </div>
         </div>
 
@@ -824,8 +824,11 @@
                 v.kalemler.forEach(item => { veritabani.stoklar[item.tur] -= item.miktar; });
                 let islemId = Date.now();
                 veritabani.islemler.push({ id: islemId, tarih: v.tarih, tip: 'Satış', musteri: v.musteri, kalemler: v.kalemler, tutar: toplamSepetTutar, aciklama: v.not });
+                
+                // Borç hesabı: Fazla peşinat verilirse borç/bakiye eksiye (alacağa) düşer, mal satıldıkça düzelir
                 let kalanBorc = toplamSepetTutar - v.pesinTutar;
-                if(kalanBorc > 0) veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) + kalanBorc;
+                veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) + kalanBorc;
+
                 if(v.pesinTutar > 0) {
                     veritabani.islemler.push({ id: islemId + 1, tarih: v.tarih, tip: 'Tahsilat', musteri: v.musteri, kalemler: [], tutar: v.pesinTutar, aciklama: 'Satış Peşinatı - ' + v.not });
                 }
@@ -835,7 +838,8 @@
                 if(parseFloat(v.kritik) > 0) veritabani.kritikStok[v.urun] = parseFloat(v.kritik);
             } else if(talep.tip === 'Tahsilat') {
                 let tutar = parseFloat(v.tutar);
-                veritabani.borclar[v.musteri] = Math.max(0, (veritabani.borclar[v.musteri] || 0) - tutar);
+                // Fazla ödeme alındığında bakiye eksiye (alacağa) düşebilir
+                veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) - tutar;
                 veritabani.islemler.push({ id: Date.now(), tarih: v.tarih, tip: 'Tahsilat', musteri: v.musteri, kalemler: [], tutar: tutar, aciklama: v.aciklama });
             } else if(talep.tip === 'Gider') {
                 if(!veritabani.giderler) veritabani.giderler = [];
@@ -879,7 +883,7 @@
             if(islem.tip === 'Satış' && islem.kalemler) {
                 islem.kalemler.forEach(k => { veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar; });
                 let kalanBorc = islem.tutar; 
-                if(veritabani.borclar[islem.musteri]) veritabani.borclar[islem.musteri] = Math.max(0, veritabani.borclar[islem.musteri] - kalanBorc);
+                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= kalanBorc;
             } else if(islem.tip === 'Tahsilat') {
                 if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
             }
@@ -1179,6 +1183,9 @@
             musteriler.forEach(m => {
                 if(arama && !m.toLowerCase().includes(arama)) return;
                 let bakiye = veritabani.borclar[m] || 0;
+                let bakiyeRenk = bakiye > 0 ? '#dc2626' : (bakiye < 0 ? '#2563eb' : '#166534');
+                let bakiyeMetin = bakiye < 0 ? `${Math.abs(bakiye)} ₺ (Alacak/Avans)` : `${bakiye} ₺`;
+                
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e5e7eb; padding-bottom:8px;">
                         <h3 style="margin:0; color:#166534; font-size:16px;">👤 ${m}</h3>
@@ -1186,7 +1193,7 @@
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:14px; font-weight:bold;">
                         <span style="color:#555;">Güncel Bakiye:</span>
-                        <span style="color:${bakiye > 0 ? '#dc2626':'#166534'}">${bakiye} ₺</span>
+                        <span style="color:${bakiyeRenk}">${bakiyeMetin}</span>
                     </div>
                     <div class="table-responsive"><table>
                         <tr><th style="width:25%;">Tarih</th><th style="width:45%;">İşlem Detay / Not</th><th style="width:15%;">Tutar</th><th style="width:15%;">Ödeme</th></tr>`;
@@ -1225,8 +1232,11 @@
             musteriler.forEach(m => {
                 let borc = veritabani.borclar[m] || 0;
                 let msg = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği güncel borç bakiyeniz ${borc} ₺'dir.`);
+                let bakiyeYazi = borc < 0 ? `${Math.abs(borc)} ₺ (Alacak/Avans)` : `${borc} ₺`;
+                let bakiyeRenk = borc > 0 ? 'red' : (borc < 0 ? 'blue' : 'green');
+                
                 html += `<div style="padding:10px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                            <div><b>${m}</b><br><span style="font-size:13px;">Borç: <span style="color:${borc>0?'red':'green'}; font-weight:bold;">${borc} ₺</span></span></div>
+                            <div><b>${m}</b><br><span style="font-size:13px;">Bakiye: <span style="color:${bakiyeRenk}; font-weight:bold;">${bakiyeYazi}</span></span></div>
                             <div style="display:flex; gap:8px;">
                                 ${borc > 0 ? `<a href="https://wa.me/?text=${msg}" target="_blank" style="background:#25d366; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">💬 WhatsApp</a>` : ''}
                                 <button class="btn-danger" style="padding:4px 8px;" onclick="musteriSil('${m}')">Sil</button>
@@ -1298,6 +1308,8 @@
         function musteriOzetFisGoster(musteriAdi) {
             let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
             let bakiye = veritabani.borclar[musteriAdi] || 0;
+            let bakiyeYazi = bakiye < 0 ? `${Math.abs(bakiye)} ₺ (Alacak/Avans)` : `${bakiye} ₺`;
+            
             let fisHtml = `<div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
                 <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
                 <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;"><div><b>Müşteri:</b> ${musteriAdi}</div><div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</div></div>`;
@@ -1311,7 +1323,7 @@
                     fisHtml += `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;"><div style="font-size:11px; color:#166534; margin-bottom:4px;">📅 ${tarihStr} - TAHSİLAT</div><div style="font-size:12px;">${i.aciklama}: <b>-${i.tutar} ₺</b></div></div>`;
                 }
             });
-            fisHtml += `<div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#991b1b; font-weight:bold;">GÜNCEL KALAN BORÇ</div><div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiye} ₺</div></div>`;
+            fisHtml += `<div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#991b1b; font-weight:bold;">GÜNCEL BAKİYE</div><div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiyeYazi}</div></div>`;
             document.getElementById('fis-alani').innerHTML = fisHtml;
             openScreen('fis');
         }
