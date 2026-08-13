@@ -83,12 +83,12 @@
                     <div id="menu-badge" class="badge hidden">0</div>
                 </div>
                 <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi</div><div class="menu-desc">Müşteri detaylı borçlar</div></div>
+                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat / Ödeme</div><div class="menu-desc">Onaya gider</div></div>
+                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi / Cariler</div><div class="menu-desc">Detaylı Müşteri & Borçlar</div></div>
                 <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok & Kritik</div><div class="menu-desc">Adet bazlı stoklar</div></div>
                 <div class="menu-card" onclick="openScreen('sury')"><div class="menu-icon">🐄</div><div class="menu-title">7. Sürü Takibi</div><div class="menu-desc">Küpe, aşı & doğum</div></div>
                 <div class="menu-card" onclick="openScreen('finans')"><div class="menu-icon">📈</div><div class="menu-title">8. Gelişmiş Finans</div><div class="menu-desc">Alacak / Borç özeti</div></div>
-                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">9. Müşteriler</div><div class="menu-desc">WhatsApp hatırlatıcı</div></div>
+                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">9. Müşteriler / Cariler</div><div class="menu-desc">WhatsApp hatırlatıcı</div></div>
                 <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük hareketler</div></div>
                 <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
                 <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Onaya gider</div></div>
@@ -142,10 +142,10 @@
         <!-- 4. TAHSİLAT -->
         <div id="screen-tahsilat" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💰 Tahsilat Talebi</div>
+            <div class="section-title">💰 Tahsilat / Ödeme Talebi</div>
             <div class="card">
                 <div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
-                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="t-musteri" placeholder="Müşteri Adı"></div>
+                <div class="form-group"><label>Müşteri / Kisi Adı</label><input type="text" id="t-musteri" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
                 <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value, tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
@@ -155,9 +155,9 @@
         <!-- 5. BORÇ TAKİBİ -->
         <div id="screen-borc" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📒 Müşteri Borç & Alış Detayları</div>
+            <div class="section-title">📒 Müşteri & Silaj / Tarla Borç Takibi</div>
             <div class="card">
-                <div class="form-group"><label>Müşteri Ara</label><input type="text" id="borc-arama" oninput="borclariListele()" placeholder="İsim yazın..."></div>
+                <div class="form-group"><label>Kişi / Müşteri Ara</label><input type="text" id="borc-arama" oninput="borclariListele()" placeholder="İsim yazın..."></div>
                 <div id="borc-detay-listesi"></div>
             </div>
         </div>
@@ -197,7 +197,7 @@
         <!-- 9. MÜŞTERİLER -->
         <div id="screen-musteriler" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">👥 Müşteri Listesi & Borç Hatırlatıcı</div>
+            <div class="section-title">👥 Cari Müşteri Listesi & WhatsApp</div>
             <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
         </div>
 
@@ -245,7 +245,7 @@
             <div class="section-title">🌽 Alınan Silajlar</div>
             <div class="card">
                 <div class="form-group"><label>Tarih</label><input type="datetime-local" id="silaj-tarih"></div>
-                <div class="form-group"><label>Tarla Sahibi</label><input type="text" id="silaj-sahip" placeholder="Ad Soyad"></div>
+                <div class="form-group"><label>Tarla Sahibi / Satıcı</label><input type="text" id="silaj-sahip" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Tarla / Köy</label><input type="text" id="silaj-tarla" placeholder="Konum"></div>
                 <div class="form-group"><label>Ölçü Birimi</label><select id="silaj-birim" onchange="silajBirimDegisti()"><option value="Ton">Ton</option><option value="Dönüm">Dönüm</option></select></div>
                 <div class="form-group"><label id="silaj-miktar-label">Miktar</label><input type="number" step="0.01" id="silaj-miktar" placeholder="0" oninput="silajToplamHesapla()"></div>
@@ -267,7 +267,7 @@
             <div class="section-title">🚜 Biçilen Tarlalar</div>
             <div class="card">
                 <div class="form-group"><label>Tarih</label><input type="datetime-local" id="tarla-tarih"></div>
-                <div class="form-group"><label>Tarla Sahibi</label><input type="text" id="tarla-sahip" placeholder="Ad Soyad"></div>
+                <div class="form-group"><label>Tarla Sahibi / Müşteri</label><input type="text" id="tarla-sahip" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Tarla / Köy</label><input type="text" id="tarla-konum" placeholder="Konum"></div>
                 <div class="form-group"><label>Ölçü Birimi</label><select id="tarla-birim" onchange="tarlaBirimDegisti()"><option value="Dönüm">Dönüm</option><option value="Ton">Ton</option></select></div>
                 <div class="form-group"><label id="tarla-miktar-label">Miktar</label><input type="number" step="0.01" id="tarla-miktar" placeholder="0" oninput="tarlaToplamHesapla()"></div>
@@ -648,11 +648,13 @@
             } else if(tip === 'Silaj') {
                 if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
                 veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
-                veri.kalan = Math.max(0, veri.toplam - (parseFloat(veri.odenen) || 0));
+                veri.odenenTutar = parseFloat(veri.odenen) || 0;
+                veri.kalan = Math.max(0, veri.toplam - veri.odenenTutar);
             } else if(tip === 'Tarla') {
                 if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
                 veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
-                veri.kalan = Math.max(0, veri.toplam - (parseFloat(veri.alinan) || 0));
+                veri.alinanTutar = parseFloat(veri.alinan) || 0;
+                veri.kalan = Math.max(0, veri.toplam - veri.alinanTutar);
             }
 
             let yeniTalep = { id: Date.now(), tip: tip, veri: veri, not: veri.not || veri.aciklama || '' };
@@ -662,6 +664,7 @@
             goHome();
         }
 
+        // Nakliye ve Top Taşıma İşlemi
         function nakliyeToplamHesapla() {
             let adet = parseFloat(document.getElementById('nak-adet').value) || 0;
             let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
@@ -689,6 +692,7 @@
             goHome();
         }
 
+        // Özlem Yem Çoklu Ürün Desteği
         function ozemUrunSatiriEkle() {
             let konteynir = document.getElementById('ozem-urunler-konteynir');
             let div = document.createElement('div');
@@ -767,15 +771,15 @@
                 } else if(talep.tip === 'StokEkle') {
                     detayHTML = `<b>Stok Ekleme</b> - Ürün: <b>${v.urun}</b>, Miktar: ${v.miktar} Adet<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'Tahsilat') {
-                    detayHTML = `<b>Tahsilat</b> - Müşteri: <b>${v.musteri}</b>, Tutar: ${v.tutar} ₺<br>Açıklama: ${v.aciklama || '-'}`;
+                    detayHTML = `<b>Tahsilat</b> - Kişi: <b>${v.musteri}</b>, Tutar: ${v.tutar} ₺<br>Açıklama: ${v.aciklama || '-'}`;
                 } else if(talep.tip === 'Gider') {
                     detayHTML = `<b>Gider / Masraf</b> - Tür: <b>${v.tur}</b>, Tutar: ${v.tutar} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'HayvanEkle') {
                     detayHTML = `<b>Sürüye Hayvan</b> - Küpe: <b>${v.kupe}</b>, Cins: ${v.cins}<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'Silaj') {
-                    detayHTML = `<b>Silaj Alımı</b> - Sahip: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Toplam: ${v.toplam} ₺ | Ödenen: ${v.odenen || 0} ₺<br>Not: ${v.not || '-'}`;
+                    detayHTML = `<b>Silaj Alımı</b> - Sahip/Satıcı: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Toplam: ${v.toplam} ₺, Ödenen: ${v.odenenTutar || 0} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'Tarla') {
-                    detayHTML = `<b>Tarla Biçimi</b> - Sahip: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Ücret: ${v.toplam} ₺ | Alınan: ${v.alinan || 0} ₺<br>Not: ${v.not || '-'}`;
+                    detayHTML = `<b>Tarla Biçimi</b> - Müşteri/Sahip: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Ücret: ${v.toplam} ₺, Alınan: ${v.alinanTutar || 0} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'Nakliye') {
                     detayHTML = `<b>Nakliye / Top Taşıma</b> - Tür: <b>${v.tur}</b>, Plaka: <b>${v.plaka}</b>, Adet: ${v.adet || 1}, Tutar: ${v.tutar} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'OzemYem') {
@@ -845,64 +849,64 @@
                 veritabani.hayvanlar.push({ id: Date.now(), kupe: v.kupe, cins: v.cins, tarih: v.tarih || new Date().toISOString().split('T')[0], asi: v.not });
             } else if(talep.tip === 'Silaj') {
                 if(!veritabani.silajlar) veritabani.silajlar = [];
-                veritabani.silajlar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, tarla: v.tarla, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, odenen: parseFloat(v.odenen) || 0, kalan: v.kalan, not: v.not });
+                let odenenTutar = parseFloat(v.odenen) || 0;
+                let netBorcumuz = v.toplam - odenenTutar; // Çiftliğin kişiye kalan borcu
 
-                // SİLAJ ALIMI BORÇTAN DÜŞÜLÜR
-                let odenenNakit = parseFloat(v.odenen) || 0;
-                let netBorcDusen = v.toplam - odenenNakit;
-                veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) - netBorcDusen;
+                veritabani.silajlar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, tarla: v.tarla, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, odenen: odenenTutar, kalan: v.kalan, not: v.not });
 
+                // Borç Takibine & Cari İşlemlere Aktar (Biz Borçluyuz = Eksi Bakiye)
+                veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) - netBorcumuz;
+                
                 let islemId = Date.now();
-                veritabani.islemler.push({
-                    id: islemId,
-                    tarih: v.tarih,
-                    tip: 'Silaj Alımı',
-                    musteri: v.sahip,
-                    kalemler: [],
-                    tutar: v.toplam,
-                    aciklama: `Silaj Alımı (${v.miktar} ${v.birim} x ${v.fiyat} ₺) ${v.tarla ? '[' + v.tarla + ']' : ''} ${v.not ? '- ' + v.not : ''}`
+                veritabani.islemler.push({ 
+                    id: islemId, 
+                    tarih: v.tarih, 
+                    tip: 'Silaj Alımı', 
+                    musteri: v.sahip, 
+                    kalemler: [{ tur: `Silaj (${v.birim})`, miktar: v.miktar, fiyat: v.fiyat, tutar: v.toplam }], 
+                    tutar: v.toplam, 
+                    aciklama: `Silaj Alımı (${v.tarla || ''}) - ${v.not || ''}` 
                 });
-
-                if(odenenNakit > 0) {
-                    veritabani.islemler.push({
-                        id: islemId + 1,
-                        tarih: v.tarih,
-                        tip: 'Silaj Ödemesi',
-                        musteri: v.sahip,
-                        kalemler: [],
-                        tutar: odenenNakit,
-                        aciklama: `Silaj Peşin Ödemesi ${v.not ? '- ' + v.not : ''}`
+                if(odenenTutar > 0) {
+                    veritabani.islemler.push({ 
+                        id: islemId + 1, 
+                        tarih: v.tarih, 
+                        tip: 'Ödeme Yapıldı', 
+                        musteri: v.sahip, 
+                        kalemler: [], 
+                        tutar: odenenTutar, 
+                        aciklama: 'Silaj Alımı Ödemesi' 
                     });
                 }
             } else if(talep.tip === 'Tarla') {
                 if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
-                veritabani.bicilenTarlalar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, konum: v.konum, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, alinan: parseFloat(v.alinan) || 0, kalan: v.kalan, not: v.not });
+                let alinanTutar = parseFloat(v.alinan) || 0;
+                let netAlacagimiz = v.toplam - alinanTutar; // Müşterinin bize kalan borcu
 
-                // BİÇİLEN TARLADA KALAN/ÖDENMEYEN PARALAR ADAMIN BORCUNA EKLENİR
-                let alinanNakit = parseFloat(v.alinan) || 0;
-                let netBorcEklenecek = v.toplam - alinanNakit;
-                veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) + netBorcEklenecek;
+                veritabani.bicilenTarlalar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, konum: v.konum, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, alinan: alinanTutar, kalan: v.kalan, not: v.not });
+
+                // Borç Takibine & Cari İşlemlere Aktar (Müşteri Borçlu = Artı Bakiye)
+                veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) + netAlacagimiz;
 
                 let islemId = Date.now();
-                veritabani.islemler.push({
-                    id: islemId,
-                    tarih: v.tarih,
-                    tip: 'Tarla Biçimi',
-                    musteri: v.sahip,
-                    kalemler: [],
-                    tutar: v.toplam,
-                    aciklama: `Tarla Biçimi (${v.miktar} ${v.birim} x ${v.fiyat} ₺) ${v.konum ? '[' + v.konum + ']' : ''} ${v.not ? '- ' + v.not : ''}`
+                veritabani.islemler.push({ 
+                    id: islemId, 
+                    tarih: v.tarih, 
+                    tip: 'Tarla Biçimi', 
+                    musteri: v.sahip, 
+                    kalemler: [{ tur: `Tarla Biçimi (${v.birim})`, miktar: v.miktar, fiyat: v.fiyat, tutar: v.toplam }], 
+                    tutar: v.toplam, 
+                    aciklama: `Tarla Biçimi (${v.konum || ''}) - ${v.not || ''}` 
                 });
-
-                if(alinanNakit > 0) {
-                    veritabani.islemler.push({
-                        id: islemId + 1,
-                        tarih: v.tarih,
-                        tip: 'Tahsilat',
-                        musteri: v.sahip,
-                        kalemler: [],
-                        tutar: alinanNakit,
-                        aciklama: `Tarla Biçimi Peşinatı ${v.not ? '- ' + v.not : ''}`
+                if(alinanTutar > 0) {
+                    veritabani.islemler.push({ 
+                        id: islemId + 1, 
+                        tarih: v.tarih, 
+                        tip: 'Tahsilat', 
+                        musteri: v.sahip, 
+                        kalemler: [], 
+                        tutar: alinanTutar, 
+                        aciklama: 'Tarla Biçim Peşinatı / Alınan' 
                     });
                 }
             } else if(talep.tip === 'Nakliye') {
@@ -932,17 +936,18 @@
             let index = veritabani.islemler.findIndex(i => i.id === islemId);
             if(index === -1) return;
             let islem = veritabani.islemler[index];
-
             if(islem.tip === 'Satış' && islem.kalemler) {
                 islem.kalemler.forEach(k => { veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar; });
-                let kalanBorc = islem.tutar; 
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= kalanBorc;
-            } else if(islem.tip === 'Tahsilat' || islem.tip === 'Silaj Alımı') {
+                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
+            } else if(islem.tip === 'Tahsilat') {
                 if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
-            } else if(islem.tip === 'Tarla Biçimi' || islem.tip === 'Silaj Ödemesi') {
+            } else if(islem.tip === 'Tarla Biçimi') {
+                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
+            } else if(islem.tip === 'Silaj Alımı') {
+                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
+            } else if(islem.tip === 'Ödeme Yapıldı') {
                 if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
             }
-
             veritabani.islemler.splice(index, 1);
             kaydetVeri();
             alert('İşlem silindi.');
@@ -966,11 +971,6 @@
 
         function silajSil(id) {
             if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            let x = (veritabani.silajlar || []).find(item => item.id === id);
-            if(x && x.sahip) {
-                let netDusen = x.toplam - (x.odenen || 0);
-                veritabani.borclar[x.sahip] = (veritabani.borclar[x.sahip] || 0) + netDusen;
-            }
             veritabani.silajlar = veritabani.silajlar.filter(x => x.id !== id);
             kaydetVeri();
             silajlariGoster();
@@ -978,11 +978,6 @@
 
         function tarlaSil(id) {
             if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            let x = (veritabani.bicilenTarlalar || []).find(item => item.id === id);
-            if(x && x.sahip) {
-                let netEklenecek = x.toplam - (x.alinan || 0);
-                veritabani.borclar[x.sahip] = (veritabani.borclar[x.sahip] || 0) - netEklenecek;
-            }
             veritabani.bicilenTarlalar = veritabani.bicilenTarlalar.filter(x => x.id !== id);
             kaydetVeri();
             tarlalariGoster();
@@ -1051,7 +1046,7 @@
                         <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamAlacak.toFixed(2)} ₺</div>
                     </div>
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
-                        <div style="font-size:13px; color:#166534; font-weight:bold;">Toplam Ciro (Satış & Tarla Biçim)</div>
+                        <div style="font-size:13px; color:#166534; font-weight:bold;">Toplam Ciro (Satış & Hizmet)</div>
                         <div style="font-size:24px; font-weight:bold; color:#166534;">${toplamCiro.toFixed(2)} ₺</div>
                     </div>
                     <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
@@ -1094,7 +1089,7 @@
             let odenen = parseFloat(document.getElementById('silaj-odenen').value) || 0;
             let toplam = miktar * fiyat;
             let kalan = Math.max(0, toplam - odenen);
-            document.getElementById('silaj-toplam').innerHTML = `Toplam: <b>${toplam.toFixed(2)} ₺</b> | Borçtan Düşecek Tutar: <b style="color:#166534;">${kalan.toFixed(2)} ₺</b>`;
+            document.getElementById('silaj-toplam').innerHTML = `Toplam: <b>${toplam.toFixed(2)} ₺</b> | Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
         }
 
         function silajlariGoster() {
@@ -1121,7 +1116,7 @@
             let alinan = parseFloat(document.getElementById('tarla-alinan').value) || 0;
             let toplam = miktar * fiyat;
             let kalan = Math.max(0, toplam - alinan);
-            document.getElementById('tarla-toplam').innerHTML = `Biçim Ücreti: <b>${toplam.toFixed(2)} ₺</b> | Borca Eklenecek Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
+            document.getElementById('tarla-toplam').innerHTML = `Biçim Ücreti: <b>${toplam.toFixed(2)} ₺</b> | Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
         }
 
         function tarlalariGoster() {
@@ -1244,17 +1239,31 @@
             reader.readAsText(fileInput.files[0]);
         }
 
+        // BORÇ TAKİBİ & CARİ HESAPLAR
         function borclariListele() {
             let arama = document.getElementById('borc-arama').value.toLowerCase();
             let html = '';
-            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
-            musteriler.forEach(m => {
+            
+            // Satış, Tarla ve Silaj kayıtlarındaki tüm kişileri birleştir
+            let tumMusteriler = [...new Set([
+                ...(veritabani.islemler || []).map(i => i.musteri),
+                ...(veritabani.bicilenTarlalar || []).map(t => t.sahip),
+                ...(veritabani.silajlar || []).map(s => s.sahip)
+            ])].filter(Boolean);
+
+            tumMusteriler.forEach(m => {
                 if(arama && !m.toLowerCase().includes(arama)) return;
                 let bakiye = veritabani.borclar[m] || 0;
                 
-                let bakiyeGosterim = bakiye > 0 
-                    ? `<span style="color:#dc2626;">${bakiye.toFixed(2)} ₺ (Borçlu)</span>` 
-                    : (bakiye < 0 ? `<span style="color:#166534;">${bakiye.toFixed(2)} ₺ (Fazla Ödeme / Avans)</span>` : `<span style="color:#166534;">0 ₺</span>`);
+                // Bakiye Durum Gösterimi (Borçlu / Biz Borçluyuz / Borçsuz)
+                let bakiyeGosterim = '';
+                if(bakiye > 0.01) {
+                    bakiyeGosterim = `<span style="color:#dc2626; font-weight:bold;">🔴 ${bakiye.toFixed(2)} ₺ (Müşteri Borçlu)</span>`;
+                } else if(bakiye < -0.01) {
+                    bakiyeGosterim = `<span style="color:#166534; font-weight:bold;">🔵 ${Math.abs(bakiye).toFixed(2)} ₺ (Biz Borçluyuz / Alacaklı)</span>`;
+                } else {
+                    bakiyeGosterim = `<span style="color:#166534; font-weight:bold;">🟢 0.00 ₺ (Borçsuz / Ödendi)</span>`;
+                }
 
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e5e7eb; padding-bottom:8px;">
@@ -1266,24 +1275,25 @@
                         ${bakiyeGosterim}
                     </div>
                     <div class="table-responsive"><table>
-                        <tr><th style="width:25%;">Tarih</th><th style="width:45%;">İşlem Detay / Not</th><th style="width:15%;">Borç (+)</th><th style="width:15%;">Alacak/Ödeme (-)</th></tr>`;
+                        <tr><th style="width:22%;">Tarih</th><th style="width:48%;">İşlem Detay / Not</th><th style="width:15%;">Borç/Hizmet</th><th style="width:15%;">Ödeme/Alım</th></tr>`;
+                
                 veritabani.islemler.filter(i => i.musteri === m).forEach(islem => {
                     let detay = '';
-                    if(islem.tip === 'Satış') {
-                        detay = islem.kalemler ? islem.kalemler.map(k => `• ${k.tur}: ${k.miktar}ad x ${k.fiyat}₺`).join('<br>') : '';
+                    if(islem.kalemler && islem.kalemler.length > 0) {
+                        detay = islem.kalemler.map(k => `• ${k.tur}: ${k.miktar}ad x ${k.fiyat}₺`).join('<br>');
                     } else {
                         detay = `<b>${islem.tip}</b>`;
                     }
-                    if(islem.aciklama) detay += (detay ? '<br>' : '') + `<small style="color:#666;">Not: ${islem.aciklama}</small>`;
-
-                    let isBorc = (islem.tip === 'Satış' || islem.tip === 'Tarla Biçimi' || islem.tip === 'Silaj Ödemesi');
-                    let isAlacak = (islem.tip === 'Tahsilat' || islem.tip === 'Silaj Alımı');
+                    if(islem.aciklama) detay += `<br><small style="color:#666;">Not: ${islem.aciklama}</small>`;
+                    
+                    let borcTutar = (islem.tip === 'Satış' || islem.tip === 'Tarla Biçimi') ? `${islem.tutar.toFixed(2)} ₺` : '-';
+                    let odemeTutar = (islem.tip === 'Tahsilat' || islem.tip === 'Ödeme Yapıldı') ? `${islem.tutar.toFixed(2)} ₺` : (islem.tip === 'Silaj Alımı' ? `-${islem.tutar.toFixed(2)} ₺` : '-');
 
                     html += `<tr>
                         <td>${formatliTarihGoster(islem.tarih)}</td>
                         <td>${detay}</td>
-                        <td style="color:#dc2626;">${isBorc ? islem.tutar + ' ₺' : '-'}</td>
-                        <td style="color:#2563eb;">${isAlacak ? islem.tutar + ' ₺' : '-'}</td>
+                        <td style="color:#dc2626; font-weight:bold;">${borcTutar}</td>
+                        <td style="color:#2563eb; font-weight:bold;">${odemeTutar}</td>
                     </tr>`;
                 });
                 html += `</table></div></div>`;
@@ -1310,20 +1320,31 @@
         }
 
         function musterileriGoster() {
-            let musteriler = [...new Set(veritabani.islemler.map(i => i.musteri))];
-            let html = '<div style="margin-bottom:15px; font-size:13px; color:#555;">WhatsApp Hatırlatıcı:</div>';
+            let musteriler = [...new Set([
+                ...(veritabani.islemler || []).map(i => i.musteri),
+                ...(veritabani.bicilenTarlalar || []).map(t => t.sahip),
+                ...(veritabani.silajlar || []).map(s => s.sahip)
+            ])].filter(Boolean);
+
+            let html = '<div style="margin-bottom:15px; font-size:13px; color:#555;">WhatsApp Borç Hatırlatıcı & Cari Müşteriler:</div>';
             if(musteriler.length === 0) { document.getElementById('musteri-listesi').innerHTML = 'Kayıtlı müşteri yok.'; return; }
             musteriler.forEach(m => {
                 let borc = veritabani.borclar[m] || 0;
-                let msg = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği güncel borç bakiyeniz ${borc.toFixed(2)} ₺'dir.`);
-                let borcMetin = borc > 0 
-                    ? `<span style="color:red; font-weight:bold;">${borc.toFixed(2)} ₺ (Borç)</span>` 
-                    : (borc < 0 ? `<span style="color:green; font-weight:bold;">${borc.toFixed(2)} ₺ (Fazla Ödeme / Avans)</span>` : `<span style="color:green; font-weight:bold;">0 ₺</span>`);
+                let msg = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği güncel hesap bakiyeniz ${borc.toFixed(2)} ₺'dir.`);
+                
+                let borcMetin = '';
+                if(borc > 0.01) {
+                    borcMetin = `<span style="color:#dc2626; font-weight:bold;">${borc.toFixed(2)} ₺ (Borçlu)</span>`;
+                } else if(borc < -0.01) {
+                    borcMetin = `<span style="color:#166534; font-weight:bold;">${Math.abs(borc).toFixed(2)} ₺ (Alacaklı / Biz Borçluyuz)</span>`;
+                } else {
+                    borcMetin = `<span style="color:#166534; font-weight:bold;">0.00 ₺ (Ödendi / Borçsuz)</span>`;
+                }
 
                 html += `<div style="padding:10px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                             <div><b>${m}</b><br><span style="font-size:13px;">Bakiye: ${borcMetin}</span></div>
                             <div style="display:flex; gap:8px;">
-                                ${borc > 0 ? `<a href="https://wa.me/?text=${msg}" target="_blank" style="background:#25d366; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">💬 WhatsApp</a>` : ''}
+                                ${borc > 0.01 ? `<a href="https://wa.me/?text=${msg}" target="_blank" style="background:#25d366; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">💬 WhatsApp</a>` : ''}
                                 <button class="btn-danger" style="padding:4px 8px;" onclick="musteriSil('${m}')">Sil</button>
                             </div>
                          </div>`;
@@ -1339,25 +1360,25 @@
             gununIslemleri.forEach(i => {
                 if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') {
                     toplamSatis += i.tutar;
-                    let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} Adet)`).join(', ') : i.tip;
+                    let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} Adet)`).join(', ') : '';
                     detayHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bbf7d0;">
                         <div style="font-weight:bold; color:#166534;">👤 ${i.musteri} (${i.tip})</div>
-                        <div style="font-size:13px; color:#333;">Detay: ${urunlerStr} | Not: ${i.aciklama || '-'}</div>
-                        <div style="font-size:13px; font-weight:bold; color:#dc2626; margin-top:4px;">Tutar: ${i.tutar} ₺</div>
+                        <div style="font-size:13px; color:#333;">Detay: ${urunlerStr || i.aciklama || '-'}</div>
+                        <div style="font-size:13px; font-weight:bold; color:#dc2626; margin-top:4px;">Tutar: ${i.tutar.toFixed(2)} ₺</div>
                     </div>`;
                 } else {
                     toplamTahsilat += i.tutar;
                     detayHtml += `<div style="background:#eff6ff; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bfdbfe;">
                         <div style="font-weight:bold; color:#1e40af;">💰 ${i.musteri} (${i.tip})</div>
                         <div style="font-size:13px; color:#333;">Açıklama: ${i.aciklama || '-'}</div>
-                        <div style="font-size:13px; font-weight:bold; color:#2563eb; margin-top:4px;">Tutar/Alınan: ${i.tutar} ₺</div>
+                        <div style="font-size:13px; font-weight:bold; color:#2563eb; margin-top:4px;">Tutar: ${i.tutar.toFixed(2)} ₺</div>
                     </div>`;
                 }
             });
             document.getElementById('rapor-ozet').innerHTML = `
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;"><div style="font-size:12px;">Satış/Biçim</div><div style="font-weight:bold; color:#dc2626; font-size:16px;">${toplamSatis.toFixed(2)} ₺</div></div>
-                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;"><div style="font-size:12px;">Tahsilat/Alacak</div><div style="font-weight:bold; color:#166534; font-size:16px;">${toplamTahsilat.toFixed(2)} ₺</div></div>
+                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;"><div style="font-size:12px;">Satış & Biçim</div><div style="font-weight:bold; color:#dc2626; font-size:16px;">${toplamSatis.toFixed(2)} ₺</div></div>
+                    <div style="background:#f1f5f9; padding:12px; border-radius:8px; text-align:center;"><div style="font-size:12px;">Tahsilat & Ödeme</div><div style="font-weight:bold; color:#166534; font-size:16px;">${toplamTahsilat.toFixed(2)} ₺</div></div>
                 </div>`;
             document.getElementById('rapor-detay').innerHTML = detayHtml || '<p style="text-align:center; color:#666;">İşlem yok.</p>';
         }
@@ -1366,7 +1387,7 @@
             let secilenAy = document.getElementById('aylik-tarih').value;
             if(!secilenAy) return;
             let aylikSatislar = (veritabani.islemler || []).filter(i => (i.tip === 'Satış' || i.tip === 'Tarla Biçimi') && i.tarih.startsWith(secilenAy));
-            let aylikTahsilatlar = (veritabani.islemler || []).filter(i => (i.tip === 'Tahsilat' || i.tip === 'Silaj Alımı') && i.tarih.startsWith(secilenAy));
+            let aylikTahsilatlar = (veritabani.islemler || []).filter(i => i.tip === 'Tahsilat' && i.tarih.startsWith(secilenAy));
             let aylikGiderler = (veritabani.giderler || []).filter(g => g.tarih.startsWith(secilenAy));
             let toplamCiro = aylikSatislar.reduce((t, i) => t + i.tutar, 0);
             let toplamTahsilat = aylikTahsilatlar.reduce((t, i) => t + i.tutar, 0);
@@ -1375,17 +1396,17 @@
 
             document.getElementById('aylik-ozet-alani').innerHTML = `
                 <div style="display:grid; grid-template-columns: 1fr; gap:12px;">
-                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;"><div style="font-size:13px; color:#166534; font-weight:bold;">Aylık Ciro</div><div style="font-size:22px; font-weight:bold; color:#166534;">${toplamCiro.toFixed(2)} ₺</div></div>
-                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;"><div style="font-size:13px; color:#1e40af; font-weight:bold;">Aylık Tahsilat & Silaj Mahsubu</div><div style="font-size:22px; font-weight:bold; color:#2563eb;">${toplamTahsilat.toFixed(2)} ₺</div></div>
+                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;"><div style="font-size:13px; color:#166534; font-weight:bold;">Aylık Ciro (Satış & Tarla)</div><div style="font-size:22px; font-weight:bold; color:#166534;">${toplamCiro.toFixed(2)} ₺</div></div>
+                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;"><div style="font-size:13px; color:#1e40af; font-weight:bold;">Aylık Tahsilat</div><div style="font-size:22px; font-weight:bold; color:#2563eb;">${toplamTahsilat.toFixed(2)} ₺</div></div>
                     <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;"><div style="font-size:13px; color:#991b1b; font-weight:bold;">Aylık Gider</div><div style="font-size:22px; font-weight:bold; color:#dc2626;">${toplamGider.toFixed(2)} ₺</div></div>
-                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;"><div style="font-size:13px; color:#6b21a8; font-weight:bold;">Net Nakit</div><div style="font-size:22px; font-weight:bold; color:${netKar >= 0 ? '#7c3aed':'#dc2626'};">${netKar.toFixed(2)} ₺</div></div>
+                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;"><div style="font-size:13px; color:#6b21a8; font-weight:bold;">Net Nakit Kasa</div><div style="font-size:22px; font-weight:bold; color:${netKar >= 0 ? '#7c3aed':'#dc2626'};">${netKar.toFixed(2)} ₺</div></div>
                 </div>`;
         }
 
         function gecmisiGoster() {
-            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Not</th><th>Tutar</th><th>Sil</th></tr>';
+            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Kişi / Müşteri</th><th>Not</th><th>Tutar</th><th>Sil</th></tr>';
             veritabani.islemler.slice().reverse().forEach(i => {
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td>${i.aciklama || '-'}</td><td><b>${i.tutar} ₺</b></td><td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td></tr>`;
+                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td><b>${i.tip}</b></td><td>${i.musteri}</td><td>${i.aciklama || '-'}</td><td><b>${i.tutar.toFixed(2)} ₺</b></td><td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td></tr>`;
             });
             document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'Kayıt yok.';
         }
@@ -1394,25 +1415,30 @@
             let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
             let bakiye = veritabani.borclar[musteriAdi] || 0;
             let fisHtml = `<div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
-                <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
-                <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;"><div><b>Müşteri:</b> ${musteriAdi}</div><div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</div></div>`;
+                <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Cari Hesap Özeti</div>
+                <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;"><div><b>Kişi / Müşteri:</b> ${musteriAdi}</div><div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</div></div>`;
+            
             musteriIslemleri.forEach(i => {
                 let tarihStr = formatliTarihGoster(i.tarih);
-                let isBorc = (i.tip === 'Satış' || i.tip === 'Tarla Biçimi' || i.tip === 'Silaj Ödemesi');
-                if(isBorc) {
+                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') {
                     fisHtml += `<div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px;"><div style="font-size:11px; color:#666; margin-bottom:4px;">📅 ${tarihStr} - ${i.tip.toUpperCase()} (Not: ${i.aciklama || '-'})</div>`;
-                    if(i.kalemler && i.kalemler.length > 0) { i.kalemler.forEach(k => { fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar} Adet)</span><b>+${k.tutar} ₺</b></div>`; }); }
-                    else { fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• İşlem Tutarı</span><b>+${i.tutar} ₺</b></div>`; }
+                    if(i.kalemler) { i.kalemler.forEach(k => { fisHtml += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>• ${k.tur} (${k.miktar} Adet)</span><b>${k.tutar.toFixed(2)} ₺</b></div>`; }); }
                     fisHtml += `</div>`;
+                } else if(i.tip === 'Silaj Alımı') {
+                    fisHtml += `<div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:10px;"><div style="font-size:11px; color:#666; margin-bottom:4px;">📅 ${tarihStr} - SİLAJ ALIMI</div><div style="font-size:12px;">${i.aciklama}: <b>-${i.tutar.toFixed(2)} ₺</b></div></div>`;
                 } else {
-                    let baslik = i.tip === 'Silaj Alımı' ? '🌽 SİLAJ ALIMI (BORÇTAN DÜŞÜLDÜ)' : '💰 TAHSİLAT';
-                    fisHtml += `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;"><div style="font-size:11px; color:#166534; margin-bottom:4px;">📅 ${tarihStr} - ${baslik}</div><div style="font-size:12px;">${i.aciklama || '-'}: <b>-${i.tutar} ₺</b></div></div>`;
+                    fisHtml += `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;"><div style="font-size:11px; color:#166534; margin-bottom:4px;">📅 ${tarihStr} - ${i.tip.toUpperCase()}</div><div style="font-size:12px;">${i.aciklama}: <b>${i.tutar.toFixed(2)} ₺</b></div></div>`;
                 }
             });
 
-            let bakiyeKutusu = bakiye > 0 
-                ? `<div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#991b1b; font-weight:bold;">GÜNCEL KALAN BORÇ</div><div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiye.toFixed(2)} ₺</div></div>`
-                : (bakiye < 0 ? `<div style="background:#f0fdf4; border:2px dashed #4ade80; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#166534; font-weight:bold;">FAZLA ÖDEME / MÜŞTERİ AVANSI</div><div style="font-size:20px; font-weight:bold; color:#166534;">${bakiye.toFixed(2)} ₺</div></div>` : `<div style="background:#f9fafb; border:2px dashed #cbd5e1; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#475569; font-weight:bold;">BORÇ/ALACAK BULUNMUYOR</div><div style="font-size:20px; font-weight:bold; color:#475569;">0 ₺</div></div>`);
+            let bakiyeKutusu = '';
+            if(bakiye > 0.01) {
+                bakiyeKutusu = `<div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#991b1b; font-weight:bold;">GÜNCEL KALAN MÜŞTERİ BORCU</div><div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiye.toFixed(2)} ₺</div></div>`;
+            } else if(bakiye < -0.01) {
+                bakiyeKutusu = `<div style="background:#f0fdf4; border:2px dashed #4ade80; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#166534; font-weight:bold;">SİLAJ / AVANS BİZİM BORCUMUZ</div><div style="font-size:20px; font-weight:bold; color:#166534;">${Math.abs(bakiye).toFixed(2)} ₺</div></div>`;
+            } else {
+                bakiyeKutusu = `<div style="background:#f9fafb; border:2px dashed #cbd5e1; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#475569; font-weight:bold;">BORÇ / ALACAK BULUNMUYOR (HESAP KAPALI)</div><div style="font-size:20px; font-weight:bold; color:#475569;">0.00 ₺</div></div>`;
+            }
 
             fisHtml += bakiyeKutusu;
             document.getElementById('fis-alani').innerHTML = fisHtml;
