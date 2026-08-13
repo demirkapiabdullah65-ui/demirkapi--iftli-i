@@ -329,7 +329,6 @@
         const db = firebase.database();
         let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [] };
 
-        let oncekiBekleyenSayisi = 0;
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -344,8 +343,6 @@
                 if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
             }
 
-            const yeniSayi = veritabani.bekleyenler.length;
-            oncekiBekleyenSayisi = yeniSayi;
             bekleyenRozetGuncelle();
 
             if (!document.getElementById('screen-onay').classList.contains('hidden')) onayBekleyenleriGoster();
@@ -358,6 +355,33 @@
             if (!document.getElementById('screen-aylik').classList.contains('hidden')) aylikRaporuGoster();
             if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
         });
+
+        // *** KÖKTEN ÇÖZÜM: TÜM İŞLEMLERDEN DİNAMİK BAKİYE HESAPLAMA ***
+        // Formül: Toplam Satışlar - Toplam Tahsilatlar
+        // Sonuç Pozitif ise: Borçlu | Sonuç Negatif ise: Alacaklı/Kredili (Eksi Bakiye)
+        function musteriBakiyesiniHesapla(musteriAdi) {
+            if(!musteriAdi) return 0;
+            let mLower = musteriAdi.trim().toLowerCase();
+            let toplamSatis = 0;
+            let toplamTahsilat = 0;
+
+            (veritabani.islemler || []).forEach(i => {
+                if(i.musteri && i.musteri.trim().toLowerCase() === mLower) {
+                    if(i.tip === 'Satış') toplamSatis += (parseFloat(i.tutar) || 0);
+                    if(i.tip === 'Tahsilat') toplamTahsilat += (parseFloat(i.tutar) || 0);
+                }
+            });
+            return toplamSatis - toplamTahsilat;
+        }
+
+        // Tüm müşterilerin benzersiz listesini alma
+        function tumMusterileriGetir() {
+            let liste = new Set();
+            (veritabani.islemler || []).forEach(i => { if(i.musteri) liste.add(i.musteri.trim()); });
+            (veritabani.bekleyenler || []).forEach(t => { if(t.musteri) liste.add(t.musteri.trim()); });
+            Object.keys(veritabani.borclar || {}).forEach(m => { if(m) liste.add(m.trim()); });
+            return [...liste];
+        }
 
         // Hava Durumu Çekme (Sakarya)
         async function havaDurumuGetir() {
@@ -386,6 +410,10 @@
         havaDurumuGetir();
 
         function kaydetVeri() {
+            // Bakiyeleri dinamik eşle
+            tumMusterileriGetir().forEach(m => {
+                veritabani.borclar[m] = musteriBakiyesiniHesapla(m);
+            });
             db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
                 bekleyenRozetGuncelle();
             });
@@ -576,6 +604,7 @@
 
             let islemId = Date.now();
 
+            // Satış İşlemi Ekle
             veritabani.islemler.push({
                 id: islemId,
                 tarih: talep.tarih,
@@ -586,10 +615,7 @@
                 aciklama: talep.notBilgisi
             });
 
-            // Ürün satın aldıkça eksi bakiyeden düşülür veya yeni borç eklenir
-            let kalanBorcEkle = toplamSepetTutar - talep.pesinTutar;
-            veritabani.borclar[talep.musteri] = (veritabani.borclar[talep.musteri] || 0) + kalanBorcEkle;
-
+            // Peşinat varsa Tahsilat İşlemi Ekle
             if(talep.pesinTutar > 0) {
                 veritabani.islemler.push({
                     id: islemId + 1,
@@ -622,33 +648,15 @@
             if(index === -1) return;
             let islem = veritabani.islemler[index];
 
-            if(islem.tip === 'Satış') {
-                if(islem.kalemler) {
-                    islem.kalemler.forEach(k => {
-                        veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
-                    });
-                }
-                let pesinIdx = veritabani.islemler.findIndex(i => i.musteri === islem.musteri && i.tip === 'Tahsilat' && i.aciklama === 'Satış Peşinatı' && Math.abs(new Date(i.tarih) - new Date(islem.tarih)) < 5000);
-                let pesinTutar = 0;
-                if(pesinIdx !== -1) {
-                    pesinTutar = veritabani.islemler[pesinIdx].tutar;
-                    veritabani.islemler.splice(pesinIdx, 1);
-                }
-                let kalanBorc = islem.tutar - pesinTutar;
-                if(veritabani.borclar[islem.musteri] !== undefined) {
-                    veritabani.borclar[islem.musteri] -= kalanBorc;
-                }
-            } else if(islem.tip === 'Tahsilat') {
-                if(veritabani.borclar[islem.musteri] !== undefined) {
-                    veritabani.borclar[islem.musteri] += islem.tutar;
-                }
+            if(islem.tip === 'Satış' && islem.kalemler) {
+                islem.kalemler.forEach(k => {
+                    veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar;
+                });
             }
 
-            let guncelIdx = veritabani.islemler.findIndex(i => i.id === islemId);
-            if(guncelIdx !== -1) veritabani.islemler.splice(guncelIdx, 1);
-
+            veritabani.islemler.splice(index, 1);
             kaydetVeri();
-            alert('İşlem silindi.');
+            alert('İşlem silindi ve bakiyeler yeniden hesaplandı.');
             borclariListele();
             gecmisiGoster();
         }
@@ -661,10 +669,11 @@
         }
 
         function musteriSil(musteriAdi) {
-            if(!confirm(musteriAdi + " müşterisini silmek istediğinize emin misiniz?")) return;
-            veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
+            if(!confirm(musteriAdi + " müşterisini silmek istediğinize emin misiniz? Tüm geçmiş silinecektir.")) return;
+            let mLower = musteriAdi.trim().toLowerCase();
+            veritabani.islemler = veritabani.islemler.filter(i => (i.musteri || '').trim().toLowerCase() !== mLower);
             delete veritabani.borclar[musteriAdi];
-            veritabani.bekleyenler = veritabani.bekleyenler.filter(t => t.musteri !== musteriAdi);
+            veritabani.bekleyenler = veritabani.bekleyenler.filter(t => (t.musteri || '').trim().toLowerCase() !== mLower);
             kaydetVeri();
             musterileriGoster();
         }
@@ -758,36 +767,41 @@
         }
 
         function gelismisFinansGoster() {
-            let toplamAlacak = 0;
-            Object.values(veritabani.borclar || {}).forEach(b => {
+            let tumMusteriler = tumMusterileriGetir();
+            let toplamAlacak = 0; // Bizim müşterilerden alacağımız (Müşterilerin borçları)
+            let toplamAvans = 0;  // Müşterilerin alacağı (Bizim ödememiz gereken avanslar)
+
+            tumMusteriler.forEach(m => {
+                let b = musteriBakiyesiniHesapla(m);
                 if(b > 0) toplamAlacak += b;
+                else if(b < 0) toplamAvans += Math.abs(b);
             });
 
             let toplamCiro = 0;
             let toplamTahsilat = 0;
             (veritabani.islemler || []).forEach(i => {
-                if(i.tip === 'Satış') toplamCiro += i.tutar;
-                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
+                if(i.tip === 'Satış') toplamCiro += (parseFloat(i.tutar) || 0);
+                if(i.tip === 'Tahsilat') toplamTahsilat += (parseFloat(i.tutar) || 0);
             });
 
             let toplamGider = 0;
-            (veritabani.giderler || []).forEach(g => toplamGider += g.tutar);
+            (veritabani.giderler || []).forEach(g => toplamGider += (parseFloat(g.tutar) || 0));
 
             let netKasa = toplamTahsilat - toplamGider;
 
             document.getElementById('finans-ozet-alani').innerHTML = `
                 <div style="display:grid; grid-template-columns:1fr; gap:12px;">
                     <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
-                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Müşteri Alacakları (Borçlar)</div>
+                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Müşteri Borçları (Alacaklarımız)</div>
                         <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamAlacak} ₺</div>
+                    </div>
+                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
+                        <div style="font-size:13px; color:#1e40af; font-weight:bold;">Toplam Müşteri Avansları (Kredili / Alacaklı Bakiyeler)</div>
+                        <div style="font-size:24px; font-weight:bold; color:#2563eb;">${toplamAvans} ₺</div>
                     </div>
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
                         <div style="font-size:13px; color:#166534; font-weight:bold;">Toplam Ciro (Satışlar)</div>
                         <div style="font-size:24px; font-weight:bold; color:#166534;">${toplamCiro} ₺</div>
-                    </div>
-                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
-                        <div style="font-size:13px; color:#1e40af; font-weight:bold;">Toplam Tahsil Edilen Para</div>
-                        <div style="font-size:24px; font-weight:bold; color:#2563eb;">${toplamTahsilat} ₺</div>
                     </div>
                     <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
                         <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Çiftlik Giderleri</div>
@@ -801,7 +815,7 @@
             `;
         }
 
-        // Tahsilat Ekranı: Borçtan fazla ödeme yapınca bakiyeyi eksiye düşürür
+        // TAHSİLAT AL: Sadece Tahsilat işlemini ekler, bakiye eksiye Otomatik Düşer!
         function tahsilatAl() {
             let tarihSecilen = document.getElementById('t-tarih').value;
             let musteri = document.getElementById('t-musteri').value.trim();
@@ -810,9 +824,6 @@
 
             if(!tarihSecilen || !musteri || tutar <= 0) { alert('Eksiksiz doldurun.'); return; }
 
-            // Math.max kaldirildi: Bakiye eksiye (krediye) dusabilir
-            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) - tutar;
-            
             veritabani.islemler.push({
                 id: Date.now(),
                 tarih: tarihSecilen,
@@ -824,7 +835,9 @@
             });
 
             kaydetVeri();
-            alert('Tahsilat kaydedildi!');
+            let yeniBakiye = musteriBakiyesiniHesapla(musteri);
+            let bakiyeMesaj = yeniBakiye < 0 ? `Ödeme alındı! ${musteri} isimli müşterinin ${Math.abs(yeniBakiye)} ₺ ALACAĞI / KREDİSİ oluştu.` : `Tahsilat kaydedildi! Kalan borç: ${yeniBakiye} ₺`;
+            alert(bakiyeMesaj);
             goHome();
         }
 
@@ -874,7 +887,7 @@
             document.getElementById('gider-listesi').innerHTML = html;
         }
 
-        // Sesli Asistan Mantığı
+        // Sesli Asistan
         function sesliDinlemeyiBaslat() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
@@ -920,8 +933,7 @@
                 let kelimeler = metin.split(' ');
                 let musteriAdi = kelimeler[0];
                 
-                let tarihSimdi = new Date().toISOString().slice(0, 16);
-                veritabani.borclar[musteriAdi] = (veritabani.borclar[musteriAdi] || 0) - tutar;
+                let tarihSimdi = simdikiTarihInputFormat();
                 veritabani.islemler.push({
                     id: Date.now(),
                     tarih: tarihSimdi,
@@ -939,7 +951,7 @@
             }
         }
 
-        // Veri Yedekleme (JSON Dışa Aktar / İçe Aktar)
+        // Veri Yedekleme
         function verileriDisaAktar() {
             let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
             let downloadAnchor = document.createElement('a');
@@ -976,12 +988,14 @@
         function borclariListele() {
             let arama = document.getElementById('borc-arama').value.toLowerCase();
             let html = '';
-            let tumMusteriler = [...new Set([...veritabani.islemler.map(i => i.musteri), ...Object.keys(veritabani.borclar || {})])];
+            let tumMusteriler = tumMusterileriGetir();
             
             tumMusteriler.forEach(m => {
                 if(!m) return;
                 if(arama && !m.toLowerCase().includes(arama)) return;
-                let bakiye = veritabani.borclar[m] || 0;
+                
+                // Dinamik Bakiye
+                let bakiye = musteriBakiyesiniHesapla(m);
                 
                 let bakiyeMetni = '';
                 let bakiyeRenk = '';
@@ -996,6 +1010,9 @@
                     bakiyeRenk = '#166534'; // Yeşil
                 }
 
+                let mLower = m.trim().toLowerCase();
+                let musteriIslemleri = (veritabani.islemler || []).filter(i => (i.musteri || '').trim().toLowerCase() === mLower);
+
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e5e7eb; padding-bottom:8px;">
                         <h3 style="margin:0; color:#166534; font-size:16px;">👤 ${m}</h3>
@@ -1008,7 +1025,7 @@
                     <div class="table-responsive"><table>
                         <tr><th style="width:25%;">Tarih</th><th style="width:45%;">İşlem Detay</th><th style="width:15%;">Tutar</th><th style="width:15%;">Ödeme</th></tr>`;
                 
-                veritabani.islemler.filter(i => i.musteri === m).forEach(islem => {
+                musteriIslemleri.forEach(islem => {
                     let urunDetay = islem.tip === 'Satış' ? (islem.kalemler ? islem.kalemler.map(k => `• <b>${k.tur}</b>: ${k.miktar}ad x ${k.fiyat}₺`).join('<br>') : islem.aciklama) : `Ödeme: ${islem.aciklama}`;
                     html += `<tr>
                         <td style="font-size:11px;">${formatliTarihGoster(islem.tarih)}</td>
@@ -1033,7 +1050,7 @@
 
             let html = '<table><tr><th>Ürün Adı</th><th>Giren (Adet)</th><th>Satılan (Adet)</th><th>Kalan (Adet)</th><th>Durum</th></tr>';
             tumUrunler.forEach(u => {
-                let giren = veritabani.girisler[u] || (veritabani.stoklar[u] + (satilanlar[u] || 0));
+                let giren = veritabani.girisler[u] || ((veritabani.stoklar[u] || 0) + (satilanlar[u] || 0));
                 let satilan = satilanlar[u] || 0;
                 let kalan = veritabani.stoklar[u] || 0;
                 let kritikSinir = (veritabani.kritikStok && veritabani.kritikStok[u]) ? veritabani.kritikStok[u] : 5;
@@ -1052,7 +1069,7 @@
         }
 
         function musterileriGoster() {
-            let tumMusteriler = [...new Set([...veritabani.islemler.map(i => i.musteri), ...Object.keys(veritabani.borclar || {})])];
+            let tumMusteriler = tumMusterileriGetir();
             let html = '<div style="margin-bottom:15px; font-size:13px; color:#555;">Borçlu ve alacaklı müşterilerin güncel durumunu takip edebilir, WhatsApp üzerinden mesaj gönderebilirsin:</div>';
             
             if(tumMusteriler.length === 0) {
@@ -1062,7 +1079,7 @@
 
             tumMusteriler.forEach(m => {
                 if(!m) return;
-                let borc = veritabani.borclar[m] || 0;
+                let borc = musteriBakiyesiniHesapla(m);
                 let whatsappMesaj = '';
                 let borcMetni = '';
 
@@ -1095,14 +1112,14 @@
             let secilenTarih = document.getElementById('rapor-tarih').value;
             if(!secilenTarih) return;
 
-            let gununIslemleri = veritabani.islemler.filter(i => i.tarih.startsWith(secilenTarih));
+            let gununIslemleri = (veritabani.islemler || []).filter(i => i.tarih && i.tarih.startsWith(secilenTarih));
             let toplamSatis = 0;
             let toplamTahsilat = 0;
             let detayHtml = '';
 
             gununIslemleri.forEach(i => {
                 if(i.tip === 'Satış') {
-                    toplamSatis += i.tutar;
+                    toplamSatis += (parseFloat(i.tutar) || 0);
                     let urunlerStr = i.kalemler ? i.kalemler.map(k => `${k.tur} (${k.miktar} Adet)`).join(', ') : '';
                     detayHtml += `<div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bbf7d0;">
                         <div style="font-weight:bold; color:#166534;">👤 ${i.musteri} (Satış)</div>
@@ -1110,7 +1127,7 @@
                         <div style="font-size:13px; font-weight:bold; color:#dc2626; margin-top:4px;">Tutar: ${i.tutar} ₺</div>
                     </div>`;
                 } else {
-                    toplamTahsilat += i.tutar;
+                    toplamTahsilat += (parseFloat(i.tutar) || 0);
                     detayHtml += `<div style="background:#eff6ff; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #bfdbfe;">
                         <div style="font-weight:bold; color:#1e40af;">💰 ${i.musteri} (Tahsilat / Ödeme)</div>
                         <div style="font-size:13px; color:#333;">Açıklama: ${i.aciklama}</div>
@@ -1138,13 +1155,13 @@
             let secilenAy = document.getElementById('aylik-tarih').value;
             if(!secilenAy) return;
 
-            let aylikSatislar = (veritabani.islemler || []).filter(i => i.tip === 'Satış' && i.tarih.startsWith(secilenAy));
-            let aylikTahsilatlar = (veritabani.islemler || []).filter(i => i.tip === 'Tahsilat' && i.tarih.startsWith(secilenAy));
-            let aylikGiderler = (veritabani.giderler || []).filter(g => g.tarih.startsWith(secilenAy));
+            let aylikSatislar = (veritabani.islemler || []).filter(i => i.tip === 'Satış' && i.tarih && i.tarih.startsWith(secilenAy));
+            let aylikTahsilatlar = (veritabani.islemler || []).filter(i => i.tip === 'Tahsilat' && i.tarih && i.tarih.startsWith(secilenAy));
+            let aylikGiderler = (veritabani.giderler || []).filter(g => g.tarih && g.tarih.startsWith(secilenAy));
 
-            let toplamCiro = aylikSatislar.reduce((toplam, i) => toplam + i.tutar, 0);
-            let toplamTahsilat = aylikTahsilatlar.reduce((toplam, i) => toplam + i.tutar, 0);
-            let toplamGider = aylikGiderler.reduce((toplam, g) => toplam + g.tutar, 0);
+            let toplamCiro = aylikSatislar.reduce((toplam, i) => toplam + (parseFloat(i.tutar) || 0), 0);
+            let toplamTahsilat = aylikTahsilatlar.reduce((toplam, i) => toplam + (parseFloat(i.tutar) || 0), 0);
+            let toplamGider = aylikGiderler.reduce((toplam, g) => toplam + (parseFloat(g.tutar) || 0), 0);
             let netKarTahmini = toplamTahsilat - toplamGider;
 
             document.getElementById('aylik-ozet-alani').innerHTML = `
@@ -1171,15 +1188,16 @@
 
         function gecmisiGoster() {
             let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Müşteri</th><th>Tutar</th><th>Sil</th></tr>';
-            veritabani.islemler.slice().reverse().forEach(i => {
+            (veritabani.islemler || []).slice().reverse().forEach(i => {
                 html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}</td><td>${i.musteri}</td><td><b>${i.tutar} ₺</b></td><td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td></tr>`;
             });
-            document.getElementById('gecmis-listesi').innerHTML = veritabani.islemler.length ? html : 'Kayıt yok.';
+            document.getElementById('gecmis-listesi').innerHTML = (veritabani.islemler || []).length ? html : 'Kayıt yok.';
         }
 
         function musteriOzetFisGoster(musteriAdi) {
-            let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
-            let bakiye = veritabani.borclar[musteriAdi] || 0;
+            let mLower = musteriAdi.trim().toLowerCase();
+            let musteriIslemleri = (veritabani.islemler || []).filter(i => (i.musteri || '').trim().toLowerCase() === mLower);
+            let bakiye = musteriBakiyesiniHesapla(musteriAdi);
 
             let fisHtml = `
                 <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
