@@ -825,7 +825,7 @@
                 let islemId = Date.now();
                 veritabani.islemler.push({ id: islemId, tarih: v.tarih, tip: 'Satış', musteri: v.musteri, kalemler: v.kalemler, tutar: toplamSepetTutar, aciklama: v.not });
                 
-                // Borç hesabı: Fazla peşinat verilirse borç/bakiye eksiye (alacağa) düşer, mal satıldıkça düzelir
+                // Borçtan düşüş: Fazla ödeme varsa eksiye düşer, satış yapıldıkça bakiye artarak (eksiden sıfıra/artıya) düzelir
                 let kalanBorc = toplamSepetTutar - v.pesinTutar;
                 veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) + kalanBorc;
 
@@ -838,7 +838,7 @@
                 if(parseFloat(v.kritik) > 0) veritabani.kritikStok[v.urun] = parseFloat(v.kritik);
             } else if(talep.tip === 'Tahsilat') {
                 let tutar = parseFloat(v.tutar);
-                // Fazla ödeme alındığında bakiye eksiye (alacağa) düşebilir
+                // Tahsilat yapıldığında borç düşer, borç yoksa veya fazla ödenirse bakiye doğrudan eksiye (-) geçer[span_1](start_span)[span_1](end_span)
                 veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) - tutar;
                 veritabani.islemler.push({ id: Date.now(), tarih: v.tarih, tip: 'Tahsilat', musteri: v.musteri, kalemler: [], tutar: tutar, aciklama: v.aciklama });
             } else if(talep.tip === 'Gider') {
@@ -1184,7 +1184,7 @@
                 if(arama && !m.toLowerCase().includes(arama)) return;
                 let bakiye = veritabani.borclar[m] || 0;
                 let bakiyeRenk = bakiye > 0 ? '#dc2626' : (bakiye < 0 ? '#2563eb' : '#166534');
-                let bakiyeMetin = bakiye < 0 ? `${Math.abs(bakiye)} ₺ (Alacak/Avans)` : `${bakiye} ₺`;
+                let bakiyeMetin = bakiye < 0 ? `(${Math.abs(bakiye)} ₺ Fazla Ödeme / Alacak)` : `${bakiye} ₺`;
                 
                 html += `<div style="background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e5e7eb; padding-bottom:8px;">
@@ -1231,12 +1231,11 @@
             if(musteriler.length === 0) { document.getElementById('musteri-listesi').innerHTML = 'Kayıtlı müşteri yok.'; return; }
             musteriler.forEach(m => {
                 let borc = veritabani.borclar[m] || 0;
-                let msg = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği güncel borç bakiyeniz ${borc} ₺'dir.`);
-                let bakiyeYazi = borc < 0 ? `${Math.abs(borc)} ₺ (Alacak/Avans)` : `${borc} ₺`;
-                let bakiyeRenk = borc > 0 ? 'red' : (borc < 0 ? 'blue' : 'green');
-                
+                let durumMetin = borc < 0 ? `Alacağınız (Fazla Ödeme): ${Math.abs(borc)} ₺` : `Borç: ${borc} ₺`;
+                let renk = borc > 0 ? 'red' : (borc < 0 ? 'blue' : 'green');
+                let msg = encodeURIComponent(`Merhaba ${m}, Demirkapı Çiftliği hesap bakiyeniz: ${durumMetin}`);
                 html += `<div style="padding:10px 0; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                            <div><b>${m}</b><br><span style="font-size:13px;">Bakiye: <span style="color:${bakiyeRenk}; font-weight:bold;">${bakiyeYazi}</span></span></div>
+                            <div><b>${m}</b><br><span style="font-size:13px;">Durum: <span style="color:${renk}; font-weight:bold;">${durumMetin}</span></span></div>
                             <div style="display:flex; gap:8px;">
                                 ${borc > 0 ? `<a href="https://wa.me/?text=${msg}" target="_blank" style="background:#25d366; color:white; padding:6px 10px; border-radius:8px; text-decoration:none; font-size:12px; font-weight:bold;">💬 WhatsApp</a>` : ''}
                                 <button class="btn-danger" style="padding:4px 8px;" onclick="musteriSil('${m}')">Sil</button>
@@ -1308,8 +1307,9 @@
         function musteriOzetFisGoster(musteriAdi) {
             let musteriIslemleri = veritabani.islemler.filter(i => i.musteri === musteriAdi);
             let bakiye = veritabani.borclar[musteriAdi] || 0;
-            let bakiyeYazi = bakiye < 0 ? `${Math.abs(bakiye)} ₺ (Alacak/Avans)` : `${bakiye} ₺`;
-            
+            let bakiyeBaslik = bakiye < 0 ? "FAZLA ÖDEME / ALACAK BAKİYESİ" : "GÜNCEL KALAN BORÇ";
+            let bakiyeRenk = bakiye < 0 ? "#2563eb" : "#dc2626";
+
             let fisHtml = `<div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:3px;">DEMİRKAPI ÇİFTLİĞİ</div>
                 <div style="text-align:center; font-size:11px; margin-bottom:12px; color:#555;">Müşteri Hesap ve Borç Özeti</div>
                 <div style="font-size:12px; background:#f9fafb; padding:8px; border-radius:6px; margin-bottom:12px;"><div><b>Müşteri:</b> ${musteriAdi}</div><div><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</div></div>`;
@@ -1323,7 +1323,7 @@
                     fisHtml += `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px; margin-bottom:10px;"><div style="font-size:11px; color:#166534; margin-bottom:4px;">📅 ${tarihStr} - TAHSİLAT</div><div style="font-size:12px;">${i.aciklama}: <b>-${i.tutar} ₺</b></div></div>`;
                 }
             });
-            fisHtml += `<div style="background:#fef2f2; border:2px dashed #f87171; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:#991b1b; font-weight:bold;">GÜNCEL BAKİYE</div><div style="font-size:20px; font-weight:bold; color:#dc2626;">${bakiyeYazi}</div></div>`;
+            fisHtml += `<div style="background:#fef2f2; border:2px dashed ${bakiyeRenk}; border-radius:8px; padding:12px; margin-top:15px; text-align:center;"><div style="font-size:11px; color:${bakiyeRenk}; font-weight:bold;">${bakiyeBaslik}</div><div style="font-size:20px; font-weight:bold; color:${bakiyeRenk};">${Math.abs(bakiye)} ₺ ${bakiye < 0 ? '(Eksi bakiye)' : ''}</div></div>`;
             document.getElementById('fis-alani').innerHTML = fisHtml;
             openScreen('fis');
         }
