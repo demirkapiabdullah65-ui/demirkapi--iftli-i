@@ -304,7 +304,7 @@
             </div>
         </div>
 
-        <!-- 16. ÖZLEM YEM BAYİLİK & BAKİYE -->
+        <e!-- 16. ÖZLEM YEM BAYİLİK & BAKİYE -->
         <div id="screen-ozemyem" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🌾 Özlem Yem Bayilik & Bakiye Takibi</div>
@@ -716,41 +716,122 @@
         }
 
         function ozemYemTalepGonder() {
-            let tarih = document.getElementById('ozem-tarih').value;
-            let tip = document.getElementById('ozem-islem-tipi').value;
-            let plaka = document.getElementById('ozem-plaka').value;
-            let not = document.getElementById('ozem-not').value;
-            let odenen = parseFloat(document.getElementById('ozem-odenen').value) || 0;
+    let tarih = document.getElementById('ozem-tarih').value;
+    let tip = document.getElementById('ozem-islem-tipi').value;
+    let plaka = document.getElementById('ozem-plaka').value;
+    let not = document.getElementById('ozem-not').value;
+    let odenen = parseFloat(document.getElementById('ozem-odenen').value) || 0;
 
-            if(!tarih) { alert('Lütfen tarih seçin.'); return; }
+    if (!tarih) {
+        alert('Lütfen tarih seçin.');
+        return;
+    }
 
-            let kalemler = [];
-            let toplamTutar = 0;
+    let kalemler = [];
+    let toplamTutar = 0;
 
-            if(tip === 'YemGelis') {
-                if(!plaka) { alert('Lütfen plaka girin.'); return; }
-                let satirlar = document.querySelectorAll('#ozem-urunler-konteynir .urun-satir');
-                if(satirlar.length === 0) { alert('Lütfen en az bir yem kalemi ekleyin.'); return; }
-                
-                for(let satir of satirlar) {
-                    let ad = satir.querySelector('.ozem-urun-adi').value;
-                    let miktar = parseFloat(satir.querySelector('.ozem-miktar').value) || 0;
-                    let tutar = parseFloat(satir.querySelector('.ozem-tutar').value) || 0;
-                    if(!ad || tutar <= 0) { alert('Lütfen ürün adı ve tutarını eksiksiz doldurun.'); return; }
-                    kalemler.push({ad, miktar, tutar});
-                    toplamTutar += tutar;
-                }
-            } else {
-                if(odenen <= 0) { alert('Lütfen gönderilen tutarı girin.'); return; }
-                toplamTutar = odenen;
+    // YEM GELDİ
+    if (tip === 'YemGelis') {
+
+        if (!plaka) {
+            alert('Lütfen plaka girin.');
+            return;
+        }
+
+        let satirlar = document.querySelectorAll(
+            '#ozem-urunler-konteynir .urun-satir'
+        );
+
+        if (satirlar.length === 0) {
+            alert('Lütfen en az bir yem kalemi ekleyin.');
+            return;
+        }
+
+        for (let satir of satirlar) {
+
+            let ad = satir.querySelector('.ozem-urun-adi').value;
+            let miktar =
+                parseFloat(
+                    satir.querySelector('.ozem-miktar').value
+                ) || 0;
+
+            let tutar =
+                parseFloat(
+                    satir.querySelector('.ozem-tutar').value
+                ) || 0;
+
+            if (!ad || tutar <= 0) {
+                alert('Lütfen ürün adı ve tutarını eksiksiz doldurun.');
+                return;
             }
 
-            let veri = { tarih, tip, plaka, kalemler, tutar: toplamTutar, odenen, not };
-            let yeniTalep = { id: Date.now(), tip: 'OzemYem', veri: veri, not: not };
-            veritabani.bekleyenler.push(yeniTalep);
-            kaydetVeri();
-            alert('Özlem Yem işlemi onaya gönderildi!');
-            goHome();
+            kalemler.push({
+                ad: ad,
+                miktar: miktar,
+                tutar: tutar
+            });
+
+            toplamTutar += tutar;
+        }
+
+    }
+
+    // PARA GÖNDERİLDİ
+    else {
+
+        if (odenen <= 0) {
+            alert('Lütfen gönderilen tutarı girin.');
+            return;
+        }
+
+        toplamTutar = odenen;
+    }
+
+    // =====================================================
+    // ÖZLEM YEM KAYDI
+    // =====================================================
+
+    let veri = {
+        tarih: tarih,
+        tip: tip,
+        plaka: plaka,
+        kalemler: kalemler,
+        tutar: toplamTutar,
+        odenen: odenen,
+        not: not
+    };
+
+    // =====================================================
+    // DİREKT ONAYLI KAYIT
+    // =====================================================
+
+    let yeniKayit = {
+        id: Date.now(),
+        tip: 'OzemYem',
+        veri: veri,
+        not: not,
+        durum: 'onaylandi',
+        onaylandi: true,
+        tarih: new Date().toISOString()
+    };
+
+    // BEKLEYENLERE ATMAYACAK
+    // DOĞRUDAN ONAYLI KAYITLARA EKLE
+
+    if (!veritabani.onaylananlar) {
+        veritabani.onaylananlar = [];
+    }
+
+    veritabani.onaylananlar.push(yeniKayit);
+
+    // Kaydet
+    kaydetVeri();
+
+    alert('Özlem Yem işlemi direkt onaylandı ve kaydedildi!');
+
+    // Ana menüye dön
+    goHome();
+}
         }
 
         function onayBekleyenleriGoster() {
