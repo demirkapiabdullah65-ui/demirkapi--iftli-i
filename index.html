@@ -1451,6 +1451,417 @@
             win.document.write('<html><body>' + document.getElementById('fis-alani').innerHTML + '</body></html>');
             win.print();
             win.close();
+            // ======================================================
+// EXCEL AKTARMA - ALINAN SLAJLAR + BİÇİLEN TARLALAR
+// + MÜŞTERİLER
+// ======================================================
+
+async function ExcelAktar() {
+
+    try {
+
+        // Firebase'deki güncel verileri al
+        const snapshot = await db.ref("demirkapi_ciftligi").once("value");
+        const veri = snapshot.val() || {};
+
+        const alinanlar = Array.isArray(veri.silajlar)
+            ? veri.silajlar
+            : [];
+
+        const bicilenler = Array.isArray(veri.bicilenTarlalar)
+            ? veri.bicilenTarlalar
+            : [];
+
+        // SheetJS kontrolü
+        if (typeof XLSX === "undefined") {
+
+            alert(
+                "Excel sistemi yüklenemedi.\n\n" +
+                "İnternet bağlantısını kontrol et."
+            );
+
+            return;
+        }
+
+        // ==================================================
+        // YENİ EXCEL
+        // ==================================================
+
+        const workbook = XLSX.utils.book_new();
+
+
+        // ==================================================
+        // 1. SAYFA - ALINAN SLAJLAR
+        // ==================================================
+
+        const alinanBaslik = [
+            "TARİH",
+            "TARLA SAHİBİ",
+            "TARLA / KONUM",
+            "BİRİM",
+            "MİKTAR",
+            "FİYAT",
+            "TOPLAM",
+            "ÖDENEN",
+            "BORÇ",
+            "AÇIKLAMA"
+        ];
+
+        const alinanData = [alinanBaslik];
+
+        alinanlar.forEach(function (x) {
+
+            alinanData.push([
+
+                x.tarih || "",
+
+                x.sahip || "",
+
+                x.tarla || x.konum || "",
+
+                x.birim || "",
+
+                Number(x.miktar) || 0,
+
+                Number(x.fiyat) || 0,
+
+                Number(x.toplam) || 0,
+
+                Number(x.odenen) || 0,
+
+                Number(x.kalan) || 0,
+
+                x.not || x.aciklama || ""
+
+            ]);
+
+        });
+
+        const wsAlinan =
+            XLSX.utils.aoa_to_sheet(alinanData);
+
+        wsAlinan["!cols"] = [
+
+            { wch: 20 },
+            { wch: 25 },
+            { wch: 25 },
+            { wch: 12 },
+            { wch: 12 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 30 }
+
+        ];
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            wsAlinan,
+            "ALINAN SLAJLAR"
+        );
+
+
+        // ==================================================
+        // 2. SAYFA - BİÇİLEN TARLALAR
+        // ==================================================
+
+        const bicilenBaslik = [
+
+            "TARİH",
+            "MÜŞTERİ / TARLA SAHİBİ",
+            "KÖY / TARLA",
+            "BİRİM",
+            "MİKTAR",
+            "FİYAT",
+            "TOPLAM",
+            "ALINAN",
+            "BORÇ",
+            "AÇIKLAMA"
+
+        ];
+
+        const bicilenData = [bicilenBaslik];
+
+        bicilenler.forEach(function (x) {
+
+            bicilenData.push([
+
+                x.tarih || "",
+
+                x.sahip ||
+                x.musteri ||
+                x.musteriAdi ||
+                "",
+
+                x.konum ||
+                x.tarla ||
+                x.koy ||
+                "",
+
+                x.birim || "",
+
+                Number(x.miktar) || 0,
+
+                Number(x.fiyat) || 0,
+
+                Number(x.toplam) || 0,
+
+                Number(x.alinan) ||
+                Number(x.odenen) ||
+                0,
+
+                Number(x.kalan) ||
+                Number(x.borc) ||
+                0,
+
+                x.not ||
+                x.aciklama ||
+                ""
+
+            ]);
+
+        });
+
+        const wsBicilen =
+            XLSX.utils.aoa_to_sheet(bicilenData);
+
+        wsBicilen["!cols"] = [
+
+            { wch: 20 },
+            { wch: 28 },
+            { wch: 28 },
+            { wch: 12 },
+            { wch: 12 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 15 },
+            { wch: 30 }
+
+        ];
+
+        XLSX.utils.book_append_sheet(
+
+            workbook,
+
+            wsBicilen,
+
+            "BİÇİLEN TARLALAR"
+
+        );
+
+
+        // ==================================================
+        // 3. SAYFA - MÜŞTERİLER
+        // SADECE BİÇİLEN TARLALARDAN
+        // ==================================================
+
+        const musteriler = {};
+
+
+        bicilenler.forEach(function (x) {
+
+            const musteri = String(
+
+                x.sahip ||
+                x.musteri ||
+                x.musteriAdi ||
+                ""
+
+            ).trim();
+
+
+            if (musteri === "") {
+
+                return;
+
+            }
+
+
+            if (!musteriler[musteri]) {
+
+                musteriler[musteri] = {
+
+                    toplam: 0,
+
+                    alinan: 0,
+
+                    borc: 0
+
+                };
+
+            }
+
+
+            musteriler[musteri].toplam +=
+
+                Number(x.toplam) || 0;
+
+
+            musteriler[musteri].alinan +=
+
+                Number(x.alinan) ||
+                Number(x.odenen) ||
+                0;
+
+
+            musteriler[musteri].borc +=
+
+                Number(x.kalan) ||
+                Number(x.borc) ||
+                0;
+
+        });
+
+
+        const musteriBaslik = [
+
+            "MÜŞTERİ",
+
+            "TOPLAM",
+
+            "ALINAN",
+
+            "BORÇ"
+
+        ];
+
+
+        const musteriData = [musteriBaslik];
+
+
+        Object.keys(musteriler)
+
+            .sort(function (a, b) {
+
+                return a.localeCompare(
+                    b,
+                    "tr"
+                );
+
+            })
+
+            .forEach(function (ad) {
+
+                musteriData.push([
+
+                    ad,
+
+                    musteriler[ad].toplam,
+
+                    musteriler[ad].alinan,
+
+                    musteriler[ad].borc
+
+                ]);
+
+            });
+
+
+        const wsMusteri =
+
+            XLSX.utils.aoa_to_sheet(
+                musteriData
+            );
+
+
+        wsMusteri["!cols"] = [
+
+            { wch: 30 },
+
+            { wch: 18 },
+
+            { wch: 18 },
+
+            { wch: 18 }
+
+        ];
+
+
+        XLSX.utils.book_append_sheet(
+
+            workbook,
+
+            wsMusteri,
+
+            "MÜŞTERİLER"
+
+        );
+
+
+        // ==================================================
+        // EXCEL'İ İNDİR
+        // ==================================================
+
+        const tarih = new Date();
+
+        const dosyaAdi =
+
+            "DEMİRKAPI_TARLA_SİLAJ_" +
+
+            tarih.getFullYear() +
+
+            "-" +
+
+            String(
+                tarih.getMonth() + 1
+            ).padStart(2, "0") +
+
+            "-" +
+
+            String(
+                tarih.getDate()
+            ).padStart(2, "0") +
+
+            ".xlsx";
+
+
+        XLSX.writeFile(
+
+            workbook,
+
+            dosyaAdi
+
+        );
+
+
+        alert(
+
+            "✅ Excel hazırlandı!\n\n" +
+
+            "1️⃣ Alınan Slajlar\n" +
+
+            "2️⃣ Biçilen Tarlalar\n" +
+
+            "3️⃣ Müşteriler\n\n" +
+
+            "Toplam " +
+
+            (alinanlar.length +
+             bicilenler.length) +
+
+            " kayıt aktarıldı."
+
+        );
+
+    }
+
+    catch (hata) {
+
+        console.error(hata);
+
+        alert(
+
+            "❌ Excel aktarılırken hata oluştu:\n\n" +
+
+            hata.message
+
+        );
+
+    }
+
+}
         }
     </script>
 </body>
