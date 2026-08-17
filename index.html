@@ -911,49 +911,11 @@
                 }
             } else if(talep.tip === 'Nakliye') {
                 if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
-                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, adet: v.adet || 1, tutar: parseFloat(v.tutar), not: 
-                    } else if(talep.tip === 'OzemYem') {
-
-    // Özlem Yem kayıtlarını oluştur
-    if(!Array.isArray(veritabani.ozemYemler)) {
-        veritabani.ozemYemler = [];
-    }
-
-    let tutar = parseFloat(v.tutar) || 0;
-    let odenen = parseFloat(v.odenen) || 0;
-
-    let kayit = {
-        id: Date.now(),
-        tarih: v.tarih,
-        tip: v.tip,
-        plaka: v.plaka || '',
-        kalemler: Array.isArray(v.kalemler) ? v.kalemler : [],
-        tutar: tutar,
-        odenen: odenen,
-        not: v.not || ''
-    };
-
-    // Özlem Yem'e kaydet
-    veritabani.ozemYemler.push(kayit);
-
-    // Para gönderimi ise işlem geçmişine de ekle
-    if(v.tip !== 'YemGelis') {
-
-        if(!Array.isArray(veritabani.islemler)) {
-            veritabani.islemler = [];
-        }
-
-        veritabani.islemler.push({
-            id: Date.now() + 1,
-            tarih: v.tarih,
-            tip: 'Özlem Yeme Para Gönderimi',
-            musteri: 'Özlem Yem',
-            kalemler: [],
-            tutar: tutar,
-            aciklama: v.not || 'Havale'
-        });
-    }
-}
+                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, adet: v.adet || 1, tutar: parseFloat(v.tutar), not: v.not });
+            } else if(talep.tip === 'OzemYem') {
+                if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
+                veritabani.ozemYemler.push({ id: Date.now(), tarih: v.tarih, tip: v.tip, plaka: v.plaka, kalemler: v.kalemler, tutar: parseFloat(v.tutar) || 0, odenen: parseFloat(v.odenen) || 0, not: v.not });
+            }
 
             veritabani.bekleyenler.splice(index, 1);
             kaydetVeri();
