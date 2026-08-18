@@ -3,1467 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demirkapı Çiftliği</title>
-    <!-- Firebase SDK'ları -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <!-- html2pdf Kütüphanesi -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    <title>Saha & Cari Yönetim Sistemi</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 90px; }
-        .header { background-color: #166534; color: white; padding: 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: space-between; }
-        .logo-box { background-color: #fde047; padding: 10px; border-radius: 12px; margin-right: 15px; font-size: 24px; }
-        .title-main { font-size: 20px; font-weight: bold; }
-        .title-sub { font-size: 15px; opacity: 0.9; }
-        .container { max-width: 650px; margin: 0 auto; padding: 15px; }
-        .section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
-        .menu-card:active { transform: scale(0.97); }
-        .menu-icon { font-size: 36px; margin-bottom: 12px; }
-        .menu-title { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 4px; }
-        .menu-desc { font-size: 12px; color: #666; }
-        .badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
-        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
-        .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
-        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
-        .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
-        .table-responsive { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: #444; font-weight: 700; background: #f1f5f9; }
-        .sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; flex: 1; }
-        .nav-item.active { color: white; font-weight: bold; }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
-        .hidden { display: none !important; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div style="display:flex; align-items:center;">
-            <div class="logo-box">🌾</div>
-            <div>
-                <div class="title-main">DEMİRKAPI</div>
-                <div class="title-sub">ÇİFTLİĞİ</div>
-            </div>
-        </div>
-        <div id="sync-indicator" class="sync-status">🔥 Canlı Bulut</div>
+<div class="card" id="screen-nakliye">
+    <h2>15. Nakliye & Top Taşıma</h2>
+    <div class="form-group">
+        <label>Tarih ve Saat</label>
+        <input type="datetime-local" id="nak-tarih">
     </div>
-
-    <div class="container">
-        <!-- ANA MENÜ -->
-        <div id="screen-menu">
-            <div class="card" id="hava-durumu-kutusu" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; margin-bottom: 20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:13px; opacity:0.9;">📍 Sakarya Çiftlik Konumu</div>
-                        <div id="hava-derece" style="font-size:28px; font-weight:bold; margin:4px 0;">Yükleniyor...</div>
-                        <div id="hava-durum-metin" style="font-size:13px;">Hava durumu bilgisi alınıyor</div>
-                    </div>
-                    <div id="hava-ikon" style="font-size:42px;">🌤️</div>
-                </div>
-            </div>
-
-            <div class="section-title">Ana Sayfa</div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Talep</div><div class="menu-desc">Onaya gönder</div></div>
-                <div class="menu-card" onclick="openScreen('onay')">
-                    <div class="menu-icon">🔔</div>
-                    <div class="menu-title">2. Onay Bekleyenler</div>
-                    <div class="menu-desc">Düzelt & Onayla</div>
-                    <div id="menu-badge" class="badge hidden">0</div>
-                </div>
-                <div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat / Ödeme</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi / Cariler</div><div class="menu-desc">Detaylı Müşteri & Borçlar</div></div>
-                <div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok & Kritik</div><div class="menu-desc">Adet bazlı stoklar</div></div>
-                <div class="menu-card" onclick="openScreen('sury')"><div class="menu-icon">🐄</div><div class="menu-title">7. Sürü Takibi</div><div class="menu-desc">Küpe, aşı & doğum</div></div>
-                <div class="menu-card" onclick="openScreen('finans')"><div class="menu-icon">📈</div><div class="menu-title">8. Gelişmiş Finans</div><div class="menu-desc">Alacak / Borç özeti</div></div>
-                <div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">9. Müşteriler / Cariler</div><div class="menu-desc">WhatsApp hatırlatıcı</div></div>
-                <div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük hareketler</div></div>
-                <div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
-                <div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('silaj')"><div class="menu-icon">🌽</div><div class="menu-title">13. Alınan Silajlar</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('tarla')"><div class="menu-icon">🚜</div><div class="menu-title">14. Biçilen Tarlalar</div><div class="menu-desc">Onaya gider</div></div>
-                <div class="menu-card" onclick="openScreen('nakliye')"><div class="menu-icon">🚚</div><div class="menu-title">15. Nakliye / Top</div><div class="menu-desc">Nakliye ve Top taşıma</div></div>
-                <div class="menu-card" onclick="openScreen('ozemyem')"><div class="menu-icon">🌾</div><div class="menu-title">16. Özlem Yem</div><div class="menu-desc">Bayilik & Bakiye</div></div>
-                <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak talep et</div></div>
-                <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedekle</div><div class="menu-desc">Excel & JSON</div></div>
-                <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
-            </div>
-        </div>
-
-        <!-- 1. SATIŞ -->
-        <div id="screen-satis" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🛒 Satış Talebi Oluştur</div>
-            <div class="card">
-                <div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
-                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
-                <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                <label><b>Sepetteki Ürünler</b></label>
-                <div id="urunler-konteynir"></div>
-                <button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
-                <div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value, pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
-            </div>
-        </div>
-
-        <!-- 2. ONAY BEKLEYENLER -->
-        <div id="screen-onay" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🔔 Onay Bekleyen İşlemler & Düzeltme</div>
-            <div class="card"><div id="onay-listesi">Bekleyen talep bulunmuyor.</div></div>
-        </div>
-
-        <!-- 3. STOK EKLE -->
-        <div id="screen-giris" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📥 Stoğa Ürün Ekle (Talep)</div>
-            <div class="card">
-                <div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Ürün adı"></div>
-                <div class="form-group"><label>Miktar (Adet)</label><input type="number" id="g-miktar" placeholder="0"></div>
-                <div class="form-group"><label>Kritik Sınır</label><input type="number" id="g-kritik" placeholder="5"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="g-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('StokEkle', {urun: document.getElementById('g-urun').value, miktar: document.getElementById('g-miktar').value, kritik: document.getElementById('g-kritik').value, not: document.getElementById('g-not').value})">Onaya Gönder 🚀</button>
-            </div>
-        </div>
-
-        <!-- 4. TAHSİLAT -->
-        <div id="screen-tahsilat" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💰 Tahsilat / Ödeme Talebi</div>
-            <div class="card">
-                <div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
-                <div class="form-group"><label>Müşteri / Kisi Adı</label><input type="text" id="t-musteri" placeholder="Ad Soyad"></div>
-                <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
-                <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value, tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
-            </div>
-        </div>
-
-        <!-- 5. BORÇ TAKİBİ -->
-        <div id="screen-borc" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📒 Müşteri & Silaj / Tarla Borç Takibi</div>
-            <div class="card">
-                <div class="form-group"><label>Kişi / Müşteri Ara</label><input type="text" id="borc-arama" oninput="borclariListele()" placeholder="İsim yazın..."></div>
-                <div id="borc-detay-listesi"></div>
-            </div>
-        </div>
-
-        <!-- 6. STOK -->
-        <div id="screen-stok" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📦 Stok Durumu & Kritik Uyarılar</div>
-            <div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
-        </div>
-
-        <!-- 7. SÜRÜ TAKİBİ -->
-        <div id="screen-sury" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🐄 Sürü / Hayvan Takibi</div>
-            <div class="card">
-                <h3 style="margin-top:0; font-size:16px; color:#166534;">Hayvan Kayıt Talebi</h3>
-                <div class="form-group"><label>Küpe Numarası / Adı</label><input type="text" id="h-kupe" placeholder="Örn: TR-5401"></div>
-                <div class="form-group"><label>Cinsi / Türü</label><input type="text" id="h-cins" placeholder="Simental İnek"></div>
-                <div class="form-group"><label>Doğum / Alım Tarihi</label><input type="date" id="h-tarih"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="h-asi" placeholder="Aşı veya not bilgisi"></div>
-                <button class="btn-green" onclick="talepGonder('HayvanEkle', {kupe: document.getElementById('h-kupe').value, cins: document.getElementById('h-cins').value, tarih: document.getElementById('h-tarih').value, not: document.getElementById('h-asi').value})">Onaya Gönder 🚀</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0; font-size:16px; color:#166534;">Mevcut Sürü Listesi</h3>
-                <div id="hayvan-listesi">Kayıtlı hayvan bulunmuyor.</div>
-            </div>
-        </div>
-
-        <!-- 8. GELİŞMİŞ FİNANS -->
-        <div id="screen-finans" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📈 Gelişmiş Finans & Alacak Özeti</div>
-            <div class="card" id="finans-ozet-alani"></div>
-        </div>
-
-        <!-- 9. MÜŞTERİLER -->
-        <div id="screen-musteriler" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">👥 Cari Müşteri Listesi & WhatsApp</div>
-            <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
-        </div>
-
-        <!-- 10. GÜNLÜK RAPOR -->
-        <div id="screen-gunluk" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📅 Günlük Satış Raporu</div>
-            <div class="card">
-                <div class="form-group"><label>Tarih Seçin</label><input type="date" id="rapor-tarih" onchange="gunlukRaporuGoster()"></div>
-                <div id="rapor-ozet" style="margin-top:15px;"></div>
-                <div id="rapor-detay"></div>
-            </div>
-        </div>
-
-        <!-- 11. AYLIK KÂR / CİRO -->
-        <div id="screen-aylik" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📊 Aylık Ciro ve Kâr Özeti</div>
-            <div class="card">
-                <div class="form-group"><label>Yıl ve Ay Seçin</label><input type="month" id="aylik-tarih" onchange="aylikRaporuGoster()"></div>
-                <div id="aylik-ozet-alani" style="margin-top:15px;"></div>
-            </div>
-        </div>
-
-        <!-- 12. GİDER / MASRAF -->
-        <div id="screen-gider" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💸 Çiftlik Gider / Masraf Girişi</div>
-            <div class="card">
-                <div class="form-group"><label>Masraf Tarihi ve Saati</label><input type="datetime-local" id="gider-tarih"></div>
-                <div class="form-group"><label>Gider Türü / Başlığı</label><input type="text" id="gider-tur" placeholder="Mazot, Yem Alımı vb."></div>
-                <div class="form-group"><label>Tutar (TL)</label><input type="number" id="gider-tutar" placeholder="0"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="gider-aciklama" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Gider', {tarih: document.getElementById('gider-tarih').value, tur: document.getElementById('gider-tur').value, tutar: document.getElementById('gider-tutar').value, aciklama: document.getElementById('gider-aciklama').value})">Onaya Gönder 🚀</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0; font-size:16px; color:#166534;">Geçmiş Giderler</h3>
-                <div id="gider-listesi">Kayıtlı gider yok.</div>
-            </div>
-        </div>
-
-        <!-- 13. ALINAN SİLAJLAR -->
-        <div id="screen-silaj" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🌽 Alınan Silajlar</div>
-            <div class="card">
-                <div class="form-group"><label>Tarih</label><input type="datetime-local" id="silaj-tarih"></div>
-                <div class="form-group"><label>Tarla Sahibi / Satıcı</label><input type="text" id="silaj-sahip" placeholder="Ad Soyad"></div>
-                <div class="form-group"><label>Tarla / Köy</label><input type="text" id="silaj-tarla" placeholder="Konum"></div>
-                <div class="form-group"><label>Ölçü Birimi</label><select id="silaj-birim" onchange="silajBirimDegisti()"><option value="Ton">Ton</option><option value="Dönüm">Dönüm</option></select></div>
-                <div class="form-group"><label id="silaj-miktar-label">Miktar</label><input type="number" step="0.01" id="silaj-miktar" placeholder="0" oninput="silajToplamHesapla()"></div>
-                <div class="form-group"><label id="silaj-fiyat-label">Birim Fiyat (TL)</label><input type="number" step="0.01" id="silaj-fiyat" placeholder="0" oninput="silajToplamHesapla()"></div>
-                <div id="silaj-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam: 0 ₺</div>
-                <div class="form-group"><label>Ödenen Tutar (TL)</label><input type="number" step="0.01" id="silaj-odenen" placeholder="0" oninput="silajToplamHesapla()"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="silaj-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Silaj', {tarih: document.getElementById('silaj-tarih').value, sahip: document.getElementById('silaj-sahip').value, tarla: document.getElementById('silaj-tarla').value, birim: document.getElementById('silaj-birim').value, miktar: document.getElementById('silaj-miktar').value, fiyat: document.getElementById('silaj-fiyat').value, odenen: document.getElementById('silaj-odenen').value, not: document.getElementById('silaj-not').value})">Onaya Gönder 🚀</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0;color:#166534;">Geçmiş Silaj Alımları</h3>
-                <div id="silaj-listesi">Kayıtlı silaj alımı yok.</div>
-            </div>
-        </div>
-
-        <!-- 14. BİÇİLEN TARLAR -->
-        <div id="screen-tarla" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🚜 Biçilen Tarlalar</div>
-            <div class="card">
-                <div class="form-group"><label>Tarih</label><input type="datetime-local" id="tarla-tarih"></div>
-                <div class="form-group"><label>Tarla Sahibi / Müşteri</label><input type="text" id="tarla-sahip" placeholder="Ad Soyad"></div>
-                <div class="form-group"><label>Tarla / Köy</label><input type="text" id="tarla-konum" placeholder="Konum"></div>
-                <div class="form-group"><label>Ölçü Birimi</label><select id="tarla-birim" onchange="tarlaBirimDegisti()"><option value="Dönüm">Dönüm</option><option value="Ton">Ton</option></select></div>
-                <div class="form-group"><label id="tarla-miktar-label">Miktar</label><input type="number" step="0.01" id="tarla-miktar" placeholder="0" oninput="tarlaToplamHesapla()"></div>
-                <div class="form-group"><label id="tarla-fiyat-label">Birim Fiyat (TL)</label><input type="number" step="0.01" id="tarla-fiyat" placeholder="0" oninput="tarlaToplamHesapla()"></div>
-                <div id="tarla-toplam" style="background:#eff6ff;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#1e40af;">Biçim Ücreti: 0 ₺</div>
-                <div class="form-group"><label>Alınan Para (TL)</label><input type="number" step="0.01" id="tarla-alinan" placeholder="0" oninput="tarlaToplamHesapla()"></div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="tarla-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Tarla', {tarih: document.getElementById('tarla-tarih').value, sahip: document.getElementById('tarla-sahip').value, konum: document.getElementById('tarla-konum').value, birim: document.getElementById('tarla-birim').value, miktar: document.getElementById('tarla-miktar').value, fiyat: document.getElementById('tarla-fiyat').value, alinan: document.getElementById('tarla-alinan').value, not: document.getElementById('tarla-not').value})">Onaya Gönder 🚀</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0;color:#166534;">Geçmiş Biçilen Tarlalar</h3>
-                <div id="tarla-listesi">Kayıtlı tarla biçimi yok.</div>
-            </div>
-        </div>
-
-        <!-- 15. NAKLİYE & TOP TAŞIMA -->
-        <div id="screen-nakliye" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🚚 Nakliye & Top Taşıma Takibi</div>
-            <div class="card">
-                <div class="form-group"><label>Tarih ve Saat</label><input type="datetime-local" id="nak-tarih"></div>
-                <div class="form-group"><label>İşlem Türü</label><select id="nak-tur"><option value="Nakliye">Nakliye (Genel Taşıma)</option><option value="TopTaşıma">Top Taşıma</option></select></div>
-                <div class="form-group"><label>Araç Plakası</label><input type="text" id="nak-plaka" placeholder="Örn: 54 AB 123"></div>
-                <div class="form-group"><label>Güzergah / Nereden - Nereye</label><input type="text" id="nak-guzergah" placeholder="Örn: Tarladan Çiftliğe"></div>
-                <div class="form-group"><label id="nak-adet-label">Adet / Miktar</label><input type="number" step="0.01" id="nak-adet" placeholder="0" value="1" oninput="nakliyeToplamHesapla()"></div>
-                <div class="form-group"><label id="nak-fiyat-label">Birim Fiyat / Tutar (TL)</label><input type="number" step="0.01" id="nak-birim-fiyat" placeholder="0" oninput="nakliyeToplamHesapla()"></div>
-                <div id="nak-toplam-gosterge" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Tutar: 0.00 ₺</div>
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="nak-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="nakliyeTalepGonder()">Onaya Gönder 🚀</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0;color:#166534;">Geçmiş Nakliye ve Top Taşımaları</h3>
-                <div id="nakliye-listesi">Kayıt bulunmuyor.</div>
-            </div>
-        </div>
-
-        <!-- 16. ÖZLEM YEM BAYİLİK & BAKİYE -->
-        <div id="screen-ozemyem" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🌾 Özlem Yem Bayilik & Bakiye Takibi</div>
-            <div class="card" id="ozem-bakiye-karti" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; margin-bottom: 20px; padding: 15px; border-radius: 12px;">
-                <div style="font-size:13px; opacity:0.9;">Özlem Yem Güncel Cari Bakiye</div>
-                <div id="ozem-bakiye-tutar" style="font-size:26px; font-weight:bold; margin:5px 0;">0.00 ₺</div>
-                <div style="font-size:12px;">(Toplam Yem Alım Tutarları - Özlem Yeme Yollanan Paralar)</div>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Yem Sevkiyatı / Ödeme Bildirimi</h3>
-                <div class="form-group"><label>İşlem Tarihi</label><input type="datetime-local" id="ozem-tarih"></div>
-                <div class="form-group"><label>İşlem Türü</label>
-                    <select id="ozem-islem-tipi" onchange="ozemTipDegisti()">
-                        <option value="YemGelis">Fabrikadan Yem Geldi (Borç Artar)</option>
-                        <option value="OdemGonderildi">Özlem Yeme Para Yollandı (Borç Düşer)</option>
-                    </select>
-                </div>
-                
-                <div id="ozem-yem-alanlari">
-                    <div class="form-group"><label>Araç Plakası</label><input type="text" id="ozem-plaka" placeholder="Örn: 54 ZP 789"></div>
-                    
-                    <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                    <label><b>Sevkiyat İçindeki Yem Kalemleri</b></label>
-                    <div id="ozem-urunler-konteynir"></div>
-                    <button class="btn-secondary" onclick="ozemUrunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Yem Ekle</button>
-                    
-                    <div id="ozem-genel-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Yem Tutarı: 0.00 ₺</div>
-                </div>
-
-                <div id="ozem-odeme-alanlari" class="hidden">
-                    <div class="form-group"><label>Özlem Yeme Yollanan Para (TL)</label><input type="number" step="0.01" id="ozem-odenen" placeholder="0"></div>
-                </div>
-                
-                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="ozem-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="ozemYemTalepGonder()">Onaya Gönder 🚀</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0; color:#166534;">Özlem Yem Hareket Geçmişi</h3>
-                <div id="ozem-listesi">Kayıt bulunmuyor.</div>
-            </div>
-        </div>
-
-        <!-- SESLİ ASİSTAN -->
-        <div id="screen-sesli" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🎙️ Sesli Komut Asistanı</div>
-            <div class="card" style="text-align: center; padding: 30px 15px;">
-                <div style="font-size: 50px; margin-bottom: 15px;" id="mic-icon">🎤</div>
-                <div id="sesli-durum" style="font-weight: bold; font-size: 16px; color: #166534; margin-bottom: 15px;">Dinlemeye Hazır</div>
-                <div style="font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5;">
-                    Mikrofon butonuna basıp konuşun:<br>
-                    <i>Örn: "Ahmet'ten 5000 lira tahsilat aldım"</i>
-                </div>
-                <button class="btn-green" onclick="sesliDinlemeyiBaslat()" style="font-size: 18px; padding: 16px;">🎙️ Konuşmaya Başla</button>
-                <div id="sesli-sonuc" style="margin-top: 20px; font-weight: bold; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; text-align: left;"></div>
-            </div>
-        </div>
-
-        <!-- YEDEKLEME -->
-        <div id="screen-yedek" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">💾 Veri Yedekleme & Dışa Aktar</div>
-            <div class="card">
-                <p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini güvenli JSON dosyası olarak indirebilirsin.</p>
-                <button class="btn-green" onclick="verileriDisaAktar()">📥 Tüm Verileri Yedekle (JSON İndir)</button>
-            </div>
-            <div class="card" style="margin-top: 15px;">
-                <p style="font-size:13px; color:#555; line-height: 1.5;">Daha önce aldığın yedek dosyasını seçerek verileri geri yükleyebilirsin:</p>
-                <input type="file" id="yedek-dosya-input" accept=".json" style="margin-bottom: 10px;">
-                <button class="btn-secondary" onclick="verileriIceAktar()" style="width:100%; padding: 12px;">📤 Yedekten Geri Yükle</button>
-            </div>
-        </div>
-
-        <!-- İŞLEM GEÇMİŞİ -->
-        <div id="screen-gecmis" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🧾 Tüm İşlem Geçmişi</div>
-            <div class="card"><div id="gecmis-listesi">Henüz işlem yapılmadı.</div></div>
-        </div>
-
-        <!-- FİŞ EKRANI -->
-        <div id="screen-fis" class="hidden">
-            <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
-            <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
-            <div class="card">
-                <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
-                <div style="display: flex; gap: 10px; flex-direction: column;">
-                    <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
-                    <button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
-                </div>
-            </div>
-        </div>
+    <div class="form-group">
+        <label>İşlem Türü</label>
+        <select id="nak-tur">
+            <option value="Nakliye">Nakliye (Genel Taşıma)</option>
+            <option value="TopTaşıma">Top Taşıma</option>
+        </select>
     </div>
-
-    <!-- Sabit Alt Navigasyon Çubuğu -->
-    <div class="bottom-nav">
-        <button class="nav-item active" onclick="goHome()" id="nav-anasayfa"><span class="nav-icon">🏠</span><span>Ana Sayfa</span></button>
-        <button class="nav-item" onclick="openScreen('satis')" id="nav-satis"><span class="nav-icon">🛒</span><span>Satış</span></button>
-        <button class="nav-item" onclick="openScreen('onay')" id="nav-onay"><span class="nav-icon">🔔</span><span>Onay</span></button>
-        <button class="nav-item" onclick="openScreen('borc')" id="nav-borc"><span class="nav-icon">📒</span><span>Borçlar</span></button>
+    <div class="form-group">
+        <label>Müşteri / Cari Adı</label>
+        <input type="text" id="nak-musteri" placeholder="Ad Soyad">
     </div>
+    <div class="form-group">
+        <label>Araç Plakası</label>
+        <input type="text" id="nak-plaka" placeholder="Örn: 54 AB 123">
+    </div>
+    <div class="form-group">
+        <label>Güzergah / Açıklama</label>
+        <input type="text" id="nak-guzergah" placeholder="Nereden - Nereye">
+    </div>
+    <div class="form-group">
+        <label>Adet / Sefer</label>
+        <input type="number" id="nak-adet" value="1">
+    </div>
+    <div class="form-group">
+        <label>Birim Fiyat (TL)</label>
+        <input type="number" id="nak-birim-fiyat" placeholder="0.00">
+    </div>
+    <div class="form-group">
+        <label>Not</label>
+        <input type="text" id="nak-not" placeholder="Not ekleyin">
+    </div>
+    <button onclick="nakliyeTalepGonder()">Onaya Gönder</button>
+</div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCvSAndZsfDbZ_eIXtHtcCYMWoqzVGKZU0",
-            authDomain: "demirkapi-ca886.firebaseapp.com",
-            projectId: "demirkapi-ca886",
-            storageBucket: "demirkapi-ca886.firebasestorage.app",
-            messagingSenderId: "222198402724",
-            appId: "1:222198402724:web:416fd76dc0b64c9e296031",
-            databaseURL: "https://demirkapi-ca886-default-rtdb.europe-west1.firebasedatabase.app"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] };
+<script>
+    // Veritabanı Başlatma
+    let veritabani = JSON.parse(localStorage.getItem('veritabani')) || {
+        bekleyenler: [],
+        silajlar: [],
+        bicilenTarlalar: [],
+        nakliyeler: [],
+        borclar: {},
+        islemler: []
+    };
 
-        db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                veritabani = data;
-                if(!veritabani.islemler) veritabani.islemler = [];
-                if(!veritabani.stoklar) veritabani.stoklar = {};
-                if(!veritabani.kritikStok) veritabani.kritikStok = {};
-                if(!veritabani.borclar) veritabani.borclar = {};
-                if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
-                if(!veritabani.girisler) veritabani.girisler = {};
-                if(!veritabani.giderler) veritabani.giderler = [];
-                if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
-                if(!veritabani.silajlar) veritabani.silajlar = [];
-                if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
-                if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
-                if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
-            }
+    function kaydetVeri() {
+        localStorage.setItem('veritabani', JSON.stringify(veritabani));
+    }
 
-            bekleyenRozetGuncelle();
+    function goHome() {
+        console.log("Ana sayfaya yönlendirildi.");
+    }
 
-            if (!document.getElementById('screen-onay').classList.contains('hidden')) onayBekleyenleriGoster();
-            if (!document.getElementById('screen-musteriler').classList.contains('hidden')) musterileriGoster();
-            if (!document.getElementById('screen-stok').classList.contains('hidden')) stoklariGoster();
-            if (!document.getElementById('screen-borc').classList.contains('hidden')) borclariListele();
-            if (!document.getElementById('screen-sury').classList.contains('hidden')) hayvanlariGoster();
-            if (!document.getElementById('screen-finans').classList.contains('hidden')) gelismisFinansGoster();
-            if (!document.getElementById('screen-gunluk').classList.contains('hidden')) gunlukRaporuGoster();
-            if (!document.getElementById('screen-aylik').classList.contains('hidden')) aylikRaporuGoster();
-            if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
-            if (!document.getElementById('screen-silaj').classList.contains('hidden')) silajlariGoster();
-            if (!document.getElementById('screen-tarla').classList.contains('hidden')) tarlalariGoster();
-            if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
-            if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
-        });
+    // Nakliye Talep Gönderme
+    function nakliyeTalepGonder() {
+        let tarih = document.getElementById('nak-tarih').value;
+        let tur = document.getElementById('nak-tur').value;
+        let musteri = document.getElementById('nak-musteri').value;
+        let plaka = document.getElementById('nak-plaka').value;
+        let guzergah = document.getElementById('nak-guzergah').value;
+        let adet = parseFloat(document.getElementById('nak-adet').value) || 1;
+        let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
+        let tutar = adet * fiyat;
+        let not = document.getElementById('nak-not').value;
 
-        async function havaDurumuGetir() {
-            try {
-                let res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7569&longitude=30.3783&current_weather=true');
-                let data = await res.json();
-                if(data && data.current_weather) {
-                    let sicaklik = Math.round(data.current_weather.temperature);
-                    let kod = data.current_weather.weathercode;
-                    let aciklama = "Parçalı Bulutlu / Açık";
-                    let ikon = "🌤️";
-                    if(kod >= 1 && kod <= 3) { aciklama = "Bulutlu"; ikon = "☁️"; }
-                    else if(kod >= 51 && kod <= 67) { aciklama = "Yağmurlu"; ikon = "🌧️"; }
-                    else if(kod >= 71 && kod <= 77) { aciklama = "Karlı"; ikon = "❄️"; }
-                    else if(kod >= 95) { aciklama = "Fırtınalı"; ikon = "⚡"; }
-
-                    document.getElementById('hava-derece').innerText = sicaklik + "°C";
-                    document.getElementById('hava-durum-metin').innerText = aciklama + " - Tarla ve saha işleri için uygun.";
-                    document.getElementById('hava-ikon').innerText = ikon;
-                }
-            } catch(e) {
-                document.getElementById('hava-derece').innerText = "Sakarya";
-                document.getElementById('hava-durum-metin').innerText = "Hava durumu bilgisi yüklenemedi.";
-            }
+        if(!tarih || !musteri || tutar <= 0) { 
+            alert('Lütfen tarih, müşteri adı ve geçerli bir tutar girin.'); 
+            return; 
         }
-        havaDurumuGetir();
 
-        function kaydetVeri() {
-            db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
-                bekleyenRozetGuncelle();
+        let veri = { tarih, tur, musteri, plaka, guzergah, adet, fiyat, tutar, not };
+        let yeniTalep = { id: Date.now(), tip: 'Nakliye', veri: veri, not: not };
+        
+        veritabani.bekleyenler.push(yeniTalep);
+        kaydetVeri();
+        alert('Nakliye / Top Taşıma işlemi onaya gönderildi!');
+        goHome();
+    }
+
+    // Talep Onaylama Mantığı
+    function islemiOnayla(talepId) {
+        let index = veritabani.bekleyenler.findIndex(t => t.id === talepId);
+        if(index === -1) return;
+
+        let talep = veritabani.bekleyenler[index];
+        let v = talep.veri;
+
+        if(talep.tip === 'Silaj') {
+            if(!veritabani.silajlar) veritabani.silajlar = [];
+            let odenenTutar = parseFloat(v.odenen) || 0;
+            let netBorcumuz = v.toplam - odenenTutar;
+
+            veritabani.silajlar.push({ 
+                id: Date.now(), tarih: v.tarih, sahip: v.sahip, tarla: v.tarla, 
+                birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), 
+                toplam: v.toplam, odenen: odenenTutar, kalan: v.kalan, not: v.not 
             });
-        }
 
-        function simdikiTarihInputFormat() {
-            let d = new Date();
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-            return d.toISOString().slice(0, 16);
-        }
-
-        function formatliTarihGoster(inputStr) {
-            if(!inputStr) return '';
-            let d = new Date(inputStr);
-            if(isNaN(d.getTime())) return inputStr; 
-            return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
-        }
-
-        function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'sesli', 'yedek', 'gecmis', 'fis'];
-            screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
-            document.getElementById('screen-' + name)?.classList.remove('hidden');
-            window.scrollTo(0, 0);
-
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(name === 'menu') document.getElementById('nav-anasayfa')?.classList.add('active');
-            if(name === 'satis') document.getElementById('nav-satis')?.classList.add('active');
-            if(name === 'onay') document.getElementById('nav-onay')?.classList.add('active');
-            if(name === 'borc') document.getElementById('nav-borc')?.classList.add('active');
-
-            if(name === 'satis') {
-                document.getElementById('s-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('urunler-konteynir').innerHTML = '';
-                document.getElementById('s-pesin').value = '';
-                document.getElementById('s-not').value = '';
-                document.getElementById('s-musteri').value = '';
-                urunSatiriEkle();
-            }
-            if(name === 'tahsilat') {
-                document.getElementById('t-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('t-musteri').value = '';
-                document.getElementById('t-tutar').value = '';
-                document.getElementById('t-aciklama').value = '';
-            }
-            if(name === 'gunluk') {
-                let bugun = new Date().toISOString().split('T')[0];
-                document.getElementById('rapor-tarih').value = bugun;
-                gunlukRaporuGoster();
-            }
-            if(name === 'aylik') {
-                let buAy = new Date().toISOString().slice(0, 7);
-                document.getElementById('aylik-tarih').value = buAy;
-                aylikRaporuGoster();
-            }
-            if(name === 'gider') {
-                document.getElementById('gider-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('gider-tur').value = '';
-                document.getElementById('gider-tutar').value = '';
-                document.getElementById('gider-aciklama').value = '';
-                giderListesiniGoster();
-            }
-            if(name === 'silaj') {
-                document.getElementById('silaj-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('silaj-sahip').value = '';
-                document.getElementById('silaj-tarla').value = '';
-                document.getElementById('silaj-birim').value = 'Ton';
-                document.getElementById('silaj-miktar').value = '';
-                document.getElementById('silaj-fiyat').value = '';
-                document.getElementById('silaj-odenen').value = '';
-                document.getElementById('silaj-not').value = '';
-                silajBirimDegisti();
-                silajlariGoster();
-            }
-            if(name === 'tarla') {
-                document.getElementById('tarla-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('tarla-sahip').value = '';
-                document.getElementById('tarla-konum').value = '';
-                document.getElementById('tarla-birim').value = 'Dönüm';
-                document.getElementById('tarla-miktar').value = '';
-                document.getElementById('tarla-fiyat').value = '';
-                document.getElementById('tarla-alinan').value = '';
-                document.getElementById('tarla-not').value = '';
-                tarlaBirimDegisti();
-                tarlalariGoster();
-            }
-            if(name === 'nakliye') {
-                document.getElementById('nak-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('nak-plaka').value = '';
-                document.getElementById('nak-guzergah').value = '';
-                document.getElementById('nak-adet').value = '1';
-                document.getElementById('nak-birim-fiyat').value = '';
-                document.getElementById('nak-not').value = '';
-                nakliyeToplamHesapla();
-                nakliyeleriGoster();
-            }
-            if(name === 'ozemyem') {
-                document.getElementById('ozem-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('ozem-plaka').value = '';
-                document.getElementById('ozem-urunler-konteynir').innerHTML = '';
-                document.getElementById('ozem-odenen').value = '';
-                document.getElementById('ozem-not').value = '';
-                ozemTipDegisti();
-                ozemUrunSatiriEkle();
-                ozemYemGoster();
-            }
-            if(name === 'onay') onayBekleyenleriGoster();
-            if(name === 'borc') borclariListele();
-            if(name === 'stok') stoklariGoster();
-            if(name === 'sury') hayvanlariGoster();
-            if(name === 'finans') gelismisFinansGoster();
-            if(name === 'musteriler') musterileriGoster();
-            if(name === 'gecmis') gecmisiGoster();
-        }
-
-        function goHome() { openScreen('menu'); }
-
-        function urunSatiriEkle() {
-            let konteynir = document.getElementById('urunler-konteynir');
-            let seceneklerHTML = '';
-            let keys = Object.keys(veritabani.stoklar);
-            if(keys.length === 0) {
-                seceneklerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
-            } else {
-                keys.forEach(k => {
-                    seceneklerHTML += `<option value="${k}">${k} (Stok: ${veritabani.stoklar[k]} Adet)</option>`;
-                });
-            }
-
-            let div = document.createElement('div');
-            div.className = 'urun-satir';
-            div.innerHTML = `
-                <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
-                <div class="form-group" style="margin-bottom:10px;"><label>Ürün</label><select class="s-tur-secim">${seceneklerHTML}</select></div>
-                <div class="form-group" style="margin-bottom:10px;"><label>Miktar (Adet)</label><input type="number" class="s-miktar-input" placeholder="0"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>Birim Fiyat (TL)</label><input type="number" class="s-fiyat-input" placeholder="0"></div>
-            `;
-            konteynir.appendChild(div);
-        }
-
-        function talepGonder(tip, veri) {
-            if(tip === 'Satış') {
-                if(!veri.tarih || !veri.musteri) { alert('Lütfen tarih ve müşteri adı girin.'); return; }
-                let satirlar = document.querySelectorAll('.urun-satir');
-                if(satirlar.length === 0) { alert('Lütfen en az bir ürün ekleyin.'); return; }
-                let kalemler = [];
-                for(let satir of satirlar) {
-                    let tur = satir.querySelector('.s-tur-secim').value;
-                    let miktar = parseFloat(satir.querySelector('.s-miktar-input').value) || 0;
-                    let fiyat = parseFloat(satir.querySelector('.s-fiyat-input').value) || 0;
-                    let tutar = miktar * fiyat;
-                    if(!tur || miktar <= 0 || fiyat <= 0) { alert('Lütfen ürün alanlarını eksiksiz doldurun.'); return; }
-                    kalemler.push({tur, miktar, fiyat, tutar});
-                }
-                veri.kalemler = kalemler;
-                veri.pesinTutar = parseFloat(veri.pesin) || 0;
-            } else if(tip === 'StokEkle') {
-                if(!veri.urun || parseFloat(veri.miktar) <= 0) { alert('Ürün adı ve adet girin.'); return; }
-            } else if(tip === 'Tahsilat') {
-                if(!veri.tarih || !veri.musteri || parseFloat(veri.tutar) <= 0) { alert('Eksiksiz doldurun.'); return; }
-            } else if(tip === 'Gider') {
-                if(!veri.tarih || !veri.tur || parseFloat(veri.tutar) <= 0) { alert('Eksiksiz doldurun.'); return; }
-            } else if(tip === 'HayvanEkle') {
-                if(!veri.kupe || !veri.cins) { alert('Küpe ve cins girin.'); return; }
-            } else if(tip === 'Silaj') {
-                if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
-                veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
-                veri.odenenTutar = parseFloat(veri.odenen) || 0;
-                veri.kalan = Math.max(0, veri.toplam - veri.odenenTutar);
-            } else if(tip === 'Tarla') {
-                if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
-                veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
-                veri.alinanTutar = parseFloat(veri.alinan) || 0;
-                veri.kalan = Math.max(0, veri.toplam - veri.alinanTutar);
-            }
-
-            let yeniTalep = { id: Date.now(), tip: tip, veri: veri, not: veri.not || veri.aciklama || '' };
-            veritabani.bekleyenler.push(yeniTalep);
-            kaydetVeri();
-            alert('İşlem başarıyla onaya gönderildi!');
-            goHome();
-        }
-
-        function nakliyeToplamHesapla() {
-            let adet = parseFloat(document.getElementById('nak-adet').value) || 0;
-            let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
-            let toplam = adet * fiyat;
-            document.getElementById('nak-toplam-gosterge').innerHTML = `Toplam Tutar: <b>${toplam.toFixed(2)} ₺</b>`;
-        }
-
-        function nakliyeTalepGonder() {
-            let tarih = document.getElementById('nak-tarih').value;
-            let tur = document.getElementById('nak-tur').value;
-            let plaka = document.getElementById('nak-plaka').value;
-            let guzergah = document.getElementById('nak-guzergah').value;
-            let adet = parseFloat(document.getElementById('nak-adet').value) || 1;
-            let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
-            let tutar = adet * fiyat;
-            let not = document.getElementById('nak-not').value;
-
-            if(!tarih || !plaka || tutar <= 0) { alert('Lütfen tarih, plaka ve geçerli bir tutar girin.'); return; }
-
-            let veri = { tarih, tur, plaka, guzergah, adet, fiyat, tutar, not };
-            let yeniTalep = { id: Date.now(), tip: 'Nakliye', veri: veri, not: not };
-            veritabani.bekleyenler.push(yeniTalep);
-            kaydetVeri();
-            alert('Nakliye / Top Taşıma onaya gönderildi!');
-            goHome();
-        }
-
-        function ozemUrunSatiriEkle() {
-            let konteynir = document.getElementById('ozem-urunler-konteynir');
-            let div = document.createElement('div');
-            div.className = 'urun-satir';
-            div.innerHTML = `
-                <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove(); ozemToplamHesapla();">Sil</button>
-                <div class="form-group" style="margin-bottom:10px;"><label>Yem Adı / Detayı</label><input type="text" class="ozem-urun-adi" placeholder="Örn: 20 çuval süt yemi"></div>
-                <div class="form-group" style="margin-bottom:10px;"><label>Miktar (Adet/Çuval/Ton)</label><input type="number" class="ozem-miktar" placeholder="0" oninput="ozemToplamHesapla()"></div>
-                <div class="form-group" style="margin-bottom:0;"><label>Toplam Tutar (TL)</label><input type="number" step="0.01" class="ozem-tutar" placeholder="0" oninput="ozemToplamHesapla()"></div>
-            `;
-            konteynir.appendChild(div);
-        }
-
-        function ozemToplamHesapla() {
-            let tutarlar = document.querySelectorAll('.ozem-tutar');
-            let genelToplam = 0;
-            tutarlar.forEach(inp => {
-                genelToplam += parseFloat(inp.value) || 0;
-            });
-            document.getElementById('ozem-genel-toplam').innerHTML = `Toplam Yem Tutarı: <b>${genelToplam.toFixed(2)} ₺</b>`;
-        }
-
-        function ozemYemTalepGonder() {
-            let tarih = document.getElementById('ozem-tarih').value;
-            let tip = document.getElementById('ozem-islem-tipi').value;
-            let plaka = document.getElementById('ozem-plaka').value;
-            let not = document.getElementById('ozem-not').value;
-            let odenen = parseFloat(document.getElementById('ozem-odenen').value) || 0;
-
-            if(!tarih) { alert('Lütfen tarih seçin.'); return; }
-
-            let kalemler = [];
-            let toplamTutar = 0;
-
-            if(tip === 'YemGelis') {
-                if(!plaka) { alert('Lütfen plaka girin.'); return; }
-                let satirlar = document.querySelectorAll('#ozem-urunler-konteynir .urun-satir');
-                if(satirlar.length === 0) { alert('Lütfen en az bir yem kalemi ekleyin.'); return; }
-                
-                for(let satir of satirlar) {
-                    let ad = satir.querySelector('.ozem-urun-adi').value;
-                    let miktar = parseFloat(satir.querySelector('.ozem-miktar').value) || 0;
-                    let tutar = parseFloat(satir.querySelector('.ozem-tutar').value) || 0;
-                    if(!ad || tutar <= 0) { alert('Lütfen ürün adı ve tutarını eksiksiz doldurun.'); return; }
-                    kalemler.push({ad, miktar, tutar});
-                    toplamTutar += tutar;
-                }
-            } else {
-                if(odenen <= 0) { alert('Lütfen gönderilen tutarı girin.'); return; }
-                toplamTutar = odenen;
-            }
-
-            let veri = { tarih, tip, plaka, kalemler, tutar: toplamTutar, odenen, not };
-            let yeniTalep = { id: Date.now(), tip: 'OzemYem', veri: veri, not: not };
-            veritabani.bekleyenler.push(yeniTalep);
-            kaydetVeri();
-            alert('Özlem Yem işlemi onaya gönderildi!');
-            goHome();
-        }
-
-        function onayBekleyenleriGoster() {
-            let konteynir = document.getElementById('onay-listesi');
-            let bekleyenler = veritabani.bekleyenler || [];
-            if(bekleyenler.length === 0) {
-                konteynir.innerHTML = '<p>Onay bekleyen işlem bulunmuyor.</p>';
-                return;
-            }
-
-            let html = '';
-            bekleyenler.forEach((talep, index) => {
-                let v = talep.veri;
-                let detayHTML = '';
-                if(talep.tip === 'Satış') {
-                    let toplam = v.kalemler.reduce((a,b)=>a+b.tutar,0);
-                    let kalemlerStr = v.kalemler.map(k => `• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar} ₺`).join('<br>');
-                    detayHTML = `<b>Satış Talebi</b> - Müşteri: <b>${v.musteri}</b><br>${kalemlerStr}<br><b>Toplam:</b> ${toplam} ₺ | Peşin: ${v.pesinTutar} ₺<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'StokEkle') {
-                    detayHTML = `<b>Stok Ekleme</b> - Ürün: <b>${v.urun}</b>, Miktar: ${v.miktar} Adet<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'Tahsilat') {
-                    detayHTML = `<b>Tahsilat</b> - Kişi: <b>${v.musteri}</b>, Tutar: ${v.tutar} ₺<br>Açıklama: ${v.aciklama || '-'}`;
-                } else if(talep.tip === 'Gider') {
-                    detayHTML = `<b>Gider / Masraf</b> - Tür: <b>${v.tur}</b>, Tutar: ${v.tutar} ₺<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'HayvanEkle') {
-                    detayHTML = `<b>Sürüye Hayvan</b> - Küpe: <b>${v.kupe}</b>, Cins: ${v.cins}<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'Silaj') {
-                    detayHTML = `<b>Silaj Alımı</b> - Sahip/Satıcı: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Toplam: ${v.toplam} ₺, Ödenen: ${v.odenenTutar || 0} ₺<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'Tarla') {
-                    detayHTML = `<b>Tarla Biçimi</b> - Müşteri/Sahip: <b>${v.sahip}</b>, Miktar: ${v.miktar} ${v.birim}, Ücret: ${v.toplam} ₺, Alınan: ${v.alinanTutar || 0} ₺<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'Nakliye') {
-                    detayHTML = `<b>Nakliye / Top Taşıma</b> - Tür: <b>${v.tur}</b>, Plaka: <b>${v.plaka}</b>, Adet: ${v.adet || 1}, Tutar: ${v.tutar} ₺<br>Not: ${v.not || '-'}`;
-                } else if(talep.tip === 'OzemYem') {
-                    let turText = v.tip === 'YemGelis' ? 'Özlem Yem Fabrikadan Sevkiyat' : 'Özlem Yeme Para Gönderimi';
-                    let yemDetayStr = v.kalemler ? v.kalemler.map(k => `• ${k.ad} (${k.tutar} ₺)`).join('<br>') : '';
-                    detayHTML = `<b>${turText}</b><br>Plaka: ${v.plaka || '-'}<br>${yemDetayStr} Toplam Tutar: ${v.tutar || 0} ₺<br>Not: ${v.not || '-'}`;
-                }
-
-                html += `<div style="background:#f9fafb; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #e5e7eb;">
-                    <div style="font-size:11px; color:#666; float:right;">${formatliTarihGoster(v.tarih || new Date())}</div>
-                    <div style="font-size:13px; color:#333; margin-bottom:10px;">${detayHTML}</div>
-                    <div style="margin-bottom:10px;">
-                        <label style="font-size:12px;">Düzenle / Not Güncelle:</label>
-                        <input type="text" id="duzeltme-not-${index}" value="${talep.not || ''}" placeholder="Onaylarken notu düzeltebilirsiniz">
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn-green" style="margin-top:0;" onclick="islemiOnayla(${index})">✅ Onayla & Kaydet</button>
-                        <button class="btn-danger" onclick="islemiReddet(${index})">❌ Reddet</button>
-                    </div>
-                </div>`;
-            });
-            konteynir.innerHTML = html;
-        }
-
-        function islemiOnayla(index) {
-            let talep = veritabani.bekleyenler[index];
-            let yeniNot = document.getElementById(`duzeltme-not-${index}`).value;
-            let v = talep.veri;
-            if(yeniNot !== undefined) {
-                talep.not = yeniNot;
-                if(v.not !== undefined) v.not = yeniNot;
-                if(v.aciklama !== undefined) v.aciklama = yeniNot;
-            }
-
-            if(talep.tip === 'Satış') {
-                let toplamSepetTutar = v.kalemler.reduce((a,b)=>a+b.tutar,0);
-                for(let item of v.kalemler) {
-                    let mevcutStok = veritabani.stoklar[item.tur] || 0;
-                    if(mevcutStok < item.miktar) {
-                        alert(`Hata: "${item.tur}" için yeterli stok yok! (Stok: ${mevcutStok})`);
-                        return;
-                    }
-                }
-                v.kalemler.forEach(item => { veritabani.stoklar[item.tur] -= item.miktar; });
-                let islemId = Date.now();
-                veritabani.islemler.push({ id: islemId, tarih: v.tarih, tip: 'Satış', musteri: v.musteri, kalemler: v.kalemler, tutar: toplamSepetTutar, aciklama: v.not });
-                
-                let kalanBorc = toplamSepetTutar - v.pesinTutar;
-                veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) + kalanBorc;
-
-                if(v.pesinTutar > 0) {
-                    veritabani.islemler.push({ id: islemId + 1, tarih: v.tarih, tip: 'Tahsilat', musteri: v.musteri, kalemler: [], tutar: v.pesinTutar, aciklama: 'Satış Peşinatı - ' + v.not });
-                }
-            } else if(talep.tip === 'StokEkle') {
-                veritabani.stoklar[v.urun] = (veritabani.stoklar[v.urun] || 0) + parseFloat(v.miktar);
-                veritabani.girisler[v.urun] = (veritabani.girisler[v.urun] || 0) + parseFloat(v.miktar);
-                if(parseFloat(v.kritik) > 0) veritabani.kritikStok[v.urun] = parseFloat(v.kritik);
-            } else if(talep.tip === 'Tahsilat') {
-                let tutar = parseFloat(v.tutar);
-                veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) - tutar;
-                veritabani.islemler.push({ id: Date.now(), tarih: v.tarih, tip: 'Tahsilat', musteri: v.musteri, kalemler: [], tutar: tutar, aciklama: v.aciklama });
-            } else if(talep.tip === 'Gider') {
-                if(!veritabani.giderler) veritabani.giderler = [];
-                veritabani.giderler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, tutar: parseFloat(v.tutar), aciklama: v.aciklama });
-            } else if(talep.tip === 'HayvanEkle') {
-                if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
-                veritabani.hayvanlar.push({ id: Date.now(), kupe: v.kupe, cins: v.cins, tarih: v.tarih || new Date().toISOString().split('T')[0], asi: v.not });
-            } else if(talep.tip === 'Silaj') {
-                if(!veritabani.silajlar) veritabani.silajlar = [];
-                let odenenTutar = parseFloat(v.odenen) || 0;
-                let netBorcumuz = v.toplam - odenenTutar;
-
-                veritabani.silajlar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, tarla: v.tarla, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, odenen: odenenTutar, kalan: v.kalan, not: v.not });
-
-                veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) - netBorcumuz;
-                
-                let islemId = Date.now();
-                veritabani.islemler.push({ 
-                    id: islemId, 
-                    tarih: v.tarih, 
-                    tip: 'Silaj Alımı', 
-                    musteri: v.sahip, 
-                    kalemler: [{ tur: `Silaj (${v.birim})`, miktar: v.miktar, fiyat: v.fiyat, tutar: v.toplam }], 
-                    tutar: v.toplam, 
-                    aciklama: `Silaj Alımı (${v.tarla || ''}) - ${v.not || ''}` 
-                });
-                if(odenenTutar > 0) {
-                    veritabani.islemler.push({ 
-                        id: islemId + 1, 
-                        tarih: v.tarih, 
-                        tip: 'Ödeme Yapıldı', 
-                        musteri: v.sahip, 
-                        kalemler: [], 
-                        tutar: odenenTutar, 
-                        aciklama: 'Silaj Alımı Ödemesi' 
-                    });
-                }
-            } else if(talep.tip === 'Tarla') {
-                if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
-                let alinanTutar = parseFloat(v.alinan) || 0;
-                let netAlacagimiz = v.toplam - alinanTutar;
-
-                veritabani.bicilenTarlalar.push({ id: Date.now(), tarih: v.tarih, sahip: v.sahip, konum: v.konum, birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), toplam: v.toplam, alinan: alinanTutar, kalan: v.kalan, not: v.not });
-
-                veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) + netAlacagimiz;
-
-                let islemId = Date.now();
-                veritabani.islemler.push({ 
-                    id: islemId, 
-                    tarih: v.tarih, 
-                    tip: 'Tarla Biçimi', 
-                    musteri: v.sahip, 
-                    kalemler: [{ tur: `Tarla Biçimi (${v.birim})`, miktar: v.miktar, fiyat: v.fiyat, tutar: v.toplam }], 
-                    tutar: v.toplam, 
-                    aciklama: `Tarla Biçimi (${v.konum || ''}) - ${v.not || ''}` 
-                });
-                if(alinanTutar > 0) {
-                    veritabani.islemler.push({ 
-                        id: islemId + 1, 
-                        tarih: v.tarih, 
-                        tip: 'Tahsilat', 
-                        musteri: v.sahip, 
-                        kalemler: [], 
-                        tutar: alinanTutar, 
-                        aciklama: 'Tarla Biçim Peşinatı / Alınan' 
-                    });
-                }
-            } else if(talep.tip === 'Nakliye') {
-                if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
-                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, adet: v.adet || 1, tutar: parseFloat(v.tutar), not: v.not });
-            } else if(talep.tip === 'OzemYem') {
-                if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
-                veritabani.ozemYemler.push({ id: Date.now(), tarih: v.tarih, tip: v.tip, plaka: v.plaka, kalemler: v.kalemler, tutar: parseFloat(v.tutar) || 0, odenen: parseFloat(v.odenen) || 0, not: v.not });
-            }
-
-            veritabani.bekleyenler.splice(index, 1);
-            kaydetVeri();
-            alert('İşlem onaylandı ve sisteme işlendi!');
-            onayBekleyenleriGoster();
-        }
-
-        function islemiReddet(index) {
-            if(confirm('Reddetmek istediğinize emin misiniz?')) {
-                veritabani.bekleyenler.splice(index, 1);
-                kaydetVeri();
-                onayBekleyenleriGoster();
-            }
-        }
-
-        function islemSil(islemId) {
-            if(!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
-            let index = veritabani.islemler.findIndex(i => i.id === islemId);
-            if(index === -1) return;
-            let islem = veritabani.islemler[index];
-            if(islem.tip === 'Satış' && islem.kalemler) {
-                islem.kalemler.forEach(k => { veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar; });
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
-            } else if(islem.tip === 'Tahsilat') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
-            } else if(islem.tip === 'Tarla Biçimi') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
-            } else if(islem.tip === 'Silaj Alımı') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
-            } else if(islem.tip === 'Ödeme Yapıldı') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
-            }
-            veritabani.islemler.splice(index, 1);
-            kaydetVeri();
-            alert('İşlem silindi.');
-            borclariListele();
-            gecmisiGoster();
-        }
-
-        function giderSil(id) {
-            if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            veritabani.giderler = veritabani.giderler.filter(g => g.id !== id);
-            kaydetVeri();
-            giderListesiniGoster();
-        }
-
-        function hayvanSil(id) {
-            if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            veritabani.hayvanlar = veritabani.hayvanlar.filter(h => h.id !== id);
-            kaydetVeri();
-            hayvanlariGoster();
-        }
-
-        function silajSil(id) {
-            if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            veritabani.silajlar = veritabani.silajlar.filter(x => x.id !== id);
-            kaydetVeri();
-            silajlariGoster();
-        }
-
-        function tarlaSil(id) {
-            if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            veritabani.bicilenTarlalar = veritabani.bicilenTarlalar.filter(x => x.id !== id);
-            kaydetVeri();
-            tarlalariGoster();
-        }
-
-        function nakliyeSil(id) {
-            if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            veritabani.nakliyeler = veritabani.nakliyeler.filter(x => x.id !== id);
-            kaydetVeri();
-            nakliyeleriGoster();
-        }
-
-        function ozemSil(id) {
-            if(!confirm('Silmek istediğinize emin misiniz?')) return;
-            veritabani.ozemYemler = veritabani.ozemYemler.filter(x => x.id !== id);
-            kaydetVeri();
-            ozemYemGoster();
-        }
-
-        function musteriSil(musteriAdi) {
-            if(!confirm(musteriAdi + " müşterisini silmek istediğinize emin misiniz?")) return;
-            veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
-            delete veritabani.borclar[musteriAdi];
-            kaydetVeri();
-            musterileriGoster();
-        }
-
-        function bekleyenRozetGuncelle() {
-            let badge = document.getElementById('menu-badge');
-            let count = (veritabani.bekleyenler || []).length;
-            if(badge) {
-                if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); }
-                else { badge.classList.add('hidden'); }
-            }
-        }
-
-        function hayvanlariGoster() {
-            let hayvanlar = veritabani.hayvanlar || [];
-            if(hayvanlar.length === 0) { document.getElementById('hayvan-listesi').innerHTML = '<p>Kayıtlı hayvan bulunmuyor.</p>'; return; }
-            let html = '<table><tr><th>Küpe No</th><th>Cins</th><th>Tarih</th><th>Not</th><th>Sil</th></tr>';
-            hayvanlar.slice().reverse().forEach(h => {
-                html += `<tr><td><b>${h.kupe}</b></td><td>${h.cins}</td><td>${h.tarih}</td><td>${h.asi}</td><td><button class="btn-danger" style="padding:4px 6px;" onclick="hayvanSil(${h.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('hayvan-listesi').innerHTML = html;
-        }
-
-        function gelismisFinansGoster() {
-            let toplamAlacak = 0;
-            Object.values(veritabani.borclar || {}).forEach(b => {
-                if(b > 0) toplamAlacak += b;
-            });
-            let toplamCiro = 0, toplamTahsilat = 0;
-            (veritabani.islemler || []).forEach(i => {
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') toplamCiro += i.tutar;
-                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
-            });
-            let toplamGider = 0;
-            (veritabani.giderler || []).forEach(g => toplamGider += g.tutar);
-            let netKasa = toplamTahsilat - toplamGider;
-
-            document.getElementById('finans-ozet-alani').innerHTML = `
-                <div style="display:grid; grid-template-columns:1fr; gap:12px;">
-                    <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
-                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Müşteri Alacakları (Borçlar)</div>
-                        <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamAlacak.toFixed(2)} ₺</div>
-                    </div>
-                    <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
-                        <div style="font-size:13px; color:#166534; font-weight:bold;">Toplam Ciro (Satış & Hizmet)</div>
-                        <div style="font-size:24px; font-weight:bold; color:#166534;">${toplamCiro.toFixed(2)} ₺</div>
-                    </div>
-                    <div style="background:#eff6ff; padding:15px; border-radius:12px; border:1px solid #bfdbfe;">
-                        <div style="font-size:13px; color:#1e40af; font-weight:bold;">Toplam Tahsil Edilen Para</div>
-                        <div style="font-size:24px; font-weight:bold; color:#2563eb;">${toplamTahsilat.toFixed(2)} ₺</div>
-                    </div>
-                    <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
-                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Çiftlik Giderleri</div>
-                        <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamGider.toFixed(2)} ₺</div>
-                    </div>
-                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;">
-                        <div style="font-size:13px; color:#6b21a8; font-weight:bold;">Net Kasa Durumu (Tahsilat - Gider)</div>
-                        <div style="font-size:24px; font-weight:bold; color:${netKasa >= 0 ? '#7c3aed':'#dc2626'};">${netKasa.toFixed(2)} ₺</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function giderListesiniGoster() {
-            let giderler = veritabani.giderler || [];
-            if(giderler.length === 0) { document.getElementById('gider-listesi').innerHTML = '<p>Kayıtlı gider yok.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Tür</th><th>Not</th><th>Tutar</th><th>Sil</th></tr>';
-            giderler.slice().reverse().forEach(g => {
-                html += `<tr><td>${formatliTarihGoster(g.tarih)}</td><td><b>${g.tur}</b></td><td>${g.aciklama || '-'}</td><td style="color:#dc2626; font-weight:bold;">${g.tutar} ₺</td><td><button class="btn-danger" style="padding:4px 6px;" onclick="giderSil(${g.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('gider-listesi').innerHTML = html;
-        }
-
-        function silajBirimDegisti() {
-            let birim = document.getElementById('silaj-birim').value;
-            document.getElementById('silaj-miktar-label').innerText = `Miktar (${birim})`;
-            document.getElementById('silaj-fiyat-label').innerText = `Birim Fiyat (${birim} Fiyatı - TL)`;
-            silajToplamHesapla();
-        }
-
-        function silajToplamHesapla() {
-            let miktar = parseFloat(document.getElementById('silaj-miktar').value) || 0;
-            let fiyat = parseFloat(document.getElementById('silaj-fiyat').value) || 0;
-            let odenen = parseFloat(document.getElementById('silaj-odenen').value) || 0;
-            let toplam = miktar * fiyat;
-            let kalan = Math.max(0, toplam - odenen);
-            document.getElementById('silaj-toplam').innerHTML = `Toplam: <b>${toplam.toFixed(2)} ₺</b> | Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
-        }
-
-        function silajlariGoster() {
-            let liste = veritabani.silajlar || [];
-            if(liste.length === 0) { document.getElementById('silaj-listesi').innerHTML = '<p>Kayıtlı silaj alımı yok.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Sahibi</th><th>Miktar</th><th>Toplam</th><th>Not</th><th>Sil</th></tr>';
-            liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.sahip}</b></td><td>${Number(x.miktar).toFixed(2)} ${x.birim}</td><td>${Number(x.toplam).toFixed(2)} ₺</td><td>${x.not || '-'}</td><td><button class="btn-danger" onclick="silajSil(${x.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('silaj-listesi').innerHTML = html;
-        }
-
-        function tarlaBirimDegisti() {
-            let birim = document.getElementById('tarla-birim').value;
-            document.getElementById('tarla-miktar-label').innerText = `Miktar (${birim})`;
-            document.getElementById('tarla-fiyat-label').innerText = `Birim Fiyat (${birim} Fiyatı - TL)`;
-            tarlaToplamHesapla();
-        }
-
-        function tarlaToplamHesapla() {
-            let miktar = parseFloat(document.getElementById('tarla-miktar').value) || 0;
-            let fiyat = parseFloat(document.getElementById('tarla-fiyat').value) || 0;
-            let alinan = parseFloat(document.getElementById('tarla-alinan').value) || 0;
-            let toplam = miktar * fiyat;
-            let kalan = Math.max(0, toplam - alinan);
-            document.getElementById('tarla-toplam').innerHTML = `Biçim Ücreti: <b>${toplam.toFixed(2)} ₺</b> | Kalan: <b style="color:#dc2626;">${kalan.toFixed(2)} ₺</b>`;
-        }
-
-        function tarlalariGoster() {
-            let liste = veritabani.bicilenTarlalar || [];
-            if(liste.length === 0) { document.getElementById('tarla-listesi').innerHTML = '<p>Kayıtlı tarla biçimi yok.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Sahibi</th><th>Miktar</th><th>Ücret</th><th>Not</th><th>Sil</th></tr>';
-            liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.sahip}</b></td><td>${Number(x.miktar).toFixed(2)} ${x.birim}</td><td>${Number(x.toplam).toFixed(2)} ₺</td><td>${x.not || '-'}</td><td><button class="btn-danger" onclick="tarlaSil(${x.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('tarla-listesi').innerHTML = html;
-        }
-
-        function nakliyeleriGoster() {
-            let liste = veritabani.nakliyeler || [];
-            if(liste.length === 0) { document.getElementById('nakliye-listesi').innerHTML = '<p>Kayıt bulunmuyor.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Tür / Plaka</th><th>Güzergah</th><th>Adet</th><th>Tutar</th><th>Sil</th></tr>';
-            liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.tur}</b><br>${x.plaka}</td><td>${x.guzergah}</td><td>${x.adet || 1}</td><td style="color:#dc2626;font-weight:bold;">${x.tutar} ₺</td><td><button class="btn-danger" onclick="nakliyeSil(${x.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('nakliye-listesi').innerHTML = html;
-        }
-
-        function ozemTipDegisti() {
-            let tip = document.getElementById('ozem-islem-tipi').value;
-            if(tip === 'YemGelis') {
-                document.getElementById('ozem-yem-alanlari').classList.remove('hidden');
-                document.getElementById('ozem-odeme-alanlari').classList.add('hidden');
-            } else {
-                document.getElementById('ozem-yem-alanlari').classList.add('hidden');
-                document.getElementById('ozem-odeme-alanlari').classList.remove('hidden');
-            }
-        }
-
-        function ozemYemGoster() {
-            let liste = veritabani.ozemYemler || [];
-            let toplamBorc = 0;
-            let toplamOdenen = 0;
-            liste.forEach(x => {
-                toplamBorc += Number(x.tutar || 0);
-                toplamOdenen += Number(x.odenen || 0);
-            });
-            let netBakiye = toplamBorc - toplamOdenen;
-            document.getElementById('ozem-bakiye-tutar').innerText = netBakiye.toFixed(2) + " ₺";
-
-            if(liste.length === 0) { document.getElementById('ozem-listesi').innerHTML = '<p>Kayıt bulunmuyor.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>İşlem / Plaka</th><th>Detay</th><th>Yem Tutar</th><th>Gönderilen</th><th>Sil</th></tr>';
-            liste.slice().reverse().forEach(x => {
-                let baslik = x.tip === 'YemGelis' ? 'Yem Gelişi' : 'Para Gönderimi';
-                let kalemStr = x.kalemler ? x.kalemler.map(k => `• ${k.ad} (${k.tutar} ₺)`).join('<br>') : '-';
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${baslik}</b><br>${x.plaka || '-'}</td><td>${kalemStr}</td><td>${x.tutar ? x.tutar + ' ₺' : '-'}</td><td>${x.odenen ? x.odenen + ' ₺' : '-'}</td><td><button class="btn-danger" onclick="ozemSil(${x.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            document.getElementById('ozem-listesi').innerHTML = html;
-        }
-
-        function borclariListele() {
-            let arama = (document.getElementById('borc-arama')?.value || '').toLowerCase();
-            let borclar = veritabani.borclar || {};
-            let kisiler = Object.keys(borclar).filter(k => k.toLowerCase().includes(arama));
+            // Tedarikçiye olan net borç (+) eklenir.
+            veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) + netBorcumuz;
             
-            let konteynir = document.getElementById('borc-detay-listesi');
-            if(kisiler.length === 0) { konteynir.innerHTML = '<p>Kayıtlı borç / cari bulunamadı.</p>'; return; }
+            let islemId = Date.now();
+            veritabani.islemler.push({ 
+                id: islemId, 
+                tarih: v.tarih, 
+                tip: 'Silaj Alımı', 
+                musteri: v.sahip, 
+                kalemler: [{ tur: `Silaj (${v.birim})`, miktar: v.miktar, fiyat: v.fiyat, tutar: v.toplam }], 
+                tutar: v.toplam, 
+                aciklama: `Silaj Alımı (${v.tarla || ''}) - ${v.not || ''}` 
+            });
 
-            let html = '';
-            kisiler.forEach(kisi => {
-                let bakiye = borclar[kisi];
-                let bakiyeMetni = bakiye > 0 ? `<span style="color:#dc2626; font-weight:bold;">${bakiye.toFixed(2)} ₺ (Borçlu)</span>` : (bakiye < 0 ? `<span style="color:#166534; font-weight:bold;">${Math.abs(bakiye).toFixed(2)} ₺ (Alacaklı)</span>` : '<span style="color:#666;">0.00 ₺ (Kapalı)</span>');
-
-                let kisiIslemleri = (veritabani.islemler || []).filter(i => i.musteri === kisi);
-                let hareketHTML = '';
-                kisiIslemleri.slice().reverse().forEach(i => {
-                    let detay = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : i.aciklama;
-                    hareketHTML += `<div style="font-size:11px; padding:4px 0; border-bottom:1px dashed #eee; display:flex; justify-content:space-between;">
-                        <span>${formatliTarihGoster(i.tarih)} - <b>${i.tip}</b> (${detay})</span>
-                        <span style="font-weight:bold;">${i.tutar} ₺ <button class="btn-danger" style="padding:1px 4px; font-size:10px; margin-left:5px;" onclick="islemSil(${i.id})">X</button></span>
-                    </div>`;
+            if(odenenTutar > 0) {
+                veritabani.islemler.push({ 
+                    id: islemId + 1, 
+                    tarih: v.tarih, 
+                    tip: 'Ödeme Yapıldı', 
+                    musteri: v.sahip, 
+                    kalemler: [], 
+                    tutar: odenenTutar, 
+                    aciklama: 'Silaj Peşinatı / Yapılan Ödeme' 
                 });
-
-                html += `<div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin-bottom:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <div><b style="font-size:15px;">${kisi}</b><br><span style="font-size:12px;">Bakiye: ${bakiyeMetni}</span></div>
-                        <button class="btn-secondary" onclick="fisHazirla('${kisi}')">📄 Fiş / Özet</button>
-                    </div>
-                    <div style="background:#f9fafb; padding:8px; border-radius:8px; max-height:150px; overflow-y:auto;">
-                        ${hareketHTML || '<span style="font-size:11px; color:#999;">Hareket kaydı yok.</span>'}
-                    </div>
-                </div>`;
-            });
-            konteynir.innerHTML = html;
-        }
-
-        function stoklariGoster() {
-            let stoklar = veritabani.stoklar || {};
-            let kritik = veritabani.kritikStok || {};
-            let keys = Object.keys(stoklar);
-            let konteynir = document.getElementById('stok-listesi');
-            if(keys.length === 0) { konteynir.innerHTML = '<p>Stokta ürün bulunmuyor.</p>'; return; }
-
-            let html = '<table><tr><th>Ürün</th><th>Mevcut Miktar</th><th>Kritik Sınır</th><th>Durum</th></tr>';
-            keys.forEach(k => {
-                let miktar = stoklar[k];
-                let ks = kritik[k] || 0;
-                let durum = (ks > 0 && miktar <= ks) ? '<span style="color:#dc2626; font-weight:bold;">⚠️ Kritik!</span>' : '<span style="color:#166534;">✅ Normal</span>';
-                html += `<tr><td><b>${k}</b></td><td>${miktar} Adet</td><td>${ks ? ks + ' Adet' : '-'}</td><td>${durum}</td></tr>`;
-            });
-            html += '</table>';
-            konteynir.innerHTML = html;
-        }
-
-        function musterileriGoster() {
-            let borclar = veritabani.borclar || {};
-            let keys = Object.keys(borclar);
-            let konteynir = document.getElementById('musteri-listesi');
-            if(keys.length === 0) { konteynir.innerHTML = '<p>Kayıtlı müşteri yok.</p>'; return; }
-
-            let html = '';
-            keys.forEach(kisi => {
-                let bakiye = borclar[kisi];
-                let mesaj = encodeURIComponent(`Sayın ${kisi}, Demirkapi Çiftliği güncel hesap bakiyeniz: ${bakiye.toFixed(2)} TL'dir.`);
-                let wpLink = `https://wa.me/?text=${mesaj}`;
-
-                html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;">
-                    <div><b>${kisi}</b><br><span style="font-size:12px; color:#666;">Bakiye: ${bakiye.toFixed(2)} ₺</span></div>
-                    <div style="display:flex; gap:5px;">
-                        <a href="${wpLink}" target="_blank" style="background:#25D366; color:white; text-decoration:none; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:bold;">💬 WhatsApp</a>
-                        <button class="btn-danger" style="padding:6px 8px;" onclick="musteriSil('${kisi}')">Sil</button>
-                    </div>
-                </div>`;
-            });
-            konteynir.innerHTML = html;
-        }
-
-        function gunlukRaporuGoster() {
-            let secilenTarih = document.getElementById('rapor-tarih').value;
-            if(!secilenTarih) return;
-
-            let gunlukIslemler = (veritabani.islemler || []).filter(i => i.tarih && i.tarih.startsWith(secilenTarih));
-            let toplamSatis = 0, toplamTahsilat = 0;
-            let html = '<table><tr><th>Saat</th><th>Tür</th><th>Müşteri</th><th>Detay</th><th>Tutar</th></tr>';
-
-            gunlukIslemler.forEach(i => {
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') toplamSatis += i.tutar;
-                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
-
-                let saat = i.tarih ? i.tarih.split('T')[1] || '' : '';
-                let detay = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : i.aciklama;
-                html += `<tr><td>${saat}</td><td><b>${i.tip}</b></td><td>${i.musteri}</td><td>${detay}</td><td>${i.tutar} ₺</td></tr>`;
-            });
-            html += '</table>';
-
-            document.getElementById('rapor-ozet').innerHTML = `
-                <div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:10px; font-weight:bold; color:#166534;">
-                    Toplam Ciro/Satış: ${toplamSatis.toFixed(2)} ₺ | Toplam Tahsilat: ${toplamTahsilat.toFixed(2)} ₺
-                </div>
-            `;
-            document.getElementById('rapor-detay').innerHTML = gunlukIslemler.length > 0 ? html : '<p>Bu tarihte işlem yapılmamış.</p>';
-        }
-
-        function aylikRaporuGoster() {
-            let secilenAy = document.getElementById('aylik-tarih').value;
-            if(!secilenAy) return;
-
-            let aylikIslemler = (veritabani.islemler || []).filter(i => i.tarih && i.tarih.startsWith(secilenAy));
-            let aylikGiderler = (veritabani.giderler || []).filter(g => g.tarih && g.tarih.startsWith(secilenAy));
-
-            let toplamCiro = 0, toplamTahsilat = 0, toplamGider = 0;
-            aylikIslemler.forEach(i => {
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') toplamCiro += i.tutar;
-                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
-            });
-            aylikGiderler.forEach(g => toplamGider += g.tutar);
-
-            let netKar = toplamCiro - toplamGider;
-
-            document.getElementById('aylik-ozet-alani').innerHTML = `
-                <div style="display:grid; grid-template-columns:1fr; gap:10px;">
-                    <div style="background:#f0fdf4; padding:12px; border-radius:10px; font-weight:bold; color:#166534;">Aylık Toplam Ciro: ${toplamCiro.toFixed(2)} ₺</div>
-                    <div style="background:#eff6ff; padding:12px; border-radius:10px; font-weight:bold; color:#1e40af;">Aylık Toplam Tahsilat: ${toplamTahsilat.toFixed(2)} ₺</div>
-                    <div style="background:#fef2f2; padding:12px; border-radius:10px; font-weight:bold; color:#991b1b;">Aylık Toplam Gider: ${toplamGider.toFixed(2)} ₺</div>
-                    <div style="background:#faf5ff; padding:12px; border-radius:10px; font-weight:bold; color:#6b21a8; font-size:16px;">
-                        Aylık Tahmini Kâr (Ciro - Gider): ${(netKar).toFixed(2)} ₺
-                    </div>
-                </div>
-            `;
-        }
-
-        function gecmisiGoster() {
-            let liste = veritabani.islemler || [];
-            let konteynir = document.getElementById('gecmis-listesi');
-            if(liste.length === 0) { konteynir.innerHTML = '<p>Henüz işlem yapılmadı.</p>'; return; }
-
-            let html = '<table><tr><th>Tarih</th><th>İşlem</th><th>Kişi</th><th>Detay</th><th>Tutar</th><th>Sil</th></tr>';
-            liste.slice().reverse().forEach(i => {
-                let detay = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : i.aciklama;
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td><b>${i.tip}</b></td><td>${i.musteri}</td><td>${detay}</td><td>${i.tutar} ₺</td><td><button class="btn-danger" style="padding:2px 6px;" onclick="islemSil(${i.id})">Sil</button></td></tr>`;
-            });
-            html += '</table>';
-            konteynir.innerHTML = html;
-        }
-
-        let aktifFisMusteri = '';
-        function fisHazirla(musteriAdi) {
-            aktifFisMusteri = musteriAdi;
-            let borc = (veritabani.borclar || {})[musteriAdi] || 0;
-            let islemler = (veritabani.islemler || []).filter(i => i.musteri === musteriAdi);
-
-            let bugun = new Date().toLocaleDateString('tr-TR');
-            let html = `
-                <div style="text-align:center; margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:10px;">
-                    <h2 style="margin:0; font-size:18px;">DEMİRKAPI ÇİFTLİĞİ</h2>
-                    <p style="margin:4px 0; font-size:12px;">Müşteri Hesap Ekstresi</p>
-                    <p style="margin:0; font-size:11px; color:#666;">Tarih: ${bugun}</p>
-                </div>
-                <div style="margin-bottom:15px; font-size:13px;">
-                    <b>Müşteri:</b> ${musteriAdi}<br>
-                    <b>Güncel Bakiye:</b> <span style="font-size:16px; font-weight:bold; color:${borc > 0 ? '#dc2626':'#166534'};">${borc.toFixed(2)} TL</span>
-                </div>
-                <div style="font-size:11px; font-weight:bold; border-bottom:1px solid #000; padding-bottom:4px; margin-bottom:6px; display:flex; justify-content:space-between;">
-                    <span>Tarih / İşlem</span>
-                    <span>Tutar</span>
-                </div>
-            `;
-
-            islemler.forEach(i => {
-                let detay = i.kalemler && i.kalemler.length > 0 ? i.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ') : i.aciklama;
-                html += `
-                    <div style="font-size:11px; margin-bottom:6px; border-bottom:1px dashed #eee; padding-bottom:4px; display:flex; justify-content:space-between;">
-                        <div>
-                            <b>${formatliTarihGoster(i.tarih)}</b> - ${i.tip}<br>
-                            <span style="color:#555;">${detay}</span>
-                        </div>
-                        <div style="font-weight:bold; white-space:nowrap;">${i.tutar.toFixed(2)} TL</div>
-                    </div>
-                `;
-            });
-
-            html += `
-                <div style="text-align:center; margin-top:20px; font-size:11px; color:#666; border-top:1px dashed #ccc; padding-top:10px;">
-                    Bizi tercih ettiğiniz için teşekkür ederiz!<br>Demirkapı Çiftliği - Sakarya
-                </div>
-            `;
-
-            document.getElementById('fis-alani').innerHTML = html;
-            openScreen('fis');
-        }
-
-        function fisYazdir() {
-            let icerik = document.getElementById('fis-alani').innerHTML;
-            let pencere = window.open('', '', 'width=600,height=600');
-            pencere.document.write('html><head><title>Fiş Yazdır</title><style>body{font-family:monospace; padding:20px;}</style></head><body>');
-            pencere.document.write(icerik);
-            pencere.document.write('</body></html>');
-            pencere.document.close();
-            pencere.focus();
-            pencere.print();
-            pencere.close();
-        }
-
-        function fisPdfIndir() {
-            let el = document.getElementById('fis-alani');
-            let opt = {
-                margin:       10,
-                filename:     `Demirkapi_Ciftligi_${aktifFisMusteri}_Ekstre.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(el).save();
-        }
-
-        function verileriDisaAktar() {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
-            let downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Demirkapi_Ciftligi_Yedek_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function verileriIceAktar() {
-            let fileInput = document.getElementById('yedek-dosya-input');
-            let file = fileInput.files[0];
-            if(!file) { alert('Lütfen bir yedek dosyası (.json) seçin.'); return; }
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    let importedData = JSON.parse(e.target.result);
-                    if(confirm('Mevcut veriler silinecek ve yedekteki veriler yüklenecek. Onaylıyor musunuz?')) {
-                        veritabani = importedData;
-                        kaydetVeri();
-                        alert('Veriler başarıyla yüklendi!');
-                        goHome();
-                    }
-                } catch(err) {
-                    alert('Geçersiz yedek dosyası!');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function sesliDinlemeyiBaslat() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Tarayıcınız sesli tanımayı desteklemiyor.");
-                return;
             }
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'tr-TR';
-            recognition.interimResults = false;
 
-            document.getElementById('sesli-durum').innerText = "Dinleniyor... Konuşun";
-            document.getElementById('mic-icon').innerText = "🎙️⚡";
+        } else if(talep.tip === 'Tarla') {
+            if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
+            let alinanTutar = parseFloat(v.alinan) || 0;
+            let netAlacagimiz = v.toplam - alinanTutar;
 
-            recognition.start();
+            veritabani.bicilenTarlalar.push({ 
+                id: Date.now(), tarih: v.tarih, sahip: v.sahip, konum: v.konum, 
+                birim: v.birim, miktar: parseFloat(v.miktar), fiyat: parseFloat(v.fiyat), 
+                toplam: v.toplam, alinan: alinanTutar, kalan: v.kalan, not: v.not 
+            });
 
-            recognition.onresult = function(event) {
-                const metin = event.results[0][0].transcript;
-                document.getElementById('sesli-sonuc').innerText = 'Algılanan: "' + metin + '"';
-                document.getElementById('sesli-durum').innerText = "İşleniyor...";
-                document.getElementById('mic-icon').innerText = "🎤";
+            // Müşteriden alacağımız net tutar cari hesaba eklenir.
+            veritabani.borclar[v.sahip] = (veritabani.borclar[v.sahip] || 0) + netAlacagimiz;
 
-                sesliKomutIsle(metin);
-            };
+            let islemId = Date.now();
+            veritabani.islemler.push({ 
+                id: islemId, 
+                tarih: v.tarih, 
+                tip: 'Tarla Biçimi', 
+                musteri: v.sahip, 
+                kalemler: [{ tur: `Tarla Biçimi (${v.birim})`, miktar: v.miktar, fiyat: v.fiyat, tutar: v.toplam }], 
+                tutar: v.toplam, 
+                aciklama: `Tarla Biçimi (${v.konum || ''}) - ${v.not || ''}` 
+            });
 
-            recognition.onerror = function() {
-                document.getElementById('sesli-durum').innerText = "Ses anlaşılamadı. Tekrar deneyin.";
-                document.getElementById('mic-icon').innerText = "🎤";
-            };
-        }
-
-        function sesliKomutIsle(metin) {
-            let m = metin.toLowerCase();
-            let sayilar = m.match(/\d+/g);
-            let tutar = sayilar ? parseFloat(sayilar[0]) : 0;
-
-            if(m.includes('tahsilat') || m.includes('para aldım') || m.includes('ödedi')) {
-                let kelimeler = m.split(' ');
-                let isim = kelimeler[0]; 
-                if(isim && tutar > 0) {
-                    let veri = { tarih: simdikiTarihInputFormat(), musteri: isim.charAt(0).toUpperCase() + isim.slice(1), tutar: tutar, aciklama: 'Sesli Komut ile Ekledi' };
-                    talepGonder('Tahsilat', veri);
-                    return;
-                }
+            if(alinanTutar > 0) {
+                veritabani.islemler.push({ 
+                    id: islemId + 1, 
+                    tarih: v.tarih, 
+                    tip: 'Tahsilat', 
+                    musteri: v.sahip, 
+                    kalemler: [], 
+                    tutar: alinanTutar, 
+                    aciklama: 'Tarla Biçim Peşinatı / Alınan' 
+                });
             }
-            alert("Komut anlaşılamadı veya eksik bilgi (İsim/Tutar) içeriyor. Örn: 'Ahmet'ten 5000 lira tahsilat aldım'");
+
+        } else if(talep.tip === 'Nakliye') {
+            if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
+            veritabani.nakliyeler.push({ 
+                id: Date.now(), tarih: v.tarih, tur: v.tur, musteri: v.musteri, 
+                plaka: v.plaka, guzergah: v.guzergah, adet: v.adet || 1, 
+                tutar: parseFloat(v.tutar), not: v.not 
+            });
+
+            if(v.musteri) {
+                veritabani.borclar[v.musteri] = (veritabani.borclar[v.musteri] || 0) + parseFloat(v.tutar);
+                veritabani.islemler.push({ 
+                    id: Date.now(), 
+                    tarih: v.tarih, 
+                    tip: v.tur, 
+                    musteri: v.musteri, 
+                    kalemler: [{ tur: `${v.tur} (${v.plaka})`, miktar: v.adet, fiyat: v.fiyat, tutar: v.tutar }], 
+                    tutar: parseFloat(v.tutar), 
+                    aciklama: `${v.guzergah || ''} - ${v.not || ''}` 
+                });
+            }
         }
-    </script>
+
+        veritabani.bekleyenler.splice(index, 1);
+        kaydetVeri();
+        alert('İşlem başarıyla onaylandı ve carilere işlendi.');
+    }
+
+    // İşlem İptal / Silme Mantığı
+    function islemSil(islemId) {
+        let index = veritabani.islemler.findIndex(i => i.id === islemId);
+        if(index === -1) return;
+
+        let islem = veritabani.islemler[index];
+
+        if(islem.tip === 'Tarla Biçimi' || islem.tip === 'Nakliye' || islem.tip === 'Top Taşıma') {
+            if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
+        } else if(islem.tip === 'Silaj Alımı') {
+            if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
+        } else if(islem.tip === 'Ödeme Yapıldı') {
+            if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
+        } else if(islem.tip === 'Tahsilat') {
+            if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
+        }
+
+        veritabani.islemler.splice(index, 1);
+        kaydetVeri();
+        alert('İşlem silindi ve cari bakiyesi güncellendi.');
+    }
+</script>
+
 </body>
 </html>
