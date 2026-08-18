@@ -386,26 +386,28 @@
         </div>
 
         <!-- FİŞ EKRANI -->
-        <div id="screen-fis" class="hidden">
-            <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
-            <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
-            <div class="card">
-                <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
-                <div style="display: flex; gap: 10px; flex-direction: column;">
-                    <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
-                    <button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
-                </div>
-            </div>
+<div id="screen-fis" class="hidden">
+    <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
+    <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
+    
+    <!-- YENİ: Filtre Seçenekleri -->
+    <div style="background:#f8fafc; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #cbd5e1;">
+        <label style="font-weight:bold; display:block; margin-bottom:8px; font-size:14px;">Gösterim Seçeneği:</label>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-filtre-hepsi" class="btn-secondary" style="flex:1; margin:0; padding:8px;" onclick="fisFiltrele('hepsi')">Tüm Geçmiş</button>
+            <button id="btn-filtre-borc" class="btn-primary" style="flex:1; margin:0; padding:8px;" onclick="fisFiltrele('borc')">Sadece Alınanlar (Borçlar)</button>
         </div>
     </div>
 
-    <!-- Sabit Alt Navigasyon Çubuğu -->
-    <div class="bottom-nav">
-        <button class="nav-item active" onclick="goHome()" id="nav-anasayfa"><span class="nav-icon">🏠</span><span>Ana Sayfa</span></button>
-        <button class="nav-item" onclick="openScreen('satis')" id="nav-satis"><span class="nav-icon">🛒</span><span>Satış</span></button>
-        <button class="nav-item" onclick="openScreen('onay')" id="nav-onay"><span class="nav-icon">🔔</span><span>Onay</span></button>
-        <button class="nav-item" onclick="openScreen('borc')" id="nav-borc"><span class="nav-icon">📒</span><span>Borçlar</span></button>
+    <div class="card">
+        <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
+        <div style="display: flex; gap: 10px; flex-direction: column;">
+            <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
+            <button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
+        </div>
     </div>
+</div>
+
 
     <script>
         const firebaseConfig = {
@@ -438,19 +440,28 @@
                 if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
             }
-                    // --- FİŞ VE YAZDIRMA FONKSİYONLARI ---
+               // --- FİŞ, FİLTRE VE YAZDIRMA FONKSİYONLARI ---
+        let aktifFisMusteri = "";
+        let aktifFisFiltre = "hepsi"; 
 
-        function musteriOzetFisGoster(musteriAdi) {
-            // Önce fiş ekranını açıyoruz
-            openScreen('fis'); 
-            
-            // Veritabanından müşterinin güncel borcunu alıyoruz
+        function musteriOzetFisGoster(musteriAdi, filtreTipi = 'hepsi') {
+            aktifFisMusteri = musteriAdi;
+            aktifFisFiltre = filtreTipi;
+            openScreen('fis');
+
+            // Buton renklerini ayarla
+            if(document.getElementById('btn-filtre-hepsi')) {
+                document.getElementById('btn-filtre-hepsi').className = (filtreTipi === 'hepsi') ? 'btn-primary' : 'btn-secondary';
+                document.getElementById('btn-filtre-borc').className = (filtreTipi === 'borc') ? 'btn-primary' : 'btn-secondary';
+            }
+
             let bakiye = veritabani.borclar[musteriAdi] || 0;
             let bugun = new Date().toLocaleDateString('tr-TR');
 
-            // Fişin HTML şablonunu oluşturuyoruz
+            // LOGO LİNKİ BURADA: "logo.png" yazan yere kendi logonun linkini veya adını yazabilirsin.
             let html = `
                 <div style="text-align:center; margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:10px;">
+                    <img src="logo.png" alt="Logo" onerror="this.style.display='none'" style="max-height:60px; margin-bottom:5px;" />
                     <h2 style="margin:0; font-size:18px;">DEMİRKAPI ÇİFTLİĞİ</h2>
                     <div style="font-size:12px; color:#555;">Müşteri Hesap Özet Fişi</div>
                     <div style="font-size:11px; color:#777; margin-top:4px;">Tarih: ${bugun}</div>
@@ -459,59 +470,103 @@
                 <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:15px;">
                     <thead>
                         <tr style="border-bottom:1px solid #000; text-align:left;">
-                            <th>Tarih</th>
-                            <th>İşlem / Detay</th>
-                            <th style="text-align:right;">Tutar</th>
+                            <th style="padding-bottom:5px;">Tarih</th>
+                            <th style="padding-bottom:5px;">Ürün</th>
+                            <th style="padding-bottom:5px; text-align:center;">Miktar x Birim</th>
+                            <th style="text-align:right; padding-bottom:5px;">Tutar</th>
                         </tr>
                     </thead>
                     <tbody>`;
 
-            // Müşterinin geçmiş işlemlerini filtreleyip fişe ekliyoruz
+            // Müşterinin işlemlerini filtrele
             let musteriIslemleri = (veritabani.islemler || []).filter(i => i.musteri === musteriAdi);
+
+            // Eğer "Sadece Alınanlar" seçiliyse, Tahsilat (Ödeme) kayıtlarını gizle
+            if (aktifFisFiltre === 'borc') {
+                musteriIslemleri = musteriIslemleri.filter(i => i.tip !== 'Tahsilat' && i.tip !== 'Ödeme');
+            }
+
             musteriIslemleri.forEach(islem => {
-                let detay = islem.tip || '-';
                 if(islem.kalemler && islem.kalemler.length > 0) {
-                    detay = islem.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ');
-                }
-                html += `
-                    <tr style="border-bottom:1px solid #eee;">
-                        <td>${islem.tarih ? islem.tarih.slice(0,10) : ''}</td>
-                        <td>${detay}</td>
-                        <td style="text-align:right;">${islem.tutar ? parseFloat(islem.tutar).toFixed(2) : '0.00'} ₺</td>
+                    islem.kalemler.forEach((k, index) => {
+                        let islemTarihi = (index === 0 && islem.tarih) ? islem.tarih.slice(0,10) : '';
+                        let birimFiyat = parseFloat(k.fiyat).toFixed(2);
+                        let miktar = k.miktar;
+                        let satirTutari = (miktar * parseFloat(k.fiyat)).toFixed(2);
+                        
+                        html += `
+                        <tr style="border-bottom:1px dotted #eee;">
+                            <td style="padding:4px 0; vertical-align:top;">${islemTarihi}</td>
+                            <td style="padding:4px 0; vertical-align:top;">${k.tur}</td>
+                            <td style="padding:4px 0; text-align:center; vertical-align:top;">${miktar} x ${birimFiyat}₺</td>
+                            <td style="text-align:right; padding:4px 0; vertical-align:top;">${satirTutari} ₺</td>
+                        </tr>`;
+                    });
+                } else {
+                    let tutarGosterim = parseFloat(islem.tutar).toFixed(2);
+                    let renk = (islem.tip === 'Tahsilat') ? 'color: #16a34a;' : '';
+                    let isaret = (islem.tip === 'Tahsilat') ? '-' : '';
+                    
+                    html += `
+                    <tr style="border-bottom:1px dotted #eee; ${renk}">
+                        <td style="padding:4px 0;">${islem.tarih ? islem.tarih.slice(0,10) : ''}</td>
+                        <td style="padding:4px 0;" colspan="2">${islem.tip} ${islem.aciklama ? `(${islem.aciklama})` : ''}</td>
+                        <td style="text-align:right; padding:4px 0;">${isaret}${tutarGosterim} ₺</td>
                     </tr>`;
+                }
             });
 
             html += `
                     </tbody>
                 </table>
                 <div style="border-top:2px solid #000; padding-top:8px; text-align:right; font-size:14px;">
-                    <b>Güncel Bakiye: ${bakiye.toFixed(2)} ₺</b>
-                </div>
+                    <b>Güncel Bakiye (Kalan Borç): <span style="font-size:16px;">${bakiye.toFixed(2)} ₺</span></b>
+                </div>`;
+
+            if(aktifFisFiltre === 'borc') {
+                html += `<div style="text-align:right; font-size:9px; color:#64748b; margin-top:5px;">* Sadece alınan ürünler listelenmiştir. Yapılan ara ödemeler güncel bakiyeden düşülmüştür.</div>`;
+            }
+
+            html += `
                 <div style="text-align:center; margin-top:20px; font-size:10px; color:#777;">
                     Bizi tercih ettiğiniz için teşekkür ederiz.
                 </div>`;
 
-            // Oluşturulan fişi ekrana basıyoruz
             document.getElementById('fis-alani').innerHTML = html;
+        }
+
+        function fisFiltrele(filtreTipi) {
+            if(aktifFisMusteri !== "") {
+                musteriOzetFisGoster(aktifFisMusteri, filtreTipi);
+            }
         }
 
         function fisYazdir() {
             let icerik = document.getElementById('fis-alani').innerHTML;
             let pencere = window.open('', '', 'height=600,width=400');
-            pencere.document.write('<html><head><title>Fiş Yazdır</title><style>body{font-family:monospace; padding:20px;}</style></head><body>');
+            pencere.document.write('<html><head><title>Fiş Yazdır</title><style>body{font-family:monospace; padding:20px;} table{width:100%;}</style></head><body>');
             pencere.document.write(icerik);
             pencere.document.write('</body></html>');
             pencere.document.close();
             pencere.focus();
-            pencere.print();
-            pencere.close();
+            setTimeout(function() {
+                pencere.print();
+                pencere.close();
+            }, 500);
         }
 
         function fisPdfIndir() {
-            if (typeof html2pdf === 'undefined') {
-                alert("PDF indirme kütüphanesi bulunamadı! Lütfen HTML dosyanızın <head> kısmına html2pdf kütüphanesini eklediğinizden emin olun.");
-                return;
-            }
+            let eleman = document.getElementById('fis-alani');
+            let opt = {
+                margin:       10,
+                filename:     'Demirkapi_Hesap_Ozeti.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(eleman).save();
+        }
+
             
             let eleman = document.getElementById('fis-alani');
             let opt = {
