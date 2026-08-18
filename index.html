@@ -664,7 +664,6 @@
             goHome();
         }
 
-        // Nakliye ve Top Taşıma İşlemi
         function nakliyeToplamHesapla() {
             let adet = parseFloat(document.getElementById('nak-adet').value) || 0;
             let fiyat = parseFloat(document.getElementById('nak-birim-fiyat').value) || 0;
@@ -692,7 +691,6 @@
             goHome();
         }
 
-        // Özlem Yem Çoklu Ürün Desteği
         function ozemUrunSatiriEkle() {
             let konteynir = document.getElementById('ozem-urunler-konteynir');
             let div = document.createElement('div');
@@ -767,7 +765,8 @@
                 let detayHTML = '';
                 if(talep.tip === 'Satış') {
                     let toplam = v.kalemler.reduce((a,b)=>a+b.tutar,0);
-                    detayHTML = `<b>Satış Talebi</b> - Müşteri: <b>${v.musteri}</b><br>Toplam: ${toplam} ₺ | Peşin: ${v.pesinTutar} ₺<br>Not: ${v.not || '-'}`;
+                    let kalemlerStr = v.kalemler.map(k => `• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar} ₺`).join('<br>');
+                    detayHTML = `<b>Satış Talebi</b> - Müşteri: <b>${v.musteri}</b><br>${kalemlerStr}<br><b>Toplam:</b> ${toplam} ₺ | Peşin: ${v.pesinTutar} ₺<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'StokEkle') {
                     detayHTML = `<b>Stok Ekleme</b> - Ürün: <b>${v.urun}</b>, Miktar: ${v.miktar} Adet<br>Not: ${v.not || '-'}`;
                 } else if(talep.tip === 'Tahsilat') {
@@ -1384,7 +1383,20 @@
                 html += 'Kayıtlı hareket bulunamadı.<br>';
             } else {
                 islemler.forEach(i => {
-                    html += `${formatliTarihGoster(i.tarih)} - ${i.tip}<br>Tutar: ${i.tutar.toFixed(2)} ₺ (${i.aciklama || '-'})<br>--------------------------------<br>`;
+                    html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
+                    
+                    // Eğer bu işlem bir Satış ise ürün detaylarını, adetini ve birim fiyatını ekle
+                    if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
+                        i.kalemler.forEach(k => {
+                            html += `&nbsp;&nbsp;• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar.toFixed(2)} ₺<br>`;
+                        });
+                    }
+
+                    html += `<b>Toplam Tutar:</b> ${i.tutar.toFixed(2)} ₺`;
+                    if(i.aciklama) {
+                        html += `<br><span style="font-size:11px; color:#555;">Not: ${i.aciklama}</span>`;
+                    }
+                    html += `<br>--------------------------------<br>`;
                 });
             }
 
