@@ -1202,21 +1202,29 @@
 
         function sesliKomutuIsle(metin) {
             let mKucuk = metin.toLocaleLowerCase('tr-TR');
-            if(mKucuk.includes('tahsilat') || mKucuk.includes('aldım')) {
-                let rakamlar = metin.match(/\d+/g);
-                if(!rakamlar) { alert('Tutar bulunamadı.'); return; }
-                let tutar = parseFloat(rakamlar[rakamlar.length - 1]);
-                let musteriAdi = metin.split(' ')[0];
-                musteriAdi = musteriAdi.charAt(0).toUpperCase() + musteriAdi.slice(1);
-                
+            let rakamlar = metin.match(/\d+/g);
+            let tutar = rakamlar ? parseFloat(rakamlar[rakamlar.length - 1]) : 0;
+            let kelimeler = metin.split(' ');
+            let musteriAdi = kelimeler[0] ? kelimeler[0].charAt(0).toUpperCase() + kelimeler[0].slice(1) : "Bilinmeyen";
+
+            if (mKucuk.includes('tahsilat') || mKucuk.includes('aldım') || mKucuk.includes('ödeme aldım')) {
+                if (tutar <= 0) { alert('Tutar anlaşılamadı.'); return; }
                 talepGonder('Tahsilat', {
                     tarih: simdikiTarihInputFormat(),
                     musteri: musteriAdi,
                     tutar: tutar,
-                    aciklama: 'Sesli Komut İle Ekledi: ' + metin
+                    aciklama: 'Sesli Komut: ' + metin
+                });
+            } else if (mKucuk.includes('gider') || mKucuk.includes('harcama') || mKucuk.includes('masraf')) {
+                if (tutar <= 0) { alert('Tutar anlaşılamadı.'); return; }
+                talepGonder('Gider', {
+                    tarih: simdikiTarihInputFormat(),
+                    tur: 'Sesli Gider',
+                    tutar: tutar,
+                    aciklama: metin
                 });
             } else {
-                alert('Komut anlaşılamadı. Örn: "Ahmet 5000 lira tahsilat aldım" diyebilirsiniz.');
+                alert('Komut anlaşılamadı. Lütfen tekrar deneyin.');
             }
         }
 
@@ -1224,13 +1232,13 @@
             let stoklar = veritabani.stoklar || {};
             let kritik = veritabani.kritikStok || {};
             let keys = Object.keys(stoklar);
-            if(keys.length === 0) { document.getElementById('stok-listesi').innerHTML = '<p>Stokta ürün yok.</p>'; return; }
-            let html = '<table><tr><th>Ürün</th><th>Mevcut Stok</th><th>Kritik Sınır</th><th>Durum</th></tr>';
+            if(keys.length === 0) { document.getElementById('stok-listesi').innerHTML = '<p>Stokta ürün bulunmuyor.</p>'; return; }
+            let html = '<table><tr><th>Ürün</th><th>Mevcut Miktar</th><th>Kritik Sınır</th><th>Durum</th></tr>';
             keys.forEach(k => {
-                let m = stoklar[k];
+                let miktar = stoklar[k];
                 let kr = kritik[k] || 0;
-                let uyari = (kr > 0 && m <= kr) ? '<span style="color:#ef4444;font-weight:bold;">⚠️ Kritik!</span>' : '<span style="color:#166534;">Normal</span>';
-                html += `<tr><td><b>${k}</b></td><td>${m} Adet</td><td>${kr} Adet</td><td>${uyari}</td></tr>`;
+                let krDurum = (kr > 0 && miktar <= kr) ? '<span style="color:#ef4444;font-weight:bold;">⚠️ Kritik</span>' : '<span style="color:#166534;">Normal</span>';
+                html += `<tr><td><b>${k}</b></td><td>${miktar} Adet</td><td>${kr > 0 ? kr + ' Adet' : '-'}</td><td>${krDurum}</td></tr>`;
             });
             html += '</table>';
             document.getElementById('stok-listesi').innerHTML = html;
@@ -1239,185 +1247,199 @@
         function borclariListele() {
             let arama = (document.getElementById('borc-arama')?.value || '').toLocaleLowerCase('tr-TR');
             let borclar = veritabani.borclar || {};
-            let keys = Object.keys(borclar);
-            let konteynir = document.getElementById('borc-detay-listesi');
+            let keys = Object.keys(borclar).filter(k => k.toLocaleLowerCase('tr-TR').includes(arama));
             
-            if(keys.length === 0) { konteynir.innerHTML = '<p>Kayıtlı borç/alacak yok.</p>'; return; }
+            if(keys.length === 0) {
+                document.getElementById('borc-detay-listesi').innerHTML = '<p>Kayıtlı borç / müşteri bulunamadı.</p>';
+                return;
+            }
 
             let html = '';
             keys.forEach(k => {
-                if(arama && !k.toLocaleLowerCase('tr-TR').includes(arama)) return;
-                let b = borclar[k];
-                let durumMetni = b > 0 ? `<span style="color:#dc2626;font-weight:bold;">${b.toFixed(2)} ₺ (Alacaklıyız)</span>` : 
-                                 (b < 0 ? `<span style="color:#166534;font-weight:bold;">${Math.abs(b).toFixed(2)} ₺ (Borçluyuz)</span>` : '0.00 ₺ (Bakiye Yok)');
-
+                let bakiye = borclar[k];
+                let durumMetni = bakiye > 0 ? `<span style="color:#dc2626;font-weight:bold;">Borcu Var: ${bakiye.toFixed(2)} ₺</span>` : 
+                                 bakiye < 0 ? `<span style="color:#166534;font-weight:bold;">Alacaklı: ${Math.abs(bakiye).toFixed(2)} ₺</span>` : 
+                                 '<span style="color:#666;">Hesap Kapalı (0 ₺)</span>';
+                
                 html += `<div style="background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <div style="font-weight:bold; font-size:15px;">${k}</div>
-                        <div style="font-size:13px; margin-top:2px;">Bakiye: ${durumMetni}</div>
+                        <div style="font-size:13px;">${durumMetni}</div>
                     </div>
-                    <button class="btn-secondary" onclick="fisGoster('${k}')">📄 Hesap Fişi</button>
+                    <button class="btn-secondary" onclick="fisGoster('${k}')">🧾 Fiş / Detay</button>
                 </div>`;
             });
-            konteynir.innerHTML = html || '<p>Aramaya uygun müşteri bulunamadı.</p>';
+            document.getElementById('borc-detay-listesi').innerHTML = html;
         }
 
         function musterileriGoster() {
             let borclar = veritabani.borclar || {};
             let keys = Object.keys(borclar);
-            let konteynir = document.getElementById('musteri-listesi');
-            if(keys.length === 0) { konteynir.innerHTML = '<p>Kayıtlı müşteri yok.</p>'; return; }
+            if(keys.length === 0) { document.getElementById('musteri-listesi').innerHTML = '<p>Kayıtlı müşteri bulunmuyor.</p>'; return; }
             
-            let html = '';
+            let html = '<table><tr><th>Müşteri Adı</th><th>Bakiye</th><th>WhatsApp</th><th>Sil</th></tr>';
             keys.forEach(k => {
                 let b = borclar[k];
-                let mesaj = `Sayin ${k}, Demirkapi Ciftligi borc bakiyeniz: ${b.toFixed(2)} TL'dir.`;
-                let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(mesaj)}`;
-                html += `<div style="background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-weight:bold;">${k}</div>
-                        <div style="font-size:12px; color:#666;">Bakiye: ${b.toFixed(2)} ₺</div>
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <a href="${waUrl}" target="_blank" style="background:#22c55e; color:white; text-decoration:none; padding:6px 10px; border-radius:6px; font-size:12px; font-weight:bold;">📱 WA</a>
-                        <button class="btn-danger" style="padding:6px 10px;" onclick="musteriSil('${k}')">Sil</button>
-                    </div>
-                </div>`;
+                let mesaj = `Sayın ${k}, Demirkapi Çiftliği güncel bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
+                let waUrl = `https://wa.me/?text=${encodeURIComponent(mesaj)}`;
+                html += `<tr>
+                    <td><b>${k}</b></td>
+                    <td style="color:${b > 0 ? '#dc2626' : '#166534'}; font-weight:bold;">${b.toFixed(2)} ₺</td>
+                    <td><a href="${waUrl}" target="_blank" style="text-decoration:none; background:#25D366; color:white; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:11px;">📲 Hatırlat</a></td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="musteriSil('${k}')">Sil</button></td>
+                </tr>`;
             });
-            konteynir.innerHTML = html;
-        }
-
-        function fisGoster(musteri) {
-            let islemler = (veritabani.islemler || []).filter(i => i.musteri === musteri);
-            let bakiye = veritabani.borclar[musteri] || 0;
-            openScreen('fis');
-            
-            let html = `<div id="fis-yazdirilacak" style="padding:10px;">
-                <h2 style="text-align:center; margin:0 0 5px 0;">DEMİRKAPI ÇİFTLİĞİ</h2>
-                <p style="text-align:center; font-size:11px; margin:0 0 15px 0;">MÜŞTERİ HESAP EKSTRESİ</p>
-                <hr style="border-top:1px dashed #000; margin:10px 0;">
-                <p><b>Müşteri:</b> ${musteri}</p>
-                <p><b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}</p>
-                <hr style="border-top:1px dashed #000; margin:10px 0;">
-                <table style="width:100%; font-size:11px;">
-                    <tr><th>Tarih</th><th>İşlem</th><th>Tutar</th></tr>`;
-
-            islemler.forEach(i => {
-                let kalemDetay = i.kalemler ? i.kalemler.map(k=>`${k.tur} x${k.miktar}`).join(', ') : '';
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td>${i.tip}<br><small>${kalemDetay} ${i.aciklama || ''}</small></td><td>${i.tutar} ₺</td></tr>`;
-            });
-
-            html += `</table>
-                <hr style="border-top:1px dashed #000; margin:10px 0;">
-                <h3 style="text-align:right; margin:5px 0;">GÜNCEL BAKİYE: ${bakiye.toFixed(2)} ₺</h3>
-            </div>`;
-            
-            document.getElementById('fis-alani').innerHTML = html;
-        }
-
-        function fisPdfIndir() {
-            let el = document.getElementById('fis-alani');
-            let opt = { margin: 0.5, filename: 'demirkapi_hesap_ekstresi.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } };
-            html2pdf().set(opt).from(el).save();
-        }
-
-        function fisYazdir() {
-            let icerik = document.getElementById('fis-alani').innerHTML;
-            let pWin = window.open('', '', 'width=600,height=600');
-            pWin.document.write('html<html><head><title>Fiş Yazdır</title></head><body>' + icerik + '</body></html>');
-            pWin.document.close();
-            pWin.focus();
-            pWin.print();
-            pWin.close();
+            html += '</table>';
+            document.getElementById('musteri-listesi').innerHTML = html;
         }
 
         function gunlukRaporuGoster() {
-            let seciliTarih = document.getElementById('rapor-tarih').value;
-            if(!seciliTarih) return;
-            let islemler = (veritabani.islemler || []).filter(i => i.tarih && i.tarih.startsWith(seciliTarih));
+            let secilenTarih = document.getElementById('rapor-tarih').value;
+            let islemler = veritabani.islemler || [];
+            let gunluk = islemler.filter(i => i.tarih && i.tarih.startsWith(secilenTarih));
             
             let ciro = 0, tahsilat = 0;
-            islemler.forEach(i => {
+            gunluk.forEach(i => {
                 if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') ciro += i.tutar;
                 if(i.tip === 'Tahsilat') tahsilat += i.tutar;
             });
 
-            document.getElementById('rapor-ozet').innerHTML = `<b>Toplam Ciro:</b> ${ciro.toFixed(2)} ₺ | <b>Tahsilat:</b> ${tahsilat.toFixed(2)} ₺`;
+            document.getElementById('rapor-ozet').innerHTML = `
+                <div style="background:#f0fdf4; padding:10px; border-radius:8px; margin-bottom:10px; font-weight:bold;">
+                    Günlük Ciro: ${ciro.toFixed(2)} ₺ | Tahsilat: ${tahsilat.toFixed(2)} ₺
+                </div>
+            `;
+
+            if(gunluk.length === 0) { document.getElementById('rapor-detay').innerHTML = '<p>Seçilen tarihte işlem yok.</p>'; return; }
             
-            let html = '<table><tr><th>Saat</th><th>Müşteri</th><th>Tip</th><th>Tutar</th></tr>';
-            islemler.forEach(i => {
-                html += `<tr><td>${formatliTarihGoster(i.tarih).split(' ')[1] || ''}</td><td>${i.musteri}</td><td>${i.tip}</td><td>${i.tutar} ₺</td></tr>`;
+            let html = '<table><tr><th>Saat</th><th>Tür</th><th>Müşteri</th><th>Tutar</th></tr>';
+            gunluk.forEach(i => {
+                let saat = i.tarih ? i.tarih.split('T')[1] || '' : '';
+                html += `<tr><td>${saat}</td><td>${i.tip}</td><td><b>${i.musteri}</b></td><td>${i.tutar.toFixed(2)} ₺</td></tr>`;
             });
             html += '</table>';
             document.getElementById('rapor-detay').innerHTML = html;
         }
 
         function aylikRaporuGoster() {
-            let seciliAy = document.getElementById('aylik-tarih').value;
-            if(!seciliAy) return;
-            let islemler = (veritabani.islemler || []).filter(i => i.tarih && i.tarih.startsWith(seciliAy));
-            let giderler = (veritabani.giderler || []).filter(g => g.tarih && g.tarih.startsWith(seciliAy));
+            let secilenAy = document.getElementById('aylik-tarih').value;
+            let islemler = veritabani.islemler || [];
+            let giderler = veritabani.giderler || [];
+            
+            let ayIslemler = islemler.filter(i => i.tarih && i.tarih.startsWith(secilenAy));
+            let ayGiderler = giderler.filter(g => g.tarih && g.tarih.startsWith(secilenAy));
 
             let ciro = 0, tahsilat = 0, gider = 0;
-            islemler.forEach(i => {
+            ayIslemler.forEach(i => {
                 if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') ciro += i.tutar;
                 if(i.tip === 'Tahsilat') tahsilat += i.tutar;
             });
-            giderler.forEach(g => gider += g.tutar);
+            ayGiderler.forEach(g => gider += g.tutar);
 
-            let netKar = ciro - gider;
+            let kar = ciro - gider;
 
             document.getElementById('aylik-ozet-alani').innerHTML = `
-                <div style="line-height:1.8;">
-                    <div><b>Aylık Ciro:</b> ${ciro.toFixed(2)} ₺</div>
-                    <div><b>Aylık Tahsilat:</b> ${tahsilat.toFixed(2)} ₺</div>
-                    <div><b>Aylık Masraf/Gider:</b> ${gider.toFixed(2)} ₺</div>
-                    <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
-                    <div style="font-size:16px; font-weight:bold; color:${netKar >= 0 ? '#166534':'#dc2626'};">Tahmini Net Kâr: ${netKar.toFixed(2)} ₺</div>
+                <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0; line-height:1.8;">
+                    <b>Aylık Ciro:</b> ${ciro.toFixed(2)} ₺<br>
+                    <b>Aylık Tahsilat:</b> ${tahsilat.toFixed(2)} ₺<br>
+                    <b>Aylık Masraf/Gider:</b> ${gider.toFixed(2)} ₺<br>
+                    <hr style="border:0; border-top:1px solid #ddd; margin:8px 0;">
+                    <b style="font-size:16px; color:${kar >= 0 ? '#166534' : '#dc2626'};">Aylık Tahmini Kâr: ${kar.toFixed(2)} ₺</b>
                 </div>
             `;
         }
 
         function gecmisiGoster() {
             let islemler = veritabani.islemler || [];
-            if(islemler.length === 0) { document.getElementById('gecmis-listesi').innerHTML = '<p>İşlem geçmişi boş.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Müşteri</th><th>Tip</th><th>Tutar</th><th>Sil</th></tr>';
+            if(islemler.length === 0) { document.getElementById('gecmis-listesi').innerHTML = '<p>Henüz işlem yapılmadı.</p>'; return; }
+            let html = '<table><tr><th>Tarih</th><th>Tür</th><th>Müşteri</th><th>Tutar</th><th>Sil</th></tr>';
             islemler.slice().reverse().forEach(i => {
-                html += `<tr><td>${formatliTarihGoster(i.tarih)}</td><td><b>${i.musteri}</b></td><td>${i.tip}</td><td>${i.tutar} ₺</td><td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td></tr>`;
+                html += `<tr>
+                    <td>${formatliTarihGoster(i.tarih)}</td>
+                    <td><b>${i.tip}</b></td>
+                    <td>${i.musteri}</td>
+                    <td>${i.tutar} ₺</td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">Sil</button></td>
+                </tr>`;
             });
             html += '</table>';
             document.getElementById('gecmis-listesi').innerHTML = html;
         }
 
+        let aktifFisMusteri = '';
+        function fisGoster(musteriAdi) {
+            aktifFisMusteri = musteriAdi;
+            openScreen('fis');
+            let islemler = (veritabani.islemler || []).filter(i => i.musteri === musteriAdi);
+            let bakiye = (veritabani.borclar || {})[musteriAdi] || 0;
+
+            let html = `<div style="text-align:center; font-weight:bold; margin-bottom:10px;">
+                *** DEMİRKAPI ÇİFTLİĞİ ***<br>MÜŞTERİ HESAP ÖZETİ<br>--------------------------------
+            </div>
+            <b>Müşteri:</b> ${musteriAdi}<br>
+            <b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}<br>
+            --------------------------------<br>`;
+            
+            if(islemler.length === 0) {
+                html += 'Kayıtlı hareket bulunamadı.<br>';
+            } else {
+                islemler.forEach(i => {
+                    html += `${formatliTarihGoster(i.tarih)} - ${i.tip}<br>Tutar: ${i.tutar.toFixed(2)} ₺ (${i.aciklama || '-'})<br>--------------------------------<br>`;
+                });
+            }
+
+            html += `<div style="text-align:right; font-weight:bold; font-size:14px; margin-top:10px;">
+                GÜNCEL BAKİYE: ${bakiye.toFixed(2)} ₺
+            </div>`;
+
+            document.getElementById('fis-alani').innerHTML = html;
+        }
+
+        function fisPdfIndir() {
+            let el = document.getElementById('fis-alani');
+            let opt = { margin: 10, filename: `Demirkapi_Ciftligi_${aktifFisMusteri}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(el).save();
+        }
+
+        function fisYazdir() {
+            let icerik = document.getElementById('fis-alani').innerHTML;
+            let pwin = window.open('', '_blank');
+            pwin.document.write(`<html><head><title>Yazdır</title><style>body{font-family:monospace;padding:20px;}</style></head><body>${icerik}</body></html>`);
+            pwin.document.close();
+            pwin.focus();
+            pwin.print();
+            pwin.close();
+        }
+
         function verileriDisaAktar() {
-            let jsonStr = JSON.stringify(veritabani, null, 2);
-            let blob = new Blob([jsonStr], { type: "application/json" });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = `Demirkapi_Ciftligi_Yedek_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
+            let downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `demirkapi_yedek_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         function verileriIceAktar() {
-            let fileInput = document.getElementById('yedek-dosya-input');
-            if(!fileInput.files.length) { alert('Lütfen bir yedek dosyası (.json) seçin.'); return; }
+            let input = document.getElementById('yedek-dosya-input');
+            if(!input.files || input.files.length === 0) { alert('Lütfen bir .json dosyası seçin.'); return; }
+            let file = input.files[0];
             let reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     let importedData = JSON.parse(e.target.result);
-                    if(confirm('Mevcut verilerin üzerine yazılacak. Emin misiniz?')) {
+                    if(confirm('Mevcut verilerin üzerine yazılacak. Onaylıyor musunuz?')) {
                         veritabani = importedData;
                         kaydetVeri();
-                        alert('Yedek başarıyla geri yüklendi!');
+                        alert('Veriler başarıyla yükledi!');
                         goHome();
                     }
                 } catch(err) {
                     alert('Geçersiz dosya formatı.');
                 }
             };
-            reader.readAsText(fileInput.files[0]);
+            reader.readAsText(file);
         }
     </script>
 </body>
