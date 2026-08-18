@@ -438,6 +438,92 @@
                 if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
             }
+                    // --- FİŞ VE YAZDIRMA FONKSİYONLARI ---
+
+        function musteriOzetFisGoster(musteriAdi) {
+            // Önce fiş ekranını açıyoruz
+            openScreen('fis'); 
+            
+            // Veritabanından müşterinin güncel borcunu alıyoruz
+            let bakiye = veritabani.borclar[musteriAdi] || 0;
+            let bugun = new Date().toLocaleDateString('tr-TR');
+
+            // Fişin HTML şablonunu oluşturuyoruz
+            let html = `
+                <div style="text-align:center; margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:10px;">
+                    <h2 style="margin:0; font-size:18px;">DEMİRKAPI ÇİFTLİĞİ</h2>
+                    <div style="font-size:12px; color:#555;">Müşteri Hesap Özet Fişi</div>
+                    <div style="font-size:11px; color:#777; margin-top:4px;">Tarih: ${bugun}</div>
+                </div>
+                <div style="font-size:13px; margin-bottom:10px;"><b>Müşteri:</b> ${musteriAdi}</div>
+                <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:15px;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #000; text-align:left;">
+                            <th>Tarih</th>
+                            <th>İşlem / Detay</th>
+                            <th style="text-align:right;">Tutar</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            // Müşterinin geçmiş işlemlerini filtreleyip fişe ekliyoruz
+            let musteriIslemleri = (veritabani.islemler || []).filter(i => i.musteri === musteriAdi);
+            musteriIslemleri.forEach(islem => {
+                let detay = islem.tip || '-';
+                if(islem.kalemler && islem.kalemler.length > 0) {
+                    detay = islem.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat}₺)`).join(', ');
+                }
+                html += `
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td>${islem.tarih ? islem.tarih.slice(0,10) : ''}</td>
+                        <td>${detay}</td>
+                        <td style="text-align:right;">${islem.tutar ? parseFloat(islem.tutar).toFixed(2) : '0.00'} ₺</td>
+                    </tr>`;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+                <div style="border-top:2px solid #000; padding-top:8px; text-align:right; font-size:14px;">
+                    <b>Güncel Bakiye: ${bakiye.toFixed(2)} ₺</b>
+                </div>
+                <div style="text-align:center; margin-top:20px; font-size:10px; color:#777;">
+                    Bizi tercih ettiğiniz için teşekkür ederiz.
+                </div>`;
+
+            // Oluşturulan fişi ekrana basıyoruz
+            document.getElementById('fis-alani').innerHTML = html;
+        }
+
+        function fisYazdir() {
+            let icerik = document.getElementById('fis-alani').innerHTML;
+            let pencere = window.open('', '', 'height=600,width=400');
+            pencere.document.write('<html><head><title>Fiş Yazdır</title><style>body{font-family:monospace; padding:20px;}</style></head><body>');
+            pencere.document.write(icerik);
+            pencere.document.write('</body></html>');
+            pencere.document.close();
+            pencere.focus();
+            pencere.print();
+            pencere.close();
+        }
+
+        function fisPdfIndir() {
+            if (typeof html2pdf === 'undefined') {
+                alert("PDF indirme kütüphanesi bulunamadı! Lütfen HTML dosyanızın <head> kısmına html2pdf kütüphanesini eklediğinizden emin olun.");
+                return;
+            }
+            
+            let eleman = document.getElementById('fis-alani');
+            let opt = {
+                margin:       10,
+                filename:     'Demirkapi_Ciftligi_Hesap_Ozeti.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(eleman).save();
+        }
+
 
             bekleyenRozetGuncelle();
 
