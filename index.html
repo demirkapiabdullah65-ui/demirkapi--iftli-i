@@ -1419,7 +1419,14 @@
 
         function fisPdfIndir() {
             let el = document.getElementById('fis-alani');
-            let opt = { margin: 10, filename: `Demirkapi_Ciftligi_${aktifFisMusteri}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            let opt = { 
+                margin: 10, 
+                filename: `Demirkapi_Ciftligi_${aktifFisMusteri}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
             html2pdf().set(opt).from(el).save();
         }
 
