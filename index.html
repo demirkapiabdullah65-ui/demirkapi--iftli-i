@@ -44,6 +44,17 @@
         .nav-item.active { color: white; font-weight: bold; }
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .hidden { display: none !important; }
+
+        /* Fiş Özelleştirme Sınıfları */
+        .fis-baslik { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
+        .fis-musteri { font-size: 18px; font-weight: bold; }
+        .fis-bakiye { font-size: 20px; font-weight: 900; background-color: #000; color: #fff; padding: 4px; display: inline-block; margin-top: 5px; }
+
+        @media print {
+            .fis-baslik { font-size: 22px !important; font-weight: bold !important; }
+            .fis-musteri { font-size: 18px !important; font-weight: bold !important; }
+            .fis-bakiye { font-size: 22px !important; font-weight: bold !important; color: #000 !important; background: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -1372,10 +1383,10 @@
             let islemler = (veritabani.islemler || []).filter(i => i.musteri === musteriAdi);
             let bakiye = (veritabani.borclar || {})[musteriAdi] || 0;
 
-            let html = `<div style="text-align:center; font-weight:bold; margin-bottom:10px;">
-                *** DEMİRKAPI ÇİFTLİĞİ ***<br>MÜŞTERİ HESAP ÖZETİ<br>--------------------------------
+            let html = `<div style="text-align:center; margin-bottom:10px;">
+                <span class="fis-baslik">*** DEMİRKAPI ÇİFTLİĞİ ***</span><br>MÜŞTERİ HESAP ÖZETİ<br>--------------------------------
             </div>
-            <b>Müşteri:</b> ${musteriAdi}<br>
+            <span class="fis-musteri">Müşteri: ${musteriAdi}</span><br>
             <b>Tarih:</b> ${new Date().toLocaleDateString('tr-TR')}<br>
             --------------------------------<br>`;
             
@@ -1385,7 +1396,6 @@
                 islemler.forEach(i => {
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
                     
-                    // Eğer bu işlem bir Satış ise ürün detaylarını, adetini ve birim fiyatını ekle
                     if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
                         i.kalemler.forEach(k => {
                             html += `&nbsp;&nbsp;• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar.toFixed(2)} ₺<br>`;
@@ -1400,8 +1410,8 @@
                 });
             }
 
-            html += `<div style="text-align:right; font-weight:bold; font-size:14px; margin-top:10px;">
-                GÜNCEL BAKİYE: ${bakiye.toFixed(2)} ₺
+            html += `<div style="text-align:right; margin-top:10px;">
+                <span class="fis-bakiye">GÜNCEL BAKİYE: ${bakiye.toFixed(2)} ₺</span>
             </div>`;
 
             document.getElementById('fis-alani').innerHTML = html;
@@ -1416,7 +1426,12 @@
         function fisYazdir() {
             let icerik = document.getElementById('fis-alani').innerHTML;
             let pwin = window.open('', '_blank');
-            pwin.document.write(`<html><head><title>Yazdır</title><style>body{font-family:monospace;padding:20px;}</style></head><body>${icerik}</body></html>`);
+            pwin.document.write(`<html><head><title>Yazdır</title><style>
+                body{font-family:monospace;padding:20px;}
+                .fis-baslik{font-size:22px; font-weight:bold;}
+                .fis-musteri{font-size:18px; font-weight:bold;}
+                .fis-bakiye{font-size:22px; font-weight:bold;}
+            </style></head><body>${icerik}</body></html>`);
             pwin.document.close();
             pwin.focus();
             pwin.print();
