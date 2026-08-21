@@ -465,6 +465,7 @@
             if (!document.getElementById('screen-tarla').classList.contains('hidden')) tarlalariGoster();
             if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
+            if (!document.getElementById('screen-fis').classList.contains('hidden') && aktifFisMusteri) fisGoster(aktifFisMusteri);
         });
 
         async function havaDurumuGetir() {
@@ -939,6 +940,41 @@
             }
         }
 
+        function islemDuzenleModalAc(islemId) {
+            let islem = veritabani.islemler.find(i => i.id === islemId);
+            if (!islem) return;
+            
+            let yeniTutar = prompt(`"${islem.tip}" için yeni tutarı girin (Eski: ${islem.tutar} ₺):`, islem.tutar);
+            if (yeniTutar === null) return;
+            let parseTutar = parseFloat(yeniTutar);
+            if (isNaN(parseTutar) || parseTutar < 0) {
+                alert('Geçerli bir tutar girin.');
+                return;
+            }
+
+            let yeniAciklama = prompt(`Açıklama / Not (Eski: ${islem.aciklama || '-'}):`, islem.aciklama || '');
+            if (yeniAciklama === null) yeniAciklama = islem.aciklama;
+
+            // Eski işlemin bakiye etkisini tersine çevirip yenisini uygulayalım
+            if (['Satış', 'Tarla Biçimi'].includes(islem.tip)) {
+                veritabani.borclar[islem.musteri] = (veritabani.borclar[islem.musteri] || 0) - islem.tutar + parseTutar;
+            } else if (['Tahsilat', 'Ödeme Yapıldı'].includes(islem.tip)) {
+                veritabani.borclar[islem.musteri] = (veritabani.borclar[islem.musteri] || 0) + islem.tutar - parseTutar;
+            }
+
+            // İşlemi güncelle
+            islem.tutar = parseTutar;
+            islem.aciklama = yeniAciklama;
+            if(islem.kalemler && islem.kalemler.length > 0) {
+                islem.kalemler[0].tutar = parseTutar;
+            }
+
+            kaydetVeri();
+            alert('İşlem başarıyla güncellendi ve cari bakiye yeniden hesaplandı!');
+            borclariListele();
+            if(aktifFisMusteri) fisGoster(aktifFisMusteri);
+        }
+
         function islemSil(islemId) {
             if(!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
             let index = veritabani.islemler.findIndex(i => i.id === islemId);
@@ -1394,7 +1430,8 @@
                 html += 'Kayıtlı hareket bulunamadı.<br>';
             } else {
                 islemler.forEach(i => {
-                    html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
+                    html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b> 
+                             <button class="btn-secondary" style="padding:2px 6px; font-size:10px; float:right;" onclick="islemDuzenleModalAc(${i.id})">✏️ Düzenle</button><br>`;
                     
                     if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
                         i.kalemler.forEach(k => {
