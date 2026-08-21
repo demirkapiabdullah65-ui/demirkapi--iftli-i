@@ -107,7 +107,7 @@
                 <div class="menu-card" onclick="openScreen('tarla')"><div class="menu-icon">🚜</div><div class="menu-title">14. Biçilen Tarlalar</div><div class="menu-desc">Onaya gider</div></div>
                 <div class="menu-card" onclick="openScreen('nakliye')"><div class="menu-icon">🚚</div><div class="menu-title">15. Nakliye / Top</div><div class="menu-desc">Nakliye ve Top taşıma</div></div>
                 <div class="menu-card" onclick="openScreen('ozemyem')"><div class="menu-icon">🌾</div><div class="menu-title">16. Özlem Yem</div><div class="menu-desc">Bayilik & Bakiye</div></div>
-                <div class="menu-card" onclick="openScreen('abonelik')"><div class="menu-icon">🔄</div><div class="menu-title">17. Abonelik / Sabit</div><div class="menu-desc">Elektrik, Su, İnternet</div></div>
+                <div class="menu-card" onclick="openScreen('donum')"><div class="menu-icon">📐</div><div class="menu-title">17. Dönüm Ölçer</div><div class="menu-desc">Arazi & Alan hesapla</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak talep et</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedekle</div><div class="menu-desc">Excel & JSON</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -359,32 +359,31 @@
             </div>
         </div>
 
-        <!-- 17. ABONELİK / SABİT ÖDEMELER -->
-        <div id="screen-abonelik" class="hidden">
+        <!-- 17. DÖNÜM ÖLÇER / ALAN HESAPLAMA -->
+        <div id="screen-donum" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">🔄 Abonelikler & Sabit Giderler</div>
+            <div class="section-title">📐 Pratik Dönüm & Alan Ölçer</div>
             <div class="card">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Yeni Sabit Ödeme Kaydı</h3>
-                <div class="form-group"><label>Gider Adı</label><input type="text" id="ab-ad" placeholder="Örn: Çiftlik Elektrik Faturası, İnternet"></div>
-                <div class="form-group"><label>Kategori</label>
-                    <select id="ab-kategori">
-                        <option value="Elektrik">Elektrik</option>
-                        <option value="Su">Su</option>
-                        <option value="İnternet">İnternet</option>
-                        <option value="Kira">Kira</option>
-                        <option value="Maaş/Personel">Maaş / Personel</option>
-                        <option value="Sigorta/Kasko">Sigorta / Kasko</option>
-                        <option value="Diğer">Diğer Sabit Ödeme</option>
-                    </select>
+                <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Tarlanın ölçülerini metre cinsinden girerek dönüm karşılığını anında hesaplayın. (1 Dönüm = 1.000 m²)</p>
+                <div class="form-group"><label>Tarla Genişliği / En (Metre)</label><input type="number" step="0.01" id="donum-en" placeholder="Örn: 20" oninput="donumHesapla()"></div>
+                <div class="form-group"><label>Tarla Uzunluğu / Boy (Metre)</label><input type="number" step="0.01" id="donum-boy" placeholder="Örn: 50" oninput="donumHesapla()"></div>
+                
+                <div id="donum-sonuc-karti" style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-bottom: 15px; color: #166534;">
+                    <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">Hesaplanan Alan:</div>
+                    <div id="donum-metrekare" style="font-size: 16px; margin-bottom: 3px;">Metrekare: <b>0.00 m²</b></div>
+                    <div id="donum-donum" style="font-size: 20px; font-weight: bold; color: #15803d;">Dönüm: 0.00 Dönüm (D)</div>
                 </div>
-                <div class="form-group"><label>Ortalama / Sabit Tutar (TL)</label><input type="number" step="0.01" id="ab-tutar" placeholder="0"></div>
-                <div class="form-group"><label>Sonraki Son Ödeme Tarihi</label><input type="date" id="ab-tarih"></div>
-                <div class="form-group"><label>Not / Abonelik No / Açıklama</label><input type="text" id="ab-not" placeholder="Abone No: 12345 vb."></div>
-                <button class="btn-green" onclick="abonelikEkle()">Sabit Ödeme Ekle ➕</button>
-            </div>
-            <div class="card">
-                <h3 style="margin-top:0; color:#166534;">Abonelik ve Sabit Gider Listesi</h3>
-                <div id="abonelik-listesi">Kayıtlı abonelik bulunmuyor.</div>
+
+                <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+                <h4 style="margin-top:0; color:#166534; font-size:15px;">Ölçülen Bu Alanı Kayda Aktar</h4>
+                <div class="form-group"><label>Tarla Sahibi / Müşteri Adı</label><input type="text" id="donum-sahip" placeholder="Ad Soyad"></div>
+                <div class="form-group"><label>Birim Fiyat (Dönüm Başına TL)</label><input type="number" step="0.01" id="donum-fiyat" placeholder="0" oninput="donumTutarHesapla()"></div>
+                <div id="donum-toplam-ucret" style="font-weight:bold; margin-bottom:15px; color:#1e40af;">Toplam Tutar: 0.00 ₺</div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-green" style="margin-top:0;" onclick="donumTarlaAktar('Tarla')">🚜 Biçilen Tarlalara Ekle</button>
+                    <button class="btn-secondary" style="margin-top:0;" onclick="donumTarlaAktar('Silaj')">🌽 Silaj Alımına Ekle</button>
+                </div>
             </div>
         </div>
 
@@ -460,7 +459,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [], abonelikler: [] };
+        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] };
 
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -478,7 +477,6 @@
                 if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
                 if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
-                if(!veritabani.abonelikler) veritabani.abonelikler = [];
             }
 
             bekleyenRozetGuncelle();
@@ -496,7 +494,6 @@
             if (!document.getElementById('screen-tarla').classList.contains('hidden')) tarlalariGoster();
             if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
-            if (!document.getElementById('screen-abonelik').classList.contains('hidden')) abonelikleriGoster();
         });
 
         async function havaDurumuGetir() {
@@ -544,7 +541,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'abonelik', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'donum', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -630,12 +627,12 @@
                 ozemUrunSatiriEkle();
                 ozemYemGoster();
             }
-            if(name === 'abonelik') {
-                document.getElementById('ab-ad').value = '';
-                document.getElementById('ab-tutar').value = '';
-                document.getElementById('ab-tarih').value = new Date().toISOString().split('T')[0];
-                document.getElementById('ab-not').value = '';
-                abonelikleriGoster();
+            if(name === 'donum') {
+                document.getElementById('donum-en').value = '';
+                document.getElementById('donum-boy').value = '';
+                document.getElementById('donum-sahip').value = '';
+                document.getElementById('donum-fiyat').value = '';
+                donumHesapla();
             }
             if(name === 'onay') onayBekleyenleriGoster();
             if(name === 'borc') borclariListele();
@@ -647,6 +644,66 @@
         }
 
         function goHome() { openScreen('menu'); }
+
+        function donumHesapla() {
+            let en = parseFloat(document.getElementById('donum-en').value) || 0;
+            let boy = parseFloat(document.getElementById('donum-boy').value) || 0;
+            let m2 = en * boy;
+            let donum = m2 / 1000; // 1 Dönüm = 1000 m2
+
+            document.getElementById('donum-metrekare').innerHTML = `Metrekare: <b>${m2.toFixed(2)} m²</b>`;
+            document.getElementById('donum-donum').innerHTML = `Dönüm: <b>${donum.toFixed(3)} Dönüm (D)</b>`;
+            donumTutarHesapla();
+        }
+
+        function donumTutarHesapla() {
+            let en = parseFloat(document.getElementById('donum-en').value) || 0;
+            let boy = parseFloat(document.getElementById('donum-boy').value) || 0;
+            let donum = (en * boy) / 1000;
+            let fiyat = parseFloat(document.getElementById('donum-fiyat').value) || 0;
+            let toplam = donum * fiyat;
+            document.getElementById('donum-toplam-ucret').innerHTML = `Toplam Tutar: <b>${toplam.toFixed(2)} ₺</b>`;
+        }
+
+        function donumTarlaAktar(hedefTip) {
+            let en = parseFloat(document.getElementById('donum-en').value) || 0;
+            let boy = parseFloat(document.getElementById('donum-boy').value) || 0;
+            let donum = (en * boy) / 1000;
+            let sahip = document.getElementById('donum-sahip').value;
+            let fiyat = parseFloat(document.getElementById('donum-fiyat').value) || 0;
+
+            if(donum <= 0 || !sahip) {
+                alert('Lütfen geçerli en/boy ölçüsü ve tarla sahibi girin.');
+                return;
+            }
+
+            let toplam = donum * fiyat;
+            let tarih = simdikiTarihInputFormat();
+
+            if(hedefTip === 'Tarla') {
+                talepGonder('Tarla', {
+                    tarih: tarih,
+                    sahip: sahip,
+                    konum: 'Ölçülen Alan',
+                    birim: 'Dönüm',
+                    miktar: donum.toFixed(3),
+                    fiyat: fiyat,
+                    alinan: 0,
+                    not: `Otomatik Dönüm Ölçer ile hesaplandı (${en}m x ${boy}m)`
+                });
+            } else {
+                talepGonder('Silaj', {
+                    tarih: tarih,
+                    sahip: sahip,
+                    tarla: 'Ölçülen Alan',
+                    birim: 'Dönüm',
+                    miktar: donum.toFixed(3),
+                    fiyat: fiyat,
+                    odenen: 0,
+                    not: `Otomatik Dönüm Ölçer ile hesaplandı (${en}m x ${boy}m)`
+                });
+            }
+        }
 
         function urunSatiriEkle() {
             let konteynir = document.getElementById('urunler-konteynir');
@@ -799,65 +856,6 @@
             kaydetVeri();
             alert('Özlem Yem işlemi onaya gönderildi!');
             goHome();
-        }
-
-        function abonelikEkle() {
-            let ad = document.getElementById('ab-ad').value;
-            let kategori = document.getElementById('ab-kategori').value;
-            let tutar = parseFloat(document.getElementById('ab-tutar').value) || 0;
-            let tarih = document.getElementById('ab-tarih').value;
-            let not = document.getElementById('ab-not').value;
-
-            if(!ad || tutar <= 0 || !tarih) { alert('Lütfen gider adını, geçerli bir tutar ve tarihi doldurun.'); return; }
-
-            if(!veritabani.abonelikler) veritabani.abonelikler = [];
-            veritabani.abonelikler.push({ id: Date.now(), ad, kategori, tutar, tarih, not });
-            kaydetVeri();
-            alert('Abonelik / Sabit ödeme kaydı eklendi!');
-            openScreen('abonelik');
-        }
-
-        function abonelikOdeMasrafYap(id) {
-            let ab = (veritabani.abonelikler || []).find(a => a.id === id);
-            if(!ab) return;
-            let tutarInput = prompt(`${ab.ad} (${ab.kategori}) ödemesi için gider yazılacak tutarı onaylayın veya güncelleyin (TL):`, ab.tutar);
-            if(tutarInput === null) return;
-            let odenecekTutar = parseFloat(tutarInput);
-            if(isNaN(odenecekTutar) || odenecekTutar <= 0) { alert('Geçersiz tutar!'); return; }
-
-            talepGonder('Gider', {
-                tarih: simdikiTarihInputFormat(),
-                tur: `Abonelik: ${ab.kategori} (${ab.ad})`,
-                tutar: odenecekTutar,
-                aciklama: `Sabit Ödeme - ${ab.not || ''}`
-            });
-        }
-
-        function abonelikSil(id) {
-            if(!confirm('Bu abonelik kaydını silmek istediğinize emin misiniz?')) return;
-            veritabani.abonelikler = (veritabani.abonelikler || []).filter(a => a.id !== id);
-            kaydetVeri();
-            abonelikleriGoster();
-        }
-
-        function abonelikleriGoster() {
-            let liste = veritabani.abonelikler || [];
-            if(liste.length === 0) { document.getElementById('abonelik-listesi').innerHTML = '<p>Kayıtlı sabit ödeme/abonelik yok.</p>'; return; }
-            let html = '<table><tr><th>Gider Adı</th><th>Kategori</th><th>Tutar</th><th>Son Ödeme</th><th>İşlem</th></tr>';
-            liste.slice().reverse().forEach(a => {
-                html += `<tr>
-                    <td><b>${a.ad}</b><br><span style="font-size:10px; color:#666;">${a.not || ''}</span></td>
-                    <td>${a.kategori}</td>
-                    <td style="color:#dc2626; font-weight:bold;">${a.tutar.toFixed(2)} ₺</td>
-                    <td>${a.tarih || '-'}</td>
-                    <td>
-                        <button class="btn-secondary" style="padding:4px 6px; margin-bottom:2px;" onclick="abonelikOdeMasrafYap(${a.id})">💸 Öde & Masraf Yaz</button>
-                        <button class="btn-danger" style="padding:4px 6px;" onclick="abonelikSil(${a.id})">Sil</button>
-                    </td>
-                </tr>`;
-            });
-            html += '</table>';
-            document.getElementById('abonelik-listesi').innerHTML = html;
         }
 
         function onayBekleyenleriGoster() {
@@ -1062,7 +1060,7 @@
         }
 
         function giderSil(id) {
-            if(!confirm('Silmak istediğinize emin misiniz?')) return;
+            if(!confirm('Silmek istediğinize emin misiniz?')) return;
             veritabani.giderler = veritabani.giderler.filter(g => g.id !== id);
             kaydetVeri();
             giderListesiniGoster();
@@ -1564,11 +1562,11 @@
                     if(confirm('Mevcut verilerin üzerine yazılacak. Onaylıyor musunuz?')) {
                         veritabani = importedData;
                         kaydetVeri();
-                        alert('Veriler başarıyla yüklendi!');
+                        alert('Veriler başarıyla yükledi!');
                         goHome();
                     }
                 } catch(err) {
-                    alert('Geçersiz JSON yedek dosyası!');
+                    alert('Geçersiz dosya formatı.');
                 }
             };
             reader.readAsText(file);
