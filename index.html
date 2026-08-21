@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 90px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
         .header { background-color: #166534; color: white; padding: 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: space-between; }
         .logo-box { background-color: #fde047; padding: 10px; border-radius: 12px; margin-right: 15px; font-size: 24px; }
         .title-main { font-size: 20px; font-weight: bold; }
@@ -19,7 +19,7 @@
         .container { max-width: 650px; margin: 0 auto; padding: 15px; }
         .section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
+        .menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; user-select: none; }
         .menu-card:active { transform: scale(0.97); }
         .menu-icon { font-size: 36px; margin-bottom: 12px; }
         .menu-title { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 4px; }
@@ -30,6 +30,7 @@
         label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
         .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-green:active { opacity: 0.85; }
         .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
@@ -51,9 +52,14 @@
         .fis-bakiye { font-size: 20px; font-weight: 900; background-color: #000; color: #fff; padding: 4px; display: inline-block; margin-top: 5px; }
 
         @media print {
+            body { padding-bottom: 0; background-color: white; }
+            .header, .bottom-nav, .btn-back, .btn-green, .btn-secondary, .btn-danger { display: none !important; }
+            .container { max-width: 100%; padding: 0; }
+            .card { border: none; box-shadow: none; padding: 0; }
             .fis-baslik { font-size: 22px !important; font-weight: bold !important; }
             .fis-musteri { font-size: 18px !important; font-weight: bold !important; }
-            .fis-bakiye { font-size: 22px !important; font-weight: bold !important; color: #000 !important; background: none !important; }
+            .fis-bakiye { font-size: 22px !important; font-weight: bold !important; color: #000 !important; background: none !important; border: 2px solid #000; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -398,11 +404,11 @@
 
         <!-- FİŞ EKRANI -->
         <div id="screen-fis" class="hidden">
-            <button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
-            <div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
+            <button class="btn-back no-print" onclick="openScreen('borc')">⬅️ Geri Dön</button>
+            <div class="section-title no-print">🖨️ Müşteri Hesap Özeti & Fiş</div>
             <div class="card">
                 <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
-                <div style="display: flex; gap: 10px; flex-direction: column;">
+                <div class="no-print" style="display: flex; gap: 10px; flex-direction: column;">
                     <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
                     <button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
                 </div>
@@ -955,14 +961,12 @@
             let yeniAciklama = prompt(`Açıklama / Not (Eski: ${islem.aciklama || '-'}):`, islem.aciklama || '');
             if (yeniAciklama === null) yeniAciklama = islem.aciklama;
 
-            // Eski işlemin bakiye etkisini tersine çevirip yenisini uygulayalım
             if (['Satış', 'Tarla Biçimi'].includes(islem.tip)) {
                 veritabani.borclar[islem.musteri] = (veritabani.borclar[islem.musteri] || 0) - islem.tutar + parseTutar;
             } else if (['Tahsilat', 'Ödeme Yapıldı'].includes(islem.tip)) {
                 veritabani.borclar[islem.musteri] = (veritabani.borclar[islem.musteri] || 0) + islem.tutar - parseTutar;
             }
 
-            // İşlemi güncelle
             islem.tutar = parseTutar;
             islem.aciklama = yeniAciklama;
             if(islem.kalemler && islem.kalemler.length > 0) {
@@ -1042,8 +1046,9 @@
         }
 
         function musteriSil(musteriAdi) {
-            if(!confirm(musteriAdi + " müşterisini silmek istediğinize emin misiniz?")) return;
+            if(!confirm(musteriAdi + " müşterisini silmek istediğinize emin misiniz? Cari hesap ve geçmiş hareketleri silinecektir.")) return;
             veritabani.islemler = veritabani.islemler.filter(i => i.musteri !== musteriAdi);
+            veritabani.bekleyenler = veritabani.bekleyenler.filter(b => b.veri && b.veri.musteri !== musteriAdi && b.veri.sahip !== musteriAdi);
             delete veritabani.borclar[musteriAdi];
             kaydetVeri();
             musterileriGoster();
@@ -1326,7 +1331,7 @@
             let html = '<table><tr><th>Müşteri Adı</th><th>Bakiye</th><th>WhatsApp</th><th>Sil</th></tr>';
             keys.forEach(k => {
                 let b = borclar[k];
-                let mesaj = `Sayın ${k}, Demirkapi Çiftliği güncel bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
+                let mesaj = `Sayın ${k}, Demirkapı Çiftliği güncel bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
                 let waUrl = `https://wa.me/?text=${encodeURIComponent(mesaj)}`;
                 html += `<tr>
                     <td><b>${k}</b></td>
@@ -1431,7 +1436,7 @@
             } else {
                 islemler.forEach(i => {
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b> 
-                             <button class="btn-secondary" style="padding:2px 6px; font-size:10px; float:right;" onclick="islemDuzenleModalAc(${i.id})">✏️ Düzenle</button><br>`;
+                             <button class="btn-secondary no-print" style="padding:2px 6px; font-size:10px; float:right;" onclick="islemDuzenleModalAc(${i.id})">✏️ Düzenle</button><br>`;
                     
                     if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
                         i.kalemler.forEach(k => {
@@ -1475,6 +1480,7 @@
                 .fis-baslik{font-size:22px; font-weight:bold;}
                 .fis-musteri{font-size:18px; font-weight:bold;}
                 .fis-bakiye{font-size:22px; font-weight:bold;}
+                .no-print { display: none !important; }
             </style></head><body>${icerik}</body></html>`);
             pwin.document.close();
             pwin.focus();
