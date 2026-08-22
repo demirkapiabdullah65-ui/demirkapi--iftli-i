@@ -119,20 +119,14 @@
             <div class="section-title">🛒 Satış Talebi Oluştur</div>
             <div class="card">
                 <div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
-                
-                <div class="form-group">
-                    <label>Müşteri Seçin veya Yeni Yazın</label>
-                    <input type="text" id="s-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
-                    <datalist id="musteri-listesi-datalist"></datalist>
-                </div>
-
+                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
                 <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
                 <label><b>Sepetteki Ürünler</b></label>
                 <div id="urunler-konteynir"></div>
                 <button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
                 <div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value.trim(), pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value, pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
             </div>
         </div>
 
@@ -162,15 +156,10 @@
             <div class="section-title">💰 Tahsilat / Ödeme Talebi</div>
             <div class="card">
                 <div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
-                
-                <div class="form-group">
-                    <label>Müşteri / Kişi Seçin veya Yeni Yazın</label>
-                    <input type="text" id="t-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
-                </div>
-
+                <div class="form-group"><label>Müşteri / Kisi Adı</label><input type="text" id="t-musteri" placeholder="Ad Soyad"></div>
                 <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
-                <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value.trim(), tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value, tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
             </div>
         </div>
 
@@ -462,7 +451,6 @@
             }
 
             bekleyenRozetGuncelle();
-            musteriDatalistGuncelle();
 
             if (!document.getElementById('screen-onay').classList.contains('hidden')) onayBekleyenleriGoster();
             if (!document.getElementById('screen-musteriler').classList.contains('hidden')) musterileriGoster();
@@ -478,19 +466,6 @@
             if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
-
-        // Müşteri listesini otomatik datalist içine dolduran fonksiyon
-        function musteriDatalistGuncelle() {
-            let datalist = document.getElementById('musteri-listesi-datalist');
-            if(!datalist) return;
-            let borclar = veritabani.borclar || {};
-            let musteriler = Object.keys(borclar).sort();
-            let html = '';
-            musteriler.forEach(m => {
-                html += `<option value="${m}">`;
-            });
-            datalist.innerHTML = html;
-        }
 
         async function havaDurumuGetir() {
             try {
@@ -554,7 +529,6 @@
                 document.getElementById('s-pesin').value = '';
                 document.getElementById('s-not').value = '';
                 document.getElementById('s-musteri').value = '';
-                musteriDatalistGuncelle();
                 urunSatiriEkle();
             }
             if(name === 'tahsilat') {
@@ -562,7 +536,6 @@
                 document.getElementById('t-musteri').value = '';
                 document.getElementById('t-tutar').value = '';
                 document.getElementById('t-aciklama').value = '';
-                musteriDatalistGuncelle();
             }
             if(name === 'gunluk') {
                 let bugun = new Date().toISOString().split('T')[0];
