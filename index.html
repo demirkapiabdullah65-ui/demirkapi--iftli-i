@@ -107,7 +107,6 @@
                 <div class="menu-card" onclick="openScreen('tarla')"><div class="menu-icon">🚜</div><div class="menu-title">14. Biçilen Tarlalar</div><div class="menu-desc">Onaya gider</div></div>
                 <div class="menu-card" onclick="openScreen('nakliye')"><div class="menu-icon">🚚</div><div class="menu-title">15. Nakliye / Top</div><div class="menu-desc">Nakliye ve Top taşıma</div></div>
                 <div class="menu-card" onclick="openScreen('ozemyem')"><div class="menu-icon">🌾</div><div class="menu-title">16. Özlem Yem</div><div class="menu-desc">Bayilik & Bakiye</div></div>
-                <div class="menu-card" onclick="openScreen('donum')"><div class="menu-icon">📐</div><div class="menu-title">17. Dönüm Ölçer</div><div class="menu-desc">Arazi & Alan hesapla</div></div>
                 <div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak talep et</div></div>
                 <div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedekle</div><div class="menu-desc">Excel & JSON</div></div>
                 <div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
@@ -120,14 +119,20 @@
             <div class="section-title">🛒 Satış Talebi Oluştur</div>
             <div class="card">
                 <div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
-                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="s-musteri" placeholder="Ad Soyad"></div>
+                
+                <div class="form-group">
+                    <label>Müşteri Seçin veya Yeni Yazın</label>
+                    <input type="text" id="s-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
+                    <datalist id="musteri-listesi-datalist"></datalist>
+                </div>
+
                 <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
                 <label><b>Sepetteki Ürünler</b></label>
                 <div id="urunler-konteynir"></div>
                 <button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
                 <div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Not ekleyin"></div>
-                <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value, pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value.trim(), pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Onaya Gönder 🚀</button>
             </div>
         </div>
 
@@ -157,10 +162,15 @@
             <div class="section-title">💰 Tahsilat / Ödeme Talebi</div>
             <div class="card">
                 <div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
-                <div class="form-group"><label>Müşteri / Kisi Adı</label><input type="text" id="t-musteri" placeholder="Ad Soyad"></div>
+                
+                <div class="form-group">
+                    <label>Müşteri / Kişi Seçin veya Yeni Yazın</label>
+                    <input type="text" id="t-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
+                </div>
+
                 <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
-                <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value, tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
+                <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value.trim(), tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
             </div>
         </div>
 
@@ -359,34 +369,6 @@
             </div>
         </div>
 
-        <!-- 17. DÖNÜM ÖLÇER / ALAN HESAPLAMA -->
-        <div id="screen-donum" class="hidden">
-            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📐 Pratik Dönüm & Alan Ölçer</div>
-            <div class="card">
-                <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Tarlanın ölçülerini metre cinsinden girerek dönüm karşılığını anında hesaplayın. (1 Dönüm = 1.000 m²)</p>
-                <div class="form-group"><label>Tarla Genişliği / En (Metre)</label><input type="number" step="0.01" id="donum-en" placeholder="Örn: 20" oninput="donumHesapla()"></div>
-                <div class="form-group"><label>Tarla Uzunluğu / Boy (Metre)</label><input type="number" step="0.01" id="donum-boy" placeholder="Örn: 50" oninput="donumHesapla()"></div>
-                
-                <div id="donum-sonuc-karti" style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 12px; margin-bottom: 15px; color: #166534;">
-                    <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">Hesaplanan Alan:</div>
-                    <div id="donum-metrekare" style="font-size: 16px; margin-bottom: 3px;">Metrekare: <b>0.00 m²</b></div>
-                    <div id="donum-donum" style="font-size: 20px; font-weight: bold; color: #15803d;">Dönüm: 0.00 Dönüm (D)</div>
-                </div>
-
-                <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
-                <h4 style="margin-top:0; color:#166534; font-size:15px;">Ölçülen Bu Alanı Kayda Aktar</h4>
-                <div class="form-group"><label>Tarla Sahibi / Müşteri Adı</label><input type="text" id="donum-sahip" placeholder="Ad Soyad"></div>
-                <div class="form-group"><label>Birim Fiyat (Dönüm Başına TL)</label><input type="number" step="0.01" id="donum-fiyat" placeholder="0" oninput="donumTutarHesapla()"></div>
-                <div id="donum-toplam-ucret" style="font-weight:bold; margin-bottom:15px; color:#1e40af;">Toplam Tutar: 0.00 ₺</div>
-                
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-green" style="margin-top:0;" onclick="donumTarlaAktar('Tarla')">🚜 Biçilen Tarlalara Ekle</button>
-                    <button class="btn-secondary" style="margin-top:0;" onclick="donumTarlaAktar('Silaj')">🌽 Silaj Alımına Ekle</button>
-                </div>
-            </div>
-        </div>
-
         <!-- SESLİ ASİSTAN -->
         <div id="screen-sesli" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
@@ -480,6 +462,7 @@
             }
 
             bekleyenRozetGuncelle();
+            musteriDatalistGuncelle();
 
             if (!document.getElementById('screen-onay').classList.contains('hidden')) onayBekleyenleriGoster();
             if (!document.getElementById('screen-musteriler').classList.contains('hidden')) musterileriGoster();
@@ -495,6 +478,19 @@
             if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
+
+        // Müşteri listesini otomatik datalist içine dolduran fonksiyon
+        function musteriDatalistGuncelle() {
+            let datalist = document.getElementById('musteri-listesi-datalist');
+            if(!datalist) return;
+            let borclar = veritabani.borclar || {};
+            let musteriler = Object.keys(borclar).sort();
+            let html = '';
+            musteriler.forEach(m => {
+                html += `<option value="${m}">`;
+            });
+            datalist.innerHTML = html;
+        }
 
         async function havaDurumuGetir() {
             try {
@@ -541,7 +537,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'donum', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -558,6 +554,7 @@
                 document.getElementById('s-pesin').value = '';
                 document.getElementById('s-not').value = '';
                 document.getElementById('s-musteri').value = '';
+                musteriDatalistGuncelle();
                 urunSatiriEkle();
             }
             if(name === 'tahsilat') {
@@ -565,6 +562,7 @@
                 document.getElementById('t-musteri').value = '';
                 document.getElementById('t-tutar').value = '';
                 document.getElementById('t-aciklama').value = '';
+                musteriDatalistGuncelle();
             }
             if(name === 'gunluk') {
                 let bugun = new Date().toISOString().split('T')[0];
@@ -627,13 +625,6 @@
                 ozemUrunSatiriEkle();
                 ozemYemGoster();
             }
-            if(name === 'donum') {
-                document.getElementById('donum-en').value = '';
-                document.getElementById('donum-boy').value = '';
-                document.getElementById('donum-sahip').value = '';
-                document.getElementById('donum-fiyat').value = '';
-                donumHesapla();
-            }
             if(name === 'onay') onayBekleyenleriGoster();
             if(name === 'borc') borclariListele();
             if(name === 'stok') stoklariGoster();
@@ -644,66 +635,6 @@
         }
 
         function goHome() { openScreen('menu'); }
-
-        function donumHesapla() {
-            let en = parseFloat(document.getElementById('donum-en').value) || 0;
-            let boy = parseFloat(document.getElementById('donum-boy').value) || 0;
-            let m2 = en * boy;
-            let donum = m2 / 1000; // 1 Dönüm = 1000 m2
-
-            document.getElementById('donum-metrekare').innerHTML = `Metrekare: <b>${m2.toFixed(2)} m²</b>`;
-            document.getElementById('donum-donum').innerHTML = `Dönüm: <b>${donum.toFixed(3)} Dönüm (D)</b>`;
-            donumTutarHesapla();
-        }
-
-        function donumTutarHesapla() {
-            let en = parseFloat(document.getElementById('donum-en').value) || 0;
-            let boy = parseFloat(document.getElementById('donum-boy').value) || 0;
-            let donum = (en * boy) / 1000;
-            let fiyat = parseFloat(document.getElementById('donum-fiyat').value) || 0;
-            let toplam = donum * fiyat;
-            document.getElementById('donum-toplam-ucret').innerHTML = `Toplam Tutar: <b>${toplam.toFixed(2)} ₺</b>`;
-        }
-
-        function donumTarlaAktar(hedefTip) {
-            let en = parseFloat(document.getElementById('donum-en').value) || 0;
-            let boy = parseFloat(document.getElementById('donum-boy').value) || 0;
-            let donum = (en * boy) / 1000;
-            let sahip = document.getElementById('donum-sahip').value;
-            let fiyat = parseFloat(document.getElementById('donum-fiyat').value) || 0;
-
-            if(donum <= 0 || !sahip) {
-                alert('Lütfen geçerli en/boy ölçüsü ve tarla sahibi girin.');
-                return;
-            }
-
-            let toplam = donum * fiyat;
-            let tarih = simdikiTarihInputFormat();
-
-            if(hedefTip === 'Tarla') {
-                talepGonder('Tarla', {
-                    tarih: tarih,
-                    sahip: sahip,
-                    konum: 'Ölçülen Alan',
-                    birim: 'Dönüm',
-                    miktar: donum.toFixed(3),
-                    fiyat: fiyat,
-                    alinan: 0,
-                    not: `Otomatik Dönüm Ölçer ile hesaplandı (${en}m x ${boy}m)`
-                });
-            } else {
-                talepGonder('Silaj', {
-                    tarih: tarih,
-                    sahip: sahip,
-                    tarla: 'Ölçülen Alan',
-                    birim: 'Dönüm',
-                    miktar: donum.toFixed(3),
-                    fiyat: fiyat,
-                    odenen: 0,
-                    not: `Otomatik Dönüm Ölçer ile hesaplandı (${en}m x ${boy}m)`
-                });
-            }
-        }
 
         function urunSatiriEkle() {
             let konteynir = document.getElementById('urunler-konteynir');
