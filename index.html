@@ -34,7 +34,6 @@
         .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
-        .table-responsive { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
         th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
         th { color: #444; font-weight: 700; background: #f1f5f9; }
@@ -45,7 +44,6 @@
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .hidden { display: none !important; }
 
-        /* Fiş Özelleştirme Sınıfları */
         .fis-baslik { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
         .fis-musteri { font-size: 18px; font-weight: bold; }
         .fis-bakiye { font-size: 20px; font-weight: 900; background-color: #000; color: #fff; padding: 4px; display: inline-block; margin-top: 5px; }
@@ -119,13 +117,11 @@
             <div class="section-title">🛒 Satış Talebi Oluştur</div>
             <div class="card">
                 <div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
-                
                 <div class="form-group">
                     <label>Müşteri Seçin veya Yeni Yazın</label>
                     <input type="text" id="s-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
                     <datalist id="musteri-listesi-datalist"></datalist>
                 </div>
-
                 <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
                 <label><b>Sepetteki Ürünler</b></label>
                 <div id="urunler-konteynir"></div>
@@ -162,12 +158,10 @@
             <div class="section-title">💰 Tahsilat / Ödeme Talebi</div>
             <div class="card">
                 <div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
-                
                 <div class="form-group">
                     <label>Müşteri / Kişi Seçin veya Yeni Yazın</label>
                     <input type="text" id="t-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
                 </div>
-
                 <div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
                 <button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value.trim(), tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
@@ -283,7 +277,7 @@
             </div>
         </div>
 
-        <!-- 14. BİÇİLEN TARLAR -->
+        <!-- 14. BİÇİLEN TARLANLAR -->
         <div id="screen-tarla" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">🚜 Biçilen Tarlalar</div>
@@ -344,22 +338,17 @@
                         <option value="OdemGonderildi">Özlem Yeme Para Yollandı (Borç Düşer)</option>
                     </select>
                 </div>
-                
                 <div id="ozem-yem-alanlari">
                     <div class="form-group"><label>Araç Plakası</label><input type="text" id="ozem-plaka" placeholder="Örn: 54 ZP 789"></div>
-                    
                     <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
                     <label><b>Sevkiyat İçindeki Yem Kalemleri</b></label>
                     <div id="ozem-urunler-konteynir"></div>
                     <button class="btn-secondary" onclick="ozemUrunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Yem Ekle</button>
-                    
                     <div id="ozem-genel-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Yem Tutarı: 0.00 ₺</div>
                 </div>
-
                 <div id="ozem-odeme-alanlari" class="hidden">
                     <div class="form-group"><label>Özlem Yeme Yollanan Para (TL)</label><input type="number" step="0.01" id="ozem-odenen" placeholder="0"></div>
                 </div>
-                
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="ozem-not" placeholder="Not ekleyin"></div>
                 <button class="btn-green" onclick="ozemYemTalepGonder()">Onaya Gönder 🚀</button>
             </div>
@@ -479,7 +468,6 @@
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
 
-        // Müşteri listesini otomatik datalist içine dolduran fonksiyon
         function musteriDatalistGuncelle() {
             let datalist = document.getElementById('musteri-listesi-datalist');
             if(!datalist) return;
@@ -946,7 +934,7 @@
                 }
             } else if(talep.tip === 'Nakliye') {
                 if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
-                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, adet: v.adet || 1, tutar: parseFloat(v.tutar), not: v.not });
+                veritabani.nakliyeler.push({ id: Date.now(), tarih: v.tarih, tur: v.tur, plaka: v.plaka, guzergah: v.guzergah, adet: v.adet, tutar: parseFloat(v.tutar), not: v.not });
             } else if(talep.tip === 'OzemYem') {
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
                 veritabani.ozemYemler.push({ id: Date.now(), tarih: v.tarih, tip: v.tip, plaka: v.plaka, kalemler: v.kalemler, tutar: parseFloat(v.tutar) || 0, odenen: parseFloat(v.odenen) || 0, not: v.not });
@@ -1170,7 +1158,7 @@
             if(liste.length === 0) { document.getElementById('nakliye-listesi').innerHTML = '<p>Kayıt bulunmuyor.</p>'; return; }
             let html = '<table><tr><th>Tarih</th><th>Tür / Plaka</th><th>Güzergah</th><th>Adet</th><th>Tutar</th><th>Sil</th></tr>';
             liste.slice().reverse().forEach(x => {
-                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.tur}</b><br>${x.plaka}</td><td>${x.guzergah}</td><td>${x.adet || 1}</td><td style="color:#dc2626;font-weight:bold;">${x.tutar} ₺</td><td><button class="btn-danger" onclick="nakliyeSil(${x.id})">Sil</button></td></tr>`;
+                html += `<tr><td>${formatliTarihGoster(x.tarih)}</td><td><b>${x.tur}</b><br>${x.plaka}</td><td>${x.guzergah}</td><td>${x.adet}</td><td style="color:#dc2626;font-weight:bold;">${x.tutar} ₺</td><td><button class="btn-danger" onclick="nakliyeSil(${x.id})">Sil</button></td></tr>`;
             });
             html += '</table>';
             document.getElementById('nakliye-listesi').innerHTML = html;
@@ -1422,13 +1410,11 @@
             } else {
                 islemler.forEach(i => {
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
-                    
                     if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
                         i.kalemler.forEach(k => {
                             html += `&nbsp;&nbsp;• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar.toFixed(2)} ₺<br>`;
                         });
                     }
-
                     html += `<b>Toplam Tutar:</b> ${i.tutar.toFixed(2)} ₺`;
                     if(i.aciklama) {
                         html += `<br><span style="font-size:11px; color:#555;">Not: ${i.aciklama}</span>`;
@@ -1493,7 +1479,7 @@
                     if(confirm('Mevcut verilerin üzerine yazılacak. Onaylıyor musunuz?')) {
                         veritabani = importedData;
                         kaydetVeri();
-                        alert('Veriler başarıyla yükledi!');
+                        alert('Veriler başarıyla yüklendi!');
                         goHome();
                     }
                 } catch(err) {
