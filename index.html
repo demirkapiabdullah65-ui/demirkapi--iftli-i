@@ -1,477 +1,925 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demirkapı Çiftliği - Müşteri & Cari Yönetimi</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f7f6; color: #333; padding: 15px; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1, h2, h3 { color: #2c3e50; margin-bottom: 10px; }
-        
-        /* Dashboard */
-        .dashboard { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .dash-card { background: #eef2f5; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; border-left: 5px solid #3498db; }
-        .dash-card.warning { border-left-color: #e74c3c; background: #fdf2e9; }
-        .dash-card small { color: #7f8c8d; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-        .dash-card h3 { font-size: 22px; margin-top: 5px; color: #2c3e50; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demirkapı Çiftliği</title>
+<!-- Firebase SDK'ları -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- html2pdf Kütüphanesi -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> 
 
-        /* Formlar ve Girdiler */
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #34495e; }
-        input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        input:focus, select:focus { border-color: #3498db; outline: none; }
-        
-        .btn-group { display: flex; gap: 8px; margin-top: 10px; }
-        button { background: #3498db; color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
-        button.btn-danger { background: #e74c3c; }
-        button.btn-success { background: #2ecc71; }
-        button.btn-secondary { background: #95a5a6; }
-        button.btn-wa { background: #25D366; color: white; }
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f5; margin: 0; padding: 0; color: #333; padding-bottom: 90px; }
+.header { background-color: #166534; color: white; padding: 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); justify-content: space-between; }
+.logo-box { background-color: #fde047; padding: 10px; border-radius: 12px; margin-right: 15px; font-size: 24px; }
+.title-main { font-size: 20px; font-weight: bold; }
+.title-sub { font-size: 15px; opacity: 0.9; }
+.container { max-width: 650px; margin: 0 auto; padding: 15px; }
+.section-title { font-size: 22px; font-weight: bold; color: #111; margin-bottom: 20px; margin-top: 10px; }
+.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+.menu-card { background-color: white; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #eee; position: relative; }
+.menu-card:active { transform: scale(0.97); }
+.menu-icon { font-size: 36px; margin-bottom: 12px; }
+.menu-title { font-size: 15px; font-weight: 700; color: #222; margin-bottom: 4px; }
+.menu-desc { font-size: 12px; color: #666; }
+.badge { position: absolute; top: 10px; right: 10px; background-color: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+.card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eee; }
+.form-group { margin-bottom: 15px; }
+label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
+input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; }
+.btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
+.btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+.btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+.urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eee; }
+th { color: #444; font-weight: 700; background: #f1f5f9; }
+.sync-status { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #166534; display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
+.nav-item { display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 11px; cursor: pointer; background: none; border: none; flex: 1; }
+.nav-item.active { color: white; font-weight: bold; }
+.nav-icon { font-size: 20px; margin-bottom: 2px; }
+.hidden { display: none !important; } 
 
-        /* Arama & Liste */
-        .search-bar { margin-bottom: 15px; }
-        .musteri-listesi { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .musteri-karti { background: #fff; border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .musteri-karti:hover { border-color: #3498db; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .musteri-bilgi h4 { margin-bottom: 5px; color: #2c3e50; }
-        .musteri-bilgi p { font-size: 12px; color: #7f8c8d; }
-        .musteri-bakiye { text-align: right; font-weight: bold; font-size: 16px; }
-        .bakiye-arti { color: #e74c3c; }
-        .bakiye-eksi { color: #2ecc71; }
+.fis-baslik { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
+.fis-musteri { font-size: 18px; font-weight: bold; }
+.fis-bakiye { font-size: 20px; font-weight: 900; background-color: #000; color: #fff; padding: 4px; display: inline-block; margin-top: 5px; } 
 
-        /* Modallar */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        
-        /* Tablo */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f8f9fa; }
-
-        .hidden { display: none; }
-    </style>
+@media print {
+.fis-baslik { font-size: 22px !important; font-weight: bold !important; }
+.fis-musteri { font-size: 18px !important; font-weight: bold !important; }
+.fis-bakiye { font-size: 22px !important; font-weight: bold !important; color: #000 !important; background: none !important; }
+}
+</style>
 </head>
-<body>
+<body> 
+
+<div class="header">
+<div style="display:flex; align-items:center;">
+<div class="logo-box">🌾</div>
+<div>
+<div class="title-main">DEMİRKAPI</div>
+<div class="title-sub">ÇİFTLİĞİ</div>
+</div>
+</div>
+<div id="sync-indicator" class="sync-status">🔥 Canlı Bulut</div>
+</div> 
 
 <div class="container">
-    <h2>Demirkapı Çiftliği - Cari Takip</h2>
-    <hr style="margin: 10px 0 20px 0; border: 0; border-top: 1px solid #eee;">
+<!-- ANA MENÜ -->
+<div id="screen-menu">
+<div class="card" id="hava-durumu-kutusu" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; margin-bottom: 15px;">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<div>
+<div style="font-size:13px; opacity:0.9;">📍 Sakarya Çiftlik Konumu</div>
+<div id="hava-derece" style="font-size:28px; font-weight:bold; margin:4px 0;">Yükleniyor...</div>
+<div id="hava-durum-metin" style="font-size:13px;">Hava durumu bilgisi alınıyor</div>
+</div>
+<div id="hava-ikon" style="font-size:42px;">🌤️</div>
+</div>
+</div> 
 
-    <!-- Dashboard -->
-    <div class="dashboard">
-        <div class="dash-card">
-            <small>Toplam Alacak</small>
-            <h3 id="toplam-alacak">0.00 TL</h3>
-        </div>
-        <div class="dash-card warning">
-            <small>Vadesi Gelen / Geçen</small>
-            <h3 id="vadesi-gelen-toplam">0.00 TL</h3>
-        </div>
-    </div>
-
-    <!-- Kontrol Butonları & Arama -->
-    <div class="btn-group" style="margin-bottom: 15px;">
-        <button onclick="musteriEkleModalAc()">+ Yeni Müşteri</button>
-        <button class="btn-secondary" onclick="verileriDisaAktar()">Yedek İndir</button>
-        <button class="btn-secondary" onclick="document.getElementById('yedek-input').click()">Yedek Yükle</button>
-        <input type="file" id="yedek-input" class="hidden" onchange="verileriIceAktar(event)">
-    </div>
-
-    <input type="text" id="arama-input" class="search-bar" onkeyup="musteriAra()" placeholder="Müşteri adı veya telefon ara...">
-
-    <!-- Müşteri Listesi -->
-    <div id="musteri-listesi" class="musteri-listesi"></div>
+<!-- KPI ÖZET DASHBOARD -->
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px;">
+  <div class="card" style="margin-bottom:0; padding:10px; text-align:center; background:#f0fdf4; border-color:#bbf7d0;">
+    <div style="font-size:10px; color:#166534; font-weight:bold;">TOPLAM ALACAK</div>
+    <div id="kpi-alacak" style="font-size:14px; font-weight:bold; color:#15803d; margin-top:4px;">0 ₺</div>
+  </div>
+  <div class="card" style="margin-bottom:0; padding:10px; text-align:center; background:#fef2f2; border-color:#fecdd3;">
+    <div style="font-size:10px; color:#991b1b; font-weight:bold;">MÜŞTERİ BORÇLARI</div>
+    <div id="kpi-borc" style="font-size:14px; font-weight:bold; color:#b91c1c; margin-top:4px;">0 ₺</div>
+  </div>
+  <div class="card" style="margin-bottom:0; padding:10px; text-align:center; background:#fffbeb; border-color:#fef3c7;">
+    <div style="font-size:10px; color:#92400e; font-weight:bold;">ÖZLEM YEM BAKİYE</div>
+    <div id="kpi-ozlem" style="font-size:14px; font-weight:bold; color:#b45309; margin-top:4px;">0 ₺</div>
+  </div>
 </div>
 
-<!-- Müşteri Ekle/Düzenle Modalı -->
-<div id="musteri-modal" class="modal">
-    <div class="modal-content">
-        <h3 id="modal-baslik">Yeni Müşteri Ekle</h3>
-        <br>
-        <div class="form-group">
-            <label>Adı Soyadı</label>
-            <input type="text" id="m-ad">
-        </div>
-        <div class="form-group">
-            <label>Telefon (5XXXXXXXXX)</label>
-            <input type="text" id="m-tel" placeholder="5321234567">
-        </div>
-        <div class="form-group">
-            <label>Borç Limit (TL) - (0: Sınırsız)</label>
-            <input type="number" id="m-limit" value="0">
-        </div>
-        <div class="btn-group">
-            <button class="btn-success" onclick="musteriKaydet()">Kaydet</button>
-            <button class="btn-secondary" onclick="modalKapat('musteri-modal')">İptal</button>
-        </div>
-    </div>
+<!-- VADESİ / ÖDEME SÖZÜ GELENLER -->
+<div class="card" style="border-left: 4px solid #ef4444; margin-bottom: 20px;">
+  <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #991b1b; display: flex; align-items: center; justify-content: space-between;">
+    <span>⏰ Tahsili / Vadesi Gelen Ödemeler</span>
+    <button onclick="vadeGelenleriYukle()" style="background:none; border:none; cursor:pointer;">🔄</button>
+  </div>
+  <div id="vade-gelenler-listesi">Yükleniyor...</div>
 </div>
 
-<!-- Müşteri Detay / İşlem Modalı -->
-<div id="detay-modal" class="modal">
-    <div class="modal-content">
-        <h3 id="detay-musteri-adi">Müşteri Detayı</h3>
-        <p id="detay-musteri-bakiye" style="font-weight: bold; margin: 5px 0 15px 0;"></p>
-
-        <!-- İşlem Ekle Formu -->
-        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            <h4>Yeni İşlem Ekle</h4>
-            <div class="form-group" style="margin-top: 8px;">
-                <label>İşlem Tipi</label>
-                <select id="i-tip">
-                    <option value="borc">Satış / Borç Ekle (+)</option>
-                    <option value="tahsulat">Tahsilat / Ödeme Al (-)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Açıklama</label>
-                <input type="text" id="i-aciklama" placeholder="Örn: Silaj Satışı">
-            </div>
-            <div class="form-group">
-                <label>Tutar (TL)</label>
-                <input type="number" id="i-tutar" step="0.01">
-            </div>
-            <div class="form-group">
-                <label>Vade Tarihi (Opsiyonel)</label>
-                <input type="date" id="i-vade">
-            </div>
-            <button class="btn-success" onclick="islemEkle()">İşlemi Kaydet</button>
-        </div>
-
-        <!-- İşlem Geçmişi -->
-        <h4>İşlem Geçmişi</h4>
-        <div style="max-height: 200px; overflow-y: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tarih</th>
-                        <th>Açıklama</th>
-                        <th>Vade</th>
-                        <th>Tutar</th>
-                    </tr>
-                </thead>
-                <tbody id="islem-gecmisi-body"></tbody>
-            </table>
-        </div>
-
-        <div class="btn-group" style="margin-top: 15px;">
-            <button class="btn-wa" onclick="whatsappFisGonder()">WhatsApp Fiş At</button>
-            <button class="btn-secondary" onclick="fisYazdir()">Fiş Yazdır</button>
-            <button class="btn-danger" onclick="musteriSilTetikle()">Müşteriyi Sil</button>
-            <button class="btn-secondary" onclick="modalKapat('detay-modal')">Kapat</button>
-        </div>
-    </div>
+<div class="section-title">Ana Sayfa</div>
+<div class="menu-grid">
+<div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Talep</div><div class="menu-desc">Onaya gönder</div></div>
+<div class="menu-card" onclick="openScreen('onay')">
+<div class="menu-icon">🔔</div>
+<div class="menu-title">2. Onay Bekleyenler</div>
+<div class="menu-desc">Düzelt & Onayla</div>
+<div id="menu-badge" class="badge hidden">0</div>
 </div>
-
-<!-- PIN Onay Modalı -->
-<div id="pin-modal" class="modal">
-    <div class="modal-content" style="text-align: center; max-width: 300px;">
-        <h3>Güvenlik PIN'i</h3>
-        <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Lütfen işlemi onaylamak için PIN girin.</p>
-        <input type="password" id="pin-input" maxlength="4" style="font-size: 24px; text-align: center; width: 120px; margin: 0 auto 15px auto;">
-        <div class="btn-group">
-            <button onclick="pinKontrolEt()">Onayla</button>
-            <button class="btn-secondary" onclick="modalKapat('pin-modal')">İptal</button>
-        </div>
-    </div>
+<div class="menu-card" onclick="openScreen('giris')"><div class="menu-icon">📥</div><div class="menu-title">3. Stok Ekle</div><div class="menu-desc">Onaya gider</div></div>
+<div class="menu-card" onclick="openScreen('tahsilat')"><div class="menu-icon">💰</div><div class="menu-title">4. Tahsilat / Ödeme</div><div class="menu-desc">Onaya gider</div></div>
+<div class="menu-card" onclick="openScreen('borc')"><div class="menu-icon">📒</div><div class="menu-title">5. Borç Takibi / Cariler</div><div class="menu-desc">Detaylı Müşteri & Borçlar</div></div>
+<div class="menu-card" onclick="openScreen('stok')"><div class="menu-icon">📦</div><div class="menu-title">6. Stok & Kritik</div><div class="menu-desc">Adet bazlı stoklar</div></div>
+<div class="menu-card" onclick="openScreen('sury')"><div class="menu-icon">🐄</div><div class="menu-title">7. Sürü Takibi</div><div class="menu-desc">Küpe, aşı & doğum</div></div>
+<div class="menu-card" onclick="openScreen('finans')"><div class="menu-icon">📈</div><div class="menu-title">8. Gelişmiş Finans</div><div class="menu-desc">Alacak / Borç özeti</div></div>
+<div class="menu-card" onclick="openScreen('musteriler')"><div class="menu-icon">👥</div><div class="menu-title">9. Müşteriler / Cariler</div><div class="menu-desc">WhatsApp hatırlatıcı</div></div>
+<div class="menu-card" onclick="openScreen('gunluk')"><div class="menu-icon">📅</div><div class="menu-title">10. Günlük Rapor</div><div class="menu-desc">Günlük hareketler</div></div>
+<div class="menu-card" onclick="openScreen('aylik')"><div class="menu-icon">📊</div><div class="menu-title">11. Aylık Kâr / Ciro</div><div class="menu-desc">Aylık finansal özet</div></div>
+<div class="menu-card" onclick="openScreen('gider')"><div class="menu-icon">💸</div><div class="menu-title">12. Gider / Masraf</div><div class="menu-desc">Onaya gider</div></div>
+<div class="menu-card" onclick="openScreen('silaj')"><div class="menu-icon">🌽</div><div class="menu-title">13. Alınan Silajlar</div><div class="menu-desc">Onaya gider</div></div>
+<div class="menu-card" onclick="openScreen('tarla')"><div class="menu-icon">🚜</div><div class="menu-title">14. Biçilen Tarlalar</div><div class="menu-desc">Onaya gider</div></div>
+<div class="menu-card" onclick="openScreen('nakliye')"><div class="menu-icon">🚚</div><div class="menu-title">15. Nakliye / Top</div><div class="menu-desc">Nakliye ve Top taşıma</div></div>
+<div class="menu-card" onclick="openScreen('ozemyem')"><div class="menu-icon">🌾</div><div class="menu-title">16. Özlem Yem</div><div class="menu-desc">Bayilik & Bakiye</div></div>
+<div class="menu-card" onclick="openScreen('sesli')"><div class="menu-icon">🎙️</div><div class="menu-title">Sesli Asistan</div><div class="menu-desc">Konuşarak talep et</div></div>
+<div class="menu-card" onclick="openScreen('yedek')"><div class="menu-icon">💾</div><div class="menu-title">Yedekle</div><div class="menu-desc">Excel & JSON</div></div>
+<div class="menu-card" onclick="openScreen('gecmis')" style="grid-column: span 2;"><div class="menu-icon">🧾</div><div class="menu-title">İşlem Geçmişi</div><div class="menu-desc">Tüm hareketler</div></div>
 </div>
+</div> 
+
+<!-- 1. SATIŞ -->
+<div id="screen-satis" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🛒 Satış Talebi Oluştur</div>
+<div class="card">
+<div class="form-group"><label>Satış Tarihi ve Saati</label><input type="datetime-local" id="s-tarih"></div>
+<div class="form-group">
+<label>Müşteri Seçin veya Yeni Yazın</label>
+<input type="text" id="s-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
+<datalist id="musteri-listesi-datalist"></datalist>
+</div>
+<div class="form-group"><label>Vade / Ödeme Sözü Tarihi (İsteğe Bağlı)</label><input type="date" id="s-vade"></div>
+<hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+<label><b>Sepetteki Ürünler</b></label>
+<div id="urunler-konteynir"></div>
+<button class="btn-secondary" onclick="urunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Ürün Ekle</button>
+<div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="satisGonderKontrollu()">Onaya Gönder 🚀</button>
+</div>
+</div> 
+
+<!-- 2. ONAY BEKLEYENLER -->
+<div id="screen-onay" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🔔 Onay Bekleyen İşlemler & Düzeltme</div>
+<div class="card"><div id="onay-listesi">Bekleyen talep bulunmuyor.</div></div>
+</div> 
+
+<!-- 3. STOK EKLE -->
+<div id="screen-giris" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">📥 Stoğa Ürün Ekle (Talep)</div>
+<div class="card">
+<div class="form-group"><label>Ürün Adı</label><input type="text" id="g-urun" placeholder="Ürün adı"></div>
+<div class="form-group"><label>Miktar (Adet)</label><input type="number" id="g-miktar" placeholder="0"></div>
+<div class="form-group"><label>Kritik Sınır</label><input type="number" id="g-kritik" placeholder="5"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="g-not" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="talepGonder('StokEkle', {urun: document.getElementById('g-urun').value, miktar: document.getElementById('g-miktar').value, kritik: document.getElementById('g-kritik').value, not: document.getElementById('g-not').value})">Onaya Gönder 🚀</button>
+</div>
+</div> 
+
+<!-- 4. TAHSİLAT -->
+<div id="screen-tahsilat" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">💰 Tahsilat / Ödeme Talebi</div>
+<div class="card">
+<div class="form-group"><label>Ödeme Tarihi</label><input type="datetime-local" id="t-tarih"></div>
+<div class="form-group">
+<label>Müşteri / Kişi Seçin veya Yeni Yazın</label>
+<input type="text" id="t-musteri" list="musteri-listesi-datalist" placeholder="Müşteri seçin ya da adını yazın...">
+</div>
+<div class="form-group"><label>Alınan Ödeme Tutarı (TL)</label><input type="number" id="t-tutar" placeholder="0"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="t-aciklama" placeholder="Nakit / Havale vb."></div>
+<button class="btn-green" onclick="talepGonder('Tahsilat', {tarih: document.getElementById('t-tarih').value, musteri: document.getElementById('t-musteri').value.trim(), tutar: document.getElementById('t-tutar').value, aciklama: document.getElementById('t-aciklama').value})">Onaya Gönder 🚀</button>
+</div>
+</div> 
+
+<!-- 5. BORÇ TAKİBİ -->
+<div id="screen-borc" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">📒 Müşteri & Silaj / Tarla Borç Takibi</div>
+<div class="card">
+<div class="form-group"><label>Kişi / Müşteri Ara</label><input type="text" id="borc-arama" oninput="canlıAramaYap('borc-arama', 'borc-detay-listesi')" placeholder="İsim yazın..."></div>
+<div id="borc-detay-listesi"></div>
+</div>
+</div> 
+
+<!-- 6. STOK -->
+<div id="screen-stok" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">📦 Stok Durumu & Kritik Uyarılar</div>
+<div class="card"><div id="stok-listesi">Stokta ürün bulunmuyor.</div></div>
+</div> 
+
+<!-- 7. SÜRÜ TAKİBİ -->
+<div id="screen-sury" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🐄 Sürü / Hayvan Takibi</div>
+<div class="card">
+<h3 style="margin-top:0; font-size:16px; color:#166534;">Hayvan Kayıt Talebi</h3>
+<div class="form-group"><label>Küpe Numarası / Adı</label><input type="text" id="h-kupe" placeholder="Örn: TR-5401"></div>
+<div class="form-group"><label>Cinsi / Türü</label><input type="text" id="h-cins" placeholder="Simental İnek"></div>
+<div class="form-group"><label>Doğum / Alım Tarihi</label><input type="date" id="h-tarih"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="h-asi" placeholder="Aşı veya not bilgisi"></div>
+<button class="btn-green" onclick="talepGonder('HayvanEkle', {kupe: document.getElementById('h-kupe').value, cins: document.getElementById('h-cins').value, tarih: document.getElementById('h-tarih').value, not: document.getElementById('h-asi').value})">Onaya Gönder 🚀</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0; font-size:16px; color:#166534;">Mevcut Sürü Listesi</h3>
+<div class="form-group"><input type="text" id="hayvan-arama" oninput="canlıAramaYap('hayvan-arama', 'hayvan-listesi')" placeholder="Küpe no veya cins ara..."></div>
+<div id="hayvan-listesi">Kayıtlı hayvan bulunmuyor.</div>
+</div>
+</div> 
+
+<!-- 8. GELİŞMİŞ FİNANS -->
+<div id="screen-finans" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">📈 Gelişmiş Finans & Alacak Özeti</div>
+<div class="card" id="finans-ozet-alani"></div>
+</div> 
+
+<!-- 9. MÜŞTERİLER -->
+<div id="screen-musteriler" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">👥 Cari Müşteri Listesi & WhatsApp</div>
+<div class="card">
+<div class="form-group"><input type="text" id="musteri-arama" oninput="canlıAramaYap('musteri-arama', 'musteri-listesi')" placeholder="Müşteri ara..."></div>
+<div id="musteri-listesi">Kayıtlı müşteri yok.</div>
+</div>
+</div> 
+
+<!-- 10. GÜNLÜK RAPOR -->
+<div id="screen-gunluk" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">📅 Günlük Satış Raporu</div>
+<div class="card">
+<div class="form-group"><label>Tarih Seçin</label><input type="date" id="rapor-tarih" onchange="gunlukRaporuGoster()"></div>
+<div id="rapor-ozet" style="margin-top:15px;"></div>
+<div id="rapor-detay"></div>
+</div>
+</div> 
+
+<!-- 11. AYLIK KÂR / CİRO -->
+<div id="screen-aylik" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">📊 Aylık Ciro ve Kâr Özeti</div>
+<div class="card">
+<div class="form-group"><label>Yıl ve Ay Seçin</label><input type="month" id="aylik-tarih" onchange="aylikRaporuGoster()"></div>
+<div id="aylik-ozet-alani" style="margin-top:15px;"></div>
+</div>
+</div> 
+
+<!-- 12. GİDER / MASRAF -->
+<div id="screen-gider" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">💸 Çiftlik Gider / Masraf Girişi</div>
+<div class="card">
+<div class="form-group"><label>Masraf Tarihi ve Saati</label><input type="datetime-local" id="gider-tarih"></div>
+<div class="form-group"><label>Gider Türü / Başlığı</label><input type="text" id="gider-tur" placeholder="Mazot, Yem Alımı vb."></div>
+<div class="form-group"><label>Tutar (TL)</label><input type="number" id="gider-tutar" placeholder="0"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="gider-aciklama" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="talepGonder('Gider', {tarih: document.getElementById('gider-tarih').value, tur: document.getElementById('gider-tur').value, tutar: document.getElementById('gider-tutar').value, aciklama: document.getElementById('gider-aciklama').value})">Onaya Gönder 🚀</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0; font-size:16px; color:#166534;">Geçmiş Giderler</h3>
+<div id="gider-listesi">Kayıtlı gider yok.</div>
+</div>
+</div> 
+
+<!-- 13. ALINAN SİLAJLAR -->
+<div id="screen-silaj" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🌽 Alınan Silajlar</div>
+<div class="card">
+<div class="form-group"><label>Tarih</label><input type="datetime-local" id="silaj-tarih"></div>
+<div class="form-group"><label>Tarla Sahibi / Satıcı</label><input type="text" id="silaj-sahip" placeholder="Ad Soyad"></div>
+<div class="form-group"><label>Tarla / Köy</label><input type="text" id="silaj-tarla" placeholder="Konum"></div>
+<div class="form-group"><label>Ölçü Birimi</label><select id="silaj-birim" onchange="silajBirimDegisti()"><option value="Ton">Ton</option><option value="Dönüm">Dönüm</option></select></div>
+<div class="form-group"><label id="silaj-miktar-label">Miktar</label><input type="number" step="0.01" id="silaj-miktar" placeholder="0" oninput="silajToplamHesapla()"></div>
+<div class="form-group"><label id="silaj-fiyat-label">Birim Fiyat (TL)</label><input type="number" step="0.01" id="silaj-fiyat" placeholder="0" oninput="silajToplamHesapla()"></div>
+<div id="silaj-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam: 0 ₺</div>
+<div class="form-group"><label>Ödenen Tutar (TL)</label><input type="number" step="0.01" id="silaj-odenen" placeholder="0" oninput="silajToplamHesapla()"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="silaj-not" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="talepGonder('Silaj', {tarih: document.getElementById('silaj-tarih').value, sahip: document.getElementById('silaj-sahip').value, tarla: document.getElementById('silaj-tarla').value, birim: document.getElementById('silaj-birim').value, miktar: document.getElementById('silaj-miktar').value, fiyat: document.getElementById('silaj-fiyat').value, odenen: document.getElementById('silaj-odenen').value, not: document.getElementById('silaj-not').value})">Onaya Gönder 🚀</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0;color:#166534;">Geçmiş Silaj Alımları</h3>
+<div id="silaj-listesi">Kayıtlı silaj alımı yok.</div>
+</div>
+</div> 
+
+<!-- 14. BİÇİLEN TARLANLAR -->
+<div id="screen-tarla" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🚜 Biçilen Tarlalar</div>
+<div class="card">
+<div class="form-group"><label>Tarih</label><input type="datetime-local" id="tarla-tarih"></div>
+<div class="form-group"><label>Tarla Sahibi / Müşteri</label><input type="text" id="tarla-sahip" placeholder="Ad Soyad"></div>
+<div class="form-group"><label>Tarla / Köy</label><input type="text" id="tarla-konum" placeholder="Konum"></div>
+<div class="form-group"><label>Ölçü Birimi</label><select id="tarla-birim" onchange="tarlaBirimDegisti()"><option value="Dönüm">Dönüm</option><option value="Ton">Ton</option></select></div>
+<div class="form-group"><label id="tarla-miktar-label">Miktar</label><input type="number" step="0.01" id="tarla-miktar" placeholder="0" oninput="tarlaToplamHesapla()"></div>
+<div class="form-group"><label id="tarla-fiyat-label">Birim Fiyat (TL)</label><input type="number" step="0.01" id="tarla-fiyat" placeholder="0" oninput="tarlaToplamHesapla()"></div>
+<div id="tarla-toplam" style="background:#eff6ff;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#1e40af;">Biçim Ücreti: 0 ₺</div>
+<div class="form-group"><label>Alınan Para (TL)</label><input type="number" step="0.01" id="tarla-alinan" placeholder="0" oninput="tarlaToplamHesapla()"></div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="tarla-not" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="talepGonder('Tarla', {tarih: document.getElementById('tarla-tarih').value, sahip: document.getElementById('tarla-sahip').value, konum: document.getElementById('tarla-konum').value, birim: document.getElementById('tarla-birim').value, miktar: document.getElementById('tarla-miktar').value, fiyat: document.getElementById('tarla-fiyat').value, alinan: document.getElementById('tarla-alinan').value, not: document.getElementById('tarla-not').value})">Onaya Gönder 🚀</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0;color:#166534;">Geçmiş Biçilen Tarlalar</h3>
+<div id="tarla-listesi">Kayıtlı tarla biçimi yok.</div>
+</div>
+</div> 
+
+<!-- 15. NAKLİYE & TOP TAŞIMA -->
+<div id="screen-nakliye" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🚚 Nakliye & Top Taşıma Takibi</div>
+<div class="card">
+<div class="form-group"><label>Tarih ve Saat</label><input type="datetime-local" id="nak-tarih"></div>
+<div class="form-group"><label>İşlem Türü</label><select id="nak-tur"><option value="Nakliye">Nakliye (Genel Taşıma)</option><option value="TopTaşıma">Top Taşıma</option></select></div>
+<div class="form-group"><label>Araç Plakası</label><input type="text" id="nak-plaka" placeholder="Örn: 54 AB 123"></div>
+<div class="form-group"><label>Güzergah / Nereden - Nereye</label><input type="text" id="nak-guzergah" placeholder="Örn: Tarladan Çiftliğe"></div>
+<div class="form-group"><label id="nak-adet-label">Adet / Miktar</label><input type="number" step="0.01" id="nak-adet" placeholder="0" value="1" oninput="nakliyeToplamHesapla()"></div>
+<div class="form-group"><label id="nak-fiyat-label">Birim Fiyat / Tutar (TL)</label><input type="number" step="0.01" id="nak-birim-fiyat" placeholder="0" oninput="nakliyeToplamHesapla()"></div>
+<div id="nak-toplam-gosterge" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Tutar: 0.00 ₺</div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="nak-not" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="nakliyeTalepGonder()">Onaya Gönder 🚀</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0;color:#166534;">Geçmiş Nakliye ve Top Taşımaları</h3>
+<div id="nakliye-listesi">Kayıt bulunmuyor.</div>
+</div>
+</div> 
+
+<!-- 16. ÖZLEM YEM BAYİLİK & BAKİYE -->
+<div id="screen-ozemyem" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🌾 Özlem Yem Bayilik & Bakiye Takibi</div>
+<div class="card" id="ozem-bakiye-karti" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; margin-bottom: 20px; padding: 15px; border-radius: 12px;">
+<div style="font-size:13px; opacity:0.9;">Özlem Yem Güncel Cari Bakiye</div>
+<div id="ozem-bakiye-tutar" style="font-size:26px; font-weight:bold; margin:5px 0;">0.00 ₺</div>
+<div style="font-size:12px;">(Toplam Yem Alım Tutarları - Özlem Yeme Yollanan Paralar)</div>
+</div>
+<div class="card">
+<h3 style="margin-top:0; color:#166534; font-size:16px;">Yem Sevkiyatı / Ödeme Bildirimi</h3>
+<div class="form-group"><label>İşlem Tarihi</label><input type="datetime-local" id="ozem-tarih"></div>
+<div class="form-group"><label>İşlem Türü</label>
+<select id="ozem-islem-tipi" onchange="ozemTipDegisti()">
+<option value="YemGelis">Fabrikadan Yem Geldi (Borç Artar)</option>
+<option value="OdemGonderildi">Özlem Yeme Para Yollandı (Borç Düşer)</option>
+</select>
+</div>
+<div id="ozem-yem-alanlari">
+<div class="form-group"><label>Araç Plakası</label><input type="text" id="ozem-plaka" placeholder="Örn: 54 ZP 789"></div>
+<hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+<label><b>Sevkiyat İçindeki Yem Kalemleri</b></label>
+<div id="ozem-urunler-konteynir"></div>
+<button class="btn-secondary" onclick="ozemUrunSatiriEkle()" style="width:100%; margin-bottom:15px;">➕ Başka Yem Ekle</button>
+<div id="ozem-genel-toplam" style="background:#f0fdf4;padding:12px;border-radius:10px;margin-bottom:15px;font-weight:bold;color:#166534;">Toplam Yem Tutarı: 0.00 ₺</div>
+</div>
+<div id="ozem-odeme-alanlari" class="hidden">
+<div class="form-group"><label>Özlem Yeme Yollanan Para (TL)</label><input type="number" step="0.01" id="ozem-odenen" placeholder="0"></div>
+</div>
+<div class="form-group"><label>Not / Açıklama</label><input type="text" id="ozem-not" placeholder="Not ekleyin"></div>
+<button class="btn-green" onclick="ozemYemTalepGonder()">Onaya Gönder 🚀</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0; color:#166534;">Özlem Yem Hareket Geçmişi</h3>
+<div id="ozem-listesi">Kayıt bulunmuyor.</div>
+</div>
+</div> 
+
+<!-- SESLİ ASİSTAN -->
+<div id="screen-sesli" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🎙️ Sesli Komut Asistanı</div>
+<div class="card" style="text-align: center; padding: 30px 15px;">
+<div style="font-size: 50px; margin-bottom: 15px;" id="mic-icon">🎤</div>
+<div id="sesli-durum" style="font-weight: bold; font-size: 16px; color: #166534; margin-bottom: 15px;">Dinlemeye Hazır</div>
+<div style="font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5;">
+Mikrofon butonuna basıp konuşun:<br>
+<i>Örn: "Ahmet'ten 5000 lira tahsilat aldım"</i>
+</div>
+<button class="btn-green" onclick="sesliDinlemeyiBaslat()" style="font-size: 18px; padding: 16px;">🎙️ Konuşmaya Başla</button>
+<div id="sesli-sonuc" style="margin-top: 20px; font-weight: bold; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 14px; text-align: left;"></div>
+</div>
+</div> 
+
+<!-- YEDEKLEME -->
+<div id="screen-yedek" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">💾 Veri Yedekleme & Dışa Aktar</div>
+<div class="card">
+<p style="font-size:13px; color:#555; line-height: 1.5;">Tüm çiftlik verilerini güvenli JSON dosyası olarak indirebilirsin.</p>
+<button class="btn-green" onclick="verileriDisaAktar()">📥 Tüm Verileri Yedekle (JSON İndir)</button>
+</div>
+<div class="card" style="margin-top: 15px;">
+<p style="font-size:13px; color:#555; line-height: 1.5;">Daha önce aldığın yedek dosyasını seçerek verileri geri yükleyebilirsin:</p>
+<input type="file" id="yedek-dosya-input" accept=".json" style="margin-bottom: 10px;">
+<button class="btn-secondary" onclick="verileriIceAktar()" style="width:100%; padding: 12px;">📤 Yedekten Geri Yükle</button>
+</div>
+</div> 
+
+<!-- İŞLEM GEÇMİŞİ -->
+<div id="screen-gecmis" class="hidden">
+<button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+<div class="section-title">🧾 Tüm İşlem Geçmişi</div>
+<div class="card">
+<button id="undo-btn" class="btn-secondary hidden" onclick="sonIslemiGeriAl()" style="background-color:#eab308; margin-bottom:15px; width:100%;">
+  ↩️ Son Silinen İşlemi Geri Al
+</button>
+<div class="form-group"><input type="text" id="gecmis-arama-input" oninput="canlıAramaYap('gecmis-arama-input', 'gecmis-listesi')" placeholder="🔍 Tarih, isim veya işlem ara..."></div>
+<div id="gecmis-listesi">Henüz işlem yapılmadı.</div>
+</div>
+</div> 
+
+<!-- FİŞ EKRANI -->
+<div id="screen-fis" class="hidden">
+<button class="btn-back" onclick="openScreen('borc')">⬅️ Geri Dön</button>
+<div class="section-title">🖨️ Müşteri Hesap Özeti & Fiş</div>
+<div class="card">
+<div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
+<div style="display: flex; gap: 10px; flex-direction: column;">
+<button class="btn-green" style="margin-top:0; background-color:#25D366;" onclick="fisWhatsAppGonder()">💬 WhatsApp ile Fiş Gönder</button>
+<button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px; background-color:#6366f1;" onclick="a4EkstrePdfIndir()">📄 A4 / PDF Ekstre İndir</button>
+<button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
+<button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
+</div>
+</div>
+</div>
+</div> 
+
+<!-- Sabit Alt Navigasyon Çubuğu -->
+<div class="bottom-nav">
+<button class="nav-item active" onclick="goHome()" id="nav-anasayfa"><span class="nav-icon">🏠</span><span>Ana Sayfa</span></button>
+<button class="nav-item" onclick="openScreen('satis')" id="nav-satis"><span class="nav-icon">🛒</span><span>Satış</span></button>
+<button class="nav-item" onclick="openScreen('onay')" id="nav-onay"><span class="nav-icon">🔔</span><span>Onay</span></button>
+<button class="nav-item" onclick="openScreen('borc')" id="nav-borc"><span class="nav-icon">📒</span><span>Borçlar</span></button>
+</div> 
 
 <script>
-    // --- VERİTABANI YAPISI ---
-    const SABIT_PIN = "1234"; // Güvenlik PIN kodu
-    let veritabani = {
-        musteriler: []
-    };
-    let aktifMusteriId = null;
-    let pinCallback = null;
+const firebaseConfig = {
+apiKey: "AIzaSyCvSAndZsfDbZ_eIXtHtcCYMWoqzVGKZU0",
+authDomain: "demirkapi-ca886.firebaseapp.com",
+projectId: "demirkapi-ca886",
+storageBucket: "demirkapi-ca886.firebasestorage.app",
+messagingSenderId: "222198402724",
+appId: "1:222198402724:web:416fd76dc0b64c9e296031",
+databaseURL: "https://demirkapi-ca886-default-rtdb.europe-west1.firebasedatabase.app"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] }; 
+let sonSilinenIslem = null;
 
-    // --- BAŞLANGIÇ ---
-    window.onload = function() {
-        verileriYukle();
-        otomatikYedekAl();
-        arayuzGuncelle();
-    };
+db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
+const data = snapshot.val();
+if (data) {
+veritabani = data;
+if(!veritabani.islemler) veritabani.islemler = [];
+if(!veritabani.stoklar) veritabani.stoklar = {};
+if(!veritabani.kritikStok) veritabani.kritikStok = {};
+if(!veritabani.borclar) veritabani.borclar = {};
+if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
+if(!veritabani.girisler) veritabani.girisler = {};
+if(!veritabani.giderler) veritabani.giderler = [];
+if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
+if(!veritabani.silajlar) veritabani.silajlar = [];
+if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
+if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
+if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
+} 
 
-    function kaydetVeri() {
-        localStorage.setItem('demirkapi_vdb', JSON.stringify(veritabani));
-        arayuzGuncelle();
+bekleyenRozetGuncelle();
+musteriDatalistGuncelle(); 
+dashboardKpiGuncelle();
+vadeGelenleriYukle();
+
+if (!document.getElementById('screen-onay').classList.contains('hidden')) onayBekleyenleriGoster();
+if (!document.getElementById('screen-musteriler').classList.contains('hidden')) musterileriGoster();
+if (!document.getElementById('screen-stok').classList.contains('hidden')) stoklariGoster();
+if (!document.getElementById('screen-borc').classList.contains('hidden')) borclariListele();
+if (!document.getElementById('screen-sury').classList.contains('hidden')) hayvanlariGoster();
+if (!document.getElementById('screen-finans').classList.contains('hidden')) gelismisFinansGoster();
+if (!document.getElementById('screen-gunluk').classList.contains('hidden')) gunlukRaporuGoster();
+if (!document.getElementById('screen-aylik').classList.contains('hidden')) aylikRaporuGoster();
+if (!document.getElementById('screen-gider').classList.contains('hidden')) giderListesiniGoster();
+if (!document.getElementById('screen-silaj').classList.contains('hidden')) silajlariGoster();
+if (!document.getElementById('screen-tarla').classList.contains('hidden')) tarlalariGoster();
+if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
+if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
+}); 
+
+function musteriDatalistGuncelle() {
+let datalist = document.getElementById('musteri-listesi-datalist');
+if(!datalist) return;
+let borclar = veritabani.borclar || {};
+let musteriler = Object.keys(borclar).sort();
+let html = '';
+musteriler.forEach(m => {
+html += `<option value="${m}">`;
+});
+datalist.innerHTML = html;
+} 
+
+async function havaDurumuGetir() {
+try {
+let res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7569&longitude=30.3783&current_weather=true');
+let data = await res.json();
+if(data && data.current_weather) {
+let sicaklik = Math.round(data.current_weather.temperature);
+let kod = data.current_weather.weathercode;
+let aciklama = "Parçalı Bulutlu / Açık";
+let ikon = "🌤️";
+if(kod >= 1 && kod <= 3) { aciklama = "Bulutlu"; ikon = "☁️"; }
+else if(kod >= 51 && kod <= 67) { aciklama = "Yağmurlu"; ikon = "🌧️"; }
+else if(kod >= 71 && kod <= 77) { aciklama = "Karlı"; ikon = "❄️"; }
+else if(kod >= 95) { aciklama = "Fırtınalı"; ikon = "⚡"; } 
+
+document.getElementById('hava-derece').innerText = sicaklik + "°C";
+document.getElementById('hava-durum-metin').innerText = aciklama + " - Tarla ve saha işleri için uygun.";
+document.getElementById('hava-ikon').innerText = ikon;
+}
+} catch(e) {
+document.getElementById('hava-derece').innerText = "Sakarya";
+document.getElementById('hava-durum-metin').innerText = "Hava durumu bilgisi yüklenemedi.";
+}
+}
+havaDurumuGetir(); 
+
+function kaydetVeri() {
+db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
+bekleyenRozetGuncelle();
+yerelYedekAl();
+});
+} 
+
+function yerelYedekAl() {
+  try {
+    if (veritabani && Object.keys(veritabani).length > 0) {
+      localStorage.setItem('demirkapi_otomatik_yedek', JSON.stringify({
+        tarih: new Date().toISOString(),
+        veri: veritabani
+      }));
     }
+  } catch (e) {
+    console.error("Yerel yedek hatası:", e);
+  }
+}
 
-    function verileriYukle() {
-        let kayit = localStorage.getItem('demirkapi_vdb');
-        if (kayit) {
-            try { veritabani = JSON.parse(kayit); } catch(e) { veritabani = { musteriler: [] }; }
-        }
+function haftalikYedekHatirlatici() {
+  const sonYedek = localStorage.getItem('demirkapi_son_indirme_tarihi');
+  const simdi = new Date().getTime();
+  const birHafta = 7 * 24 * 60 * 60 * 1000;
+
+  if (!sonYedek || (simdi - parseInt(sonYedek)) > birHafta) {
+    if (confirm("📢 Bir haftadır veri yedeği indirmediniz. Tüm çiftlik verilerini şimdi JSON olarak indirmek ister misiniz?")) {
+      verileriDisaAktar();
+      localStorage.setItem('demirkapi_son_indirme_tarihi', simdi.toString());
     }
+  }
+}
 
-    // --- 1. OTOMATİK YEDEKLEME ---
-    function otomatikYedekAl() {
-        const sonYedek = localStorage.getItem('son_yedek_tarihi');
-        const bugun = new Date().toISOString().slice(0, 10);
-        if (sonYedek !== bugun) {
-            localStorage.setItem('yedek_snapshot_' + bugun, JSON.stringify(veritabani));
-            localStorage.setItem('son_yedek_tarihi', bugun);
-        }
+function simdikiTarihInputFormat() {
+let d = new Date();
+d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+return d.toISOString().slice(0, 16);
+} 
+
+function formatliTarihGoster(inputStr) {
+if(!inputStr) return '';
+let d = new Date(inputStr);
+if(isNaN(d.getTime())) return inputStr;
+return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+} 
+
+function openScreen(name) {
+let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'sesli', 'yedek', 'gecmis', 'fis'];
+screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
+document.getElementById('screen-' + name)?.classList.remove('hidden');
+window.scrollTo(0, 0); 
+
+document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+if(name === 'menu') document.getElementById('nav-anasayfa')?.classList.add('active');
+if(name === 'satis') document.getElementById('nav-satis')?.classList.add('active');
+if(name === 'onay') document.getElementById('nav-onay')?.classList.add('active');
+if(name === 'borc') document.getElementById('nav-borc')?.classList.add('active'); 
+
+if(name === 'satis') {
+document.getElementById('s-tarih').value = simdikiTarihInputFormat();
+document.getElementById('urunler-konteynir').innerHTML = '';
+document.getElementById('s-pesin').value = '';
+document.getElementById('s-not').value = '';
+document.getElementById('s-musteri').value = '';
+document.getElementById('s-vade').value = '';
+musteriDatalistGuncelle();
+urunSatiriEkle();
+}
+if(name === 'tahsilat') {
+document.getElementById('t-tarih').value = simdikiTarihInputFormat();
+document.getElementById('t-musteri').value = '';
+document.getElementById('t-tutar').value = '';
+document.getElementById('t-aciklama').value = '';
+musteriDatalistGuncelle();
+}
+if(name === 'gunluk') {
+let bugun = new Date().toISOString().split('T')[0];
+document.getElementById('rapor-tarih').value = bugun;
+gunlukRaporuGoster();
+}
+if(name === 'aylik') {
+let buAy = new Date().toISOString().slice(0, 7);
+document.getElementById('aylik-tarih').value = buAy;
+aylikRaporuGoster();
+}
+if(name === 'gider') {
+document.getElementById('gider-tarih').value = simdikiTarihInputFormat();
+document.getElementById('gider-tur').value = '';
+document.getElementById('gider-tutar').value = '';
+document.getElementById('gider-aciklama').value = '';
+giderListesiniGoster();
+}
+if(name === 'silaj') {
+document.getElementById('silaj-tarih').value = simdikiTarihInputFormat();
+document.getElementById('silaj-sahip').value = '';
+document.getElementById('silaj-tarla').value = '';
+document.getElementById('silaj-birim').value = 'Ton';
+document.getElementById('silaj-miktar').value = '';
+document.getElementById('silaj-fiyat').value = '';
+document.getElementById('silaj-odenen').value = '';
+document.getElementById('silaj-not').value = '';
+silajBirimDegisti();
+silajlariGoster();
+}
+if(name === 'tarla') {
+document.getElementById('tarla-tarih').value = simdikiTarihInputFormat();
+document.getElementById('tarla-sahip').value = '';
+document.getElementById('tarla-konum').value = '';
+document.getElementById('tarla-birim').value = 'Dönüm';
+document.getElementById('tarla-miktar').value = '';
+document.getElementById('tarla-fiyat').value = '';
+document.getElementById('tarla-alinan').value = '';
+document.getElementById('tarla-not').value = '';
+tarlaBirimDegisti();
+tarlalariGoster();
+}
+if(name === 'nakliye') {
+document.getElementById('nak-tarih').value = simdikiTarihInputFormat();
+document.getElementById('nak-plaka').value = '';
+document.getElementById('nak-guzergah').value = '';
+document.getElementById('nak-adet').value = '1';
+document.getElementById('nak-birim-fiyat').value = '';
+document.getElementById('nak-not').value = '';
+nakliyeToplamHesapla();
+nakliyeleriGoster();
+}
+if(name === 'ozemyem') {
+document.getElementById('ozem-tarih').value = simdikiTarihInputFormat();
+document.getElementById('ozem-plaka').value = '';
+document.getElementById('ozem-urunler-konteynir').innerHTML = '';
+document.getElementById('ozem-odenen').value = '';
+document.getElementById('ozem-not').value = '';
+ozemTipDegisti();
+ozemUrunSatiriEkle();
+ozemYemGoster();
+}
+if(name === 'onay') onayBekleyenleriGoster();
+if(name === 'borc') borclariListele();
+if(name === 'stok') stoklariGoster();
+if(name === 'sury') hayvanlariGoster();
+if(name === 'finans') gelismisFinansGoster();
+if(name === 'musteriler') musterileriGoster();
+if(name === 'gecmis') gecmisiGoster();
+} 
+
+function goHome() { openScreen('menu'); } 
+
+function urunSatiriEkle() {
+let konteynir = document.getElementById('urunler-konteynir');
+let seceneklerHTML = '';
+let keys = Object.keys(veritabani.stoklar);
+if(keys.length === 0) {
+seceneklerHTML = '<option value="">Önce Stoğa Ürün Ekleyin</option>';
+} else {
+keys.forEach(k => {
+seceneklerHTML += `<option value="${k}">${k} (${veritabani.stoklar[k]} Adet)</option>`;
+});
+} 
+
+let div = document.createElement('div');
+div.className = 'urun-satir';
+div.innerHTML = `
+<button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
+<div class="form-group" style="margin-bottom:10px;"><label>Ürün</label><select class="s-tur-secim">${seceneklerHTML}</select></div>
+<div class="form-group" style="margin-bottom:10px;"><label>Miktar (Adet)</label><input type="number" class="s-miktar-input" placeholder="0"></div>
+<div class="form-group" style="margin-bottom:0;"><label>Birim Fiyat (TL)</label><input type="number" class="s-fiyat-input" placeholder="0"></div>
+`;
+konteynir.appendChild(div);
+}
+
+function talepGonder(islemTipi, veri) {
+  if (!veritabani.bekleyenler) veritabani.bekleyenler = [];
+  veritabani.bekleyenler.push({
+    id: Date.now(),
+    tip: islemTipi,
+    veri: veri,
+    tarih: new Date().toISOString()
+  });
+  kaydetVeri();
+  alert("İşlem başarıyla onay bekleyenlere gönderildi! 🚀");
+  goHome();
+}
+
+function satisGonderKontrollu() {
+  const musteri = document.getElementById('s-musteri').value.trim();
+  const vade = document.getElementById('s-vade').value;
+  let toplamTutar = 0;
+  
+  document.querySelectorAll('.urun-satir').forEach(satir => {
+    const miktar = parseFloat(satir.querySelector('.s-miktar-input')?.value || 0);
+    const fiyat = parseFloat(satir.querySelector('.s-fiyat-input')?.value || 0);
+    toplamTutar += (miktar * fiyat);
+  });
+
+  // Borç Limiti Kontrolü
+  const borclar = veritabani.borclar || {};
+  const kayit = borclar[musteri];
+  if (kayit && kayit.limit && kayit.limit > 0) {
+    const mevcut = kayit.bakiye || 0;
+    if ((mevcut + toplamTutar) > kayit.limit) {
+      if (!confirm(`⚠️ UYARI: ${musteri} müşterisinin borç limiti (${kayit.limit} ₺) aşılıyor!\nMevcut Borç: ${mevcut} ₺\nYeni Borç: ${mevcut + toplamTutar} ₺\nDevam edilsin mi?`)) {
+        return;
+      }
     }
+  }
 
-    // --- 4. ARAMA VE DASHBOARD ---
-    function arayuzGuncelle() {
-        let listEl = document.getElementById('musteri-listesi');
-        listEl.innerHTML = '';
+  // Vade Tarihini kaydetme isteği
+  if (vade && kayit) {
+    kayit.vadeTarihi = vade;
+  }
 
-        let toplamAlacak = 0;
-        let vadesiGelen = 0;
-        let bugun = new Date().toISOString().slice(0, 10);
+  talepGonder('Satış', {
+    tarih: document.getElementById('s-tarih').value,
+    musteri: musteri,
+    pesin: document.getElementById('s-pesin').value,
+    not: document.getElementById('s-not').value,
+    vadeTarihi: vade
+  });
+}
 
-        veritabani.musteriler.forEach(m => {
-            toplamAlacak += m.bakiye;
+function bekleyenRozetGuncelle() {
+  const badge = document.getElementById('menu-badge');
+  if (!badge) return;
+  const count = (veritabani.bekleyenler || []).length;
+  if (count > 0) {
+    badge.innerText = count;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
 
-            m.islemler.forEach(i => {
-                if (i.vade && i.vade <= bugun && i.tip === 'borc') {
-                    vadesiGelen += i.tutar;
-                }
-            });
+function canlıAramaYap(inputId, listeContainerId) {
+  const aranan = document.getElementById(inputId)?.value.toLowerCase() || '';
+  const container = document.getElementById(listeContainerId);
+  if (!container) return;
 
-            let kart = document.createElement('div');
-            kart.className = 'musteri-karti';
-            kart.onclick = () => detayModalAc(m.id);
-            kart.innerHTML = `
-                <div class="musteri-bilgi">
-                    <h4>${m.ad}</h4>
-                    <p>Tel: ${m.tel || '-'} ${m.limit > 0 ? '| Limit: ' + m.limit + ' TL' : ''}</p>
-                </div>
-                <div class="musteri-bakiye ${m.bakiye > 0 ? 'bakiye-arti' : 'bakiye-eksi'}">
-                    ${m.bakiye.toFixed(2)} TL
-                </div>
-            `;
-            listEl.appendChild(kart);
-        });
+  const elemanlar = container.children;
+  for (let i = 0; i < elemanlar.length; i++) {
+    const metin = elemanlar[i].innerText.toLowerCase();
+    elemanlar[i].style.display = metin.includes(aranan) ? "" : "none";
+  }
+}
 
-        document.getElementById('toplam-alacak').innerText = toplamAlacak.toFixed(2) + " TL";
-        document.getElementById('vadesi-gelen-toplam').innerText = vadesiGelen.toFixed(2) + " TL";
-        musteriAra();
+function dashboardKpiGuncelle() {
+  let toplamAlacak = 0;
+  let toplamBorc = 0;
+
+  const borclar = veritabani.borclar || {};
+  Object.keys(borclar).forEach(k => {
+    const b = borclar[k].bakiye || 0;
+    if (b > 0) toplamAlacak += b;
+    else if (b < 0) toplamBorc += Math.abs(b);
+  });
+
+  const alacakEl = document.getElementById('kpi-alacak');
+  const borcEl = document.getElementById('kpi-borc');
+  const ozlemEl = document.getElementById('kpi-ozlem');
+
+  if (alacakEl) alacakEl.innerText = toplamAlacak.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' ₺';
+  if (borcEl) borcEl.innerText = toplamBorc.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' ₺';
+
+  let ozemBakiye = 0;
+  if (veritabani.ozemYemler && veritabani.ozemYemler.length > 0) {
+    veritabani.ozemYemler.forEach(o => {
+      if (o.tip === 'YemGelis') ozemBakiye += (parseFloat(o.tutar) || 0);
+      else if (o.tip === 'OdemGonderildi') ozemBakiye -= (parseFloat(o.tutar) || 0);
+    });
+  }
+  if (ozlemEl) ozlemEl.innerText = ozemBakiye.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' ₺';
+}
+
+function vadeGelenleriYukle() {
+  const konteynir = document.getElementById('vade-gelenler-listesi');
+  if (!konteynir) return;
+
+  const bugün = new Date().toISOString().slice(0, 10);
+  let html = '';
+  let sayac = 0;
+
+  const borclar = veritabani.borclar || {};
+  Object.keys(borclar).forEach(musteri => {
+    const kayit = borclar[musteri];
+    if (kayit.vadeTarihi && kayit.vadeTarihi <= bugün && (kayit.bakiye || 0) > 0) {
+      sayac++;
+      html += `
+        <div style="background:#fff1f2; border:1px solid #fecdd3; padding:8px 12px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-align:center;">
+          <div>
+            <strong>${musteri}</strong><br>
+            <small style="color:#e11d48;">Vade Tarihi: ${kayit.vadeTarihi}</small>
+          </div>
+          <div style="font-weight:bold; color:#be123c;">${kayit.bakiye} ₺</div>
+        </div>
+      `;
     }
+  });
 
-    function musteriAra() {
-        let q = document.getElementById('arama-input').value.toLowerCase();
-        let kartlar = document.querySelectorAll('.musteri-karti');
-        kartlar.forEach(k => {
-            let text = k.innerText.toLowerCase();
-            k.style.display = text.includes(q) ? 'flex' : 'none';
-        });
-    }
+  if (sayac === 0) {
+    konteynir.innerHTML = '<div style="font-size:12px; color:#666;">Bugün vadesi geçen ödeme bulunmuyor.</div>';
+  } else {
+    konteynir.innerHTML = html;
+  }
+}
 
-    // --- MÜŞTERİ YÖNETİMİ ---
-    function musteriEkleModalAc() {
-        document.getElementById('m-ad').value = '';
-        document.getElementById('m-tel').value = '';
-        document.getElementById('m-limit').value = '0';
-        document.getElementById('musteri-modal').style.display = 'flex';
-    }
+function fisWhatsAppGonder() {
+  const fisEl = document.getElementById('fis-alani');
+  if (!fisEl) return alert("Fiş içeriği bulunamadı.");
+  
+  let metin = `🌾 *DEMİRKAPI ÇİFTLİĞİ HESAP EKSTRESİ*\n\n`;
+  metin += fisEl.innerText;
+  metin += `\n\n_İyi günler dileriz._`;
 
-    function musteriKaydet() {
-        let ad = document.getElementById('m-ad').value.trim();
-        let tel = document.getElementById('m-tel').value.trim();
-        let limit = parseFloat(document.getElementById('m-limit').value) || 0;
+  const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(metin)}`;
+  window.open(url, '_blank');
+}
 
-        if (!ad) { alert('Lütfen müşteri adı girin.'); return; }
+function a4EkstrePdfIndir() {
+  const el = document.getElementById('fis-alani');
+  if (!el) return alert("Yazdırılacak fiş alanı bulunamadı.");
+  
+  const opt = {
+    margin:       10,
+    filename:     `Demirkapi_Ekstre_${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  html2pdf().set(opt).from(el).save();
+}
 
-        veritabani.musteriler.push({
-            id: Date.now(),
-            ad: ad,
-            tel: tel,
-            limit: limit,
-            bakiye: 0,
-            islemler: []
-        });
+function sonIslemiGeriAl() {
+  if (!sonSilinenIslem) return alert("Geri alınacak silinmiş bir işlem bulunamadı.");
+  if (!veritabani.islemler) veritabani.islemler = [];
+  
+  veritabani.islemler.push(sonSilinenIslem);
+  kaydetVeri();
+  alert("Son silinen işlem başarıyla geri yüklendi!");
+  sonSilinenIslem = null;
+  document.getElementById('undo-btn')?.classList.add('hidden');
+}
 
+function verileriDisaAktar() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani));
+  const dlAnchorElem = document.createElement('a');
+  dlAnchorElem.setAttribute("href", dataStr);
+  dlAnchorElem.setAttribute("download", `demirkapi_yedek_${new Date().toISOString().slice(0,10)}.json`);
+  dlAnchorElem.click();
+}
+
+function verileriIceAktar() {
+  const input = document.getElementById('yedek-dosya-input');
+  if (!input.files || input.files.length === 0) return alert("Lütfen bir yedek dosyası seçin.");
+  const file = input.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const json = JSON.parse(e.target.result);
+      if (json && confirm("Mevcut verilerin üzerine yedekten geri yükleme yapılacaktır. Onaylıyor musunuz?")) {
+        veritabani = json;
         kaydetVeri();
-        modalKapat('musteri-modal');
+        alert("Yedek başarıyla yüklendi!");
+        goHome();
+      }
+    } catch(err) {
+      alert("Geçersiz yedek dosyası!");
     }
+  };
+  reader.readAsText(file);
+}
 
-    // --- 3. İŞLEM & BORÇ LİMİTİ / VADE ---
-    function detayModalAc(id) {
-        aktifMusteriId = id;
-        let m = veritabani.musteriler.find(x => x.id === id);
-        if (!m) return;
-
-        document.getElementById('detay-musteri-adi').innerText = m.ad;
-        document.getElementById('detay-musteri-bakiye').innerText = "Bakiye: " + m.bakiye.toFixed(2) + " TL";
-        
-        let tbody = document.getElementById('islem-gecmisi-body');
-        tbody.innerHTML = '';
-        
-        m.islemler.slice().reverse().forEach(i => {
-            let tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${i.tarih}</td>
-                <td>${i.aciklama}</td>
-                <td>${i.vade || '-'}</td>
-                <td style="color:${i.tip === 'borc' ? 'red' : 'green'}; font-weight:bold;">
-                    ${i.tip === 'borc' ? '+' : '-'}${i.tutar.toFixed(2)} TL
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.getElementById('detay-modal').style.display = 'flex';
-    }
-
-    function islemEkle() {
-        let m = veritabani.musteriler.find(x => x.id === aktifMusteriId);
-        if (!m) return;
-
-        let tip = document.getElementById('i-tip').value;
-        let aciklama = document.getElementById('i-aciklama').value.trim() || (tip === 'borc' ? 'Borç Kaydı' : 'Tahsilat');
-        let tutar = parseFloat(document.getElementById('i-tutar').value);
-        let vade = document.getElementById('i-vade').value;
-
-        if (!tutar || tutar <= 0) { alert('Geçerli bir tutar girin.'); return; }
-
-        // Limit Kontrolü
-        if (tip === 'borc' && m.limit > 0 && (m.bakiye + tutar) > m.limit) {
-            if (!confirm(`Uyarı: Bu işlem müşteri limitini (${m.limit} TL) aşıyor! Devam edilsin mi?`)) {
-                return;
-            }
-        }
-
-        if (tip === 'borc') {
-            m.bakiye += tutar;
-        } else {
-            m.bakiye -= tutar;
-        }
-
-        m.islemler.push({
-            tarih: new Date().toISOString().slice(0, 10),
-            tip: tip,
-            aciklama: aciklama,
-            tutar: tutar,
-            vade: vade || null
-        });
-
-        kaydetVeri();
-        detayModalAc(aktifMusteriId);
-
-        document.getElementById('i-aciklama').value = '';
-        document.getElementById('i-tutar').value = '';
-        document.getElementById('i-vade').value = '';
-    }
-
-    // --- 2. WHATSAPP & FİŞ YAZDIRMA ---
-    function whatsappFisGonder() {
-        let m = veritabani.musteriler.find(x => x.id === aktifMusteriId);
-        if (!m || !m.tel) { alert('Müşteriye ait telefon numarası bulunamadı.'); return; }
-
-        let sonIslem = m.islemler[m.islemler.length - 1];
-        let detayMetni = sonIslem ? `${sonIslem.aciklama} (${sonIslem.tutar} TL)` : 'İşlem yok';
-        
-        let msj = `Sayın ${m.ad},\n\nDemirkapı Çiftliği Hesabınız:\nSon İşlem: ${detayMetni}\nGüncel Güncel Bakiyeniz: ${m.bakiye.toFixed(2)} TL'dir.`;
-        let url = `https://wa.me/90${m.tel.replace(/\D/g,'')}?text=${encodeURIComponent(msj)}`;
-        window.open(url, '_blank');
-    }
-
-    function fisYazdir() {
-        let m = veritabani.musteriler.find(x => x.id === aktifMusteriId);
-        if (!m) return;
-
-        let pwin = window.open('', '_blank');
-        let icerik = `
-            <div style="text-align:center; margin-bottom:10px;">
-                <h2>DEMİRKAPI ÇİFTLİĞİ</h2>
-                <p>Müşteri Fişi</p>
-            </div>
-            <hr>
-            <p><strong>Müşteri:</strong> ${m.ad}</p>
-            <p><strong>Tarih:</strong> ${new Date().toLocaleDateString('tr-TR')}</p>
-            <hr>
-            <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-                <tr><th style="text-align:left;">Açıklama</th><th style="text-align:right;">Tutar</th></tr>
-                ${m.islemler.slice(-5).map(i => `
-                    <tr>
-                        <td>${i.aciklama} (${i.tarih})</td>
-                        <td style="text-align:right;">${i.tip === 'borc' ? '+' : '-'}${i.tutar.toFixed(2)} TL</td>
-                    </tr>
-                `).join('')}
-            </table>
-            <hr>
-            <h3 style="text-align:right; margin-top:10px;">Toplam Bakiye: ${m.bakiye.toFixed(2)} TL</h3>
-        `;
-
-        pwin.document.write(`
-            <html>
-            <head><title>Fiş - ${m.ad}</title></head>
-            <body onload="window.print(); window.close();" style="font-family:monospace; padding:10px; width:280px;">
-                ${icerik}
-            </body>
-            </html>
-        `);
-        pwin.document.close();
-    }
-
-    // --- 5. PIN VE SİLME GÜVENLİĞİ ---
-    function pinIslemOnayi(callback) {
-        pinCallback = callback;
-        document.getElementById('pin-input').value = '';
-        document.getElementById('pin-modal').style.display = 'flex';
-    }
-
-    function pinKontrolEt() {
-        let girilen = document.getElementById('pin-input').value;
-        if (girilen === SABIT_PIN) {
-            modalKapat('pin-modal');
-            if (pinCallback) pinCallback();
-        } else {
-            alert('Hatalı PIN!');
-        }
-    }
-
-    function musteriSilTetikle() {
-        pinIslemOnayi(function() {
-            veritabani.musteriler = veritabani.musteriler.filter(x => x.id !== aktifMusteriId);
-            kaydetVeri();
-            modalKapat('detay-modal');
-            alert('Müşteri başarıyla silindi.');
-        });
-    }
-
-    // --- YEDEK YÖNETİMİ ---
-    function verileriDisaAktar() {
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(veritabani, null, 2));
-        let dl = document.createElement('a');
-        let tarih = new Date().toISOString().slice(0, 10);
-        dl.setAttribute("href", dataStr);
-        dl.setAttribute("download", `demirkapi_yedek_${tarih}.json`);
-        document.body.appendChild(dl);
-        dl.click();
-        dl.remove();
-    }
-
-    function verileriIceAktar(e) {
-        let file = e.target.files[0];
-        if (!file) return;
-
-        let reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                let data = JSON.parse(evt.target.result);
-                pinIslemOnayi(function() {
-                    veritabani = data;
-                    kaydetVeri();
-                    alert('Yedek başarıyla yüklendi!');
-                });
-            } catch (err) {
-                alert('Geçersiz dosya formatı!');
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function modalKapat(id) {
-        document.getElementById(id).style.display = 'none';
-    }
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(haftalikYedekHatirlatici, 3000);
+});
 </script>
 </body>
 </html>
