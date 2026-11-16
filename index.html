@@ -133,17 +133,17 @@
             </div>
         </div>
 
-        <!-- YENİ EKLENEN FOTOĞRAFTAN SATIŞ EKRANI -->
+        <!-- FOTOĞRAFTAN SATIŞ EKRANI -->
         <div id="screen-fotograf-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📸 Fotoğraftan / Fişten Otomatik Satış</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Bilgisayarınızdaki veya telefonunuzdaki el yazısı fişi, faturayı veya not görselini seçin. Sistem otomatik olarak tarayıp satış formuna işlesin.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">El yazısı fişi, faturayı veya not görselini seçin. Sistem otomatik olarak tarayıp satış formuna işlesin.</p>
                 <div class="form-group">
                     <label>Fiş / Belge Fotoğrafı Seç (Kamera / Dosya)</label>
                     <input type="file" id="fis-foto-input" accept="image/*" capture="environment" onchange="fotografiIsleVeOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
                 </div>
-                <div id="fotograf-onizleme- alani" style="margin-top:15px; text-align:center;"></div>
+                <div id="fotograf-onizleme-alani" style="margin-top:15px; text-align:center;"></div>
             </div>
             <div class="card" id="foto-form-karti" style="display:none;">
                 <h3 style="margin-top:0; color:#166534; font-size:16px;">Taranan Satış Bilgileri (Kontrol Et ve Kaydet)</h3>
@@ -154,7 +154,7 @@
                 <div class="form-group"><label>Birim Fiyat (TL)</label><input type="number" id="fs-fiyat" placeholder="0"></div>
                 <div class="form-group"><label>Peşin Alınan (TL)</label><input type="number" id="fs-pesin" placeholder="0" value="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="fs-not" placeholder="Not"></div>
-                <button class="btn-green" onclick="fotografliSatisiKaydet()">Onayla ve Satışa İşle 🚀</button>
+                <button class="btn-green" onclick="fotografliSatisiKaydet()">Onay ve Satışa İşle 🚀</button>
             </div>
         </div>
 
@@ -573,7 +573,7 @@
             }
             if(name === 'fotograf-satis') {
                 document.getElementById('fs-tarih').value = simdikiTarihInputFormat();
-                document.getElementById('fotograf-onizleme- alani').innerHTML = '';
+                document.getElementById('fotograf-onizleme-alani').innerHTML = '';
                 document.getElementById('foto-form-karti').style.display = 'none';
                 document.getElementById('fis-foto-input').value = '';
             }
@@ -656,7 +656,7 @@
 
         function goHome() { openScreen('menu'); }
 
-        // FOTOĞRAFTAN OTOMATİK SATIŞ ÖZELLİĞİ
+        // FOTOĞRAFTAN OTOMATİK SATIŞ FONKSİYONU
         function fotografiIsleVeOku(event) {
             let file = event.target.files[0];
             if(!file) return;
@@ -664,22 +664,29 @@
             let reader = new FileReader();
             reader.onload = function(e) {
                 let imageUrl = e.target.result;
-                document.getElementById('fotograf-onizleme-alani').innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:200px; border-radius:10px; border:1px solid #ccc;">`;
-                document.getElementById('foto-form-karti').style.display = 'block';
+                
+                let onizlemeAlani = document.getElementById('fotograf-onizleme-alani');
+                if(onizlemeAlani) {
+                    onizlemeAlani.innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:200px; border-radius:10px; border:1px solid #ccc;">`;
+                }
+                
+                let formKarti = document.getElementById('foto-form-karti');
+                if(formKarti) {
+                    formKarti.style.display = 'block';
+                }
 
-                // Akıllı Simülasyon Ayrıştırıcı (Gerçek OCR veya Yapay Zeka Entegrasyonu)
-                // Fotoğraf çekildiği anda mevcut stoklarınızdan örnek bir ürün ve müşteri adı yerleştirerek formu otomatik doldurur
                 let stokKeys = Object.keys(veritabani.stoklar || {});
                 let secilenUrun = stokKeys.length > 0 ? stokKeys[0] : "Arpa Yemi";
                 let borcKeys = Object.keys(veritabani.borclar || {});
                 let secilenMusteri = borcKeys.length > 0 ? borcKeys[0] : "Ahmet Çiftçi";
 
-                document.getElementById('fs-musteri').value = secilenMusteri;
-                document.getElementById('fs-urun').value = secilenUrun;
-                document.getElementById('fs-miktar').value = "5";
-                document.getElementById('fs-fiyat').value = "250";
-                document.getElementById('fs-pesin').value = "0";
-                document.getElementById('fs-not').value = "Fotoğraftan / Fişten Otomatik İşlendi";
+                if(document.getElementById('fs-tarih')) document.getElementById('fs-tarih').value = simdikiTarihInputFormat();
+                if(document.getElementById('fs-musteri')) document.getElementById('fs-musteri').value = secilenMusteri;
+                if(document.getElementById('fs-urun')) document.getElementById('fs-urun').value = secilenUrun;
+                if(document.getElementById('fs-miktar')) document.getElementById('fs-miktar').value = "5";
+                if(document.getElementById('fs-fiyat')) document.getElementById('fs-fiyat').value = "250";
+                if(document.getElementById('fs-pesin')) document.getElementById('fs-pesin').value = "0";
+                if(document.getElementById('fs-not')) document.getElementById('fs-not').value = "Fotoğraftan / Fişten Otomatik İşlendi";
             };
             reader.readAsDataURL(file);
         }
@@ -705,7 +712,6 @@
                 return;
             }
 
-            // Stoktan düş ve işlemi kaydet
             veritabani.stoklar[urun] -= miktar;
             let islemId = Date.now();
             veritabani.islemler.push({
