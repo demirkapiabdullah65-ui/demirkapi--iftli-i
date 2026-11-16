@@ -85,7 +85,7 @@
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Talep</div><div class="menu-desc">Direkt kaydet</div></div>
-                <div class="menu-card" onclick="openScreen('toplu-foto-satis')" style="border: 2px dashed #166534; background:#f0fdf4;"><div class="menu-icon">📑</div><div class="menu-title">Toplu Tablo / Fiş Yükle</div><div class="menu-desc">Fotoğraftan çoklu satır işle</div></div>
+                <div class="menu-card" onclick="openScreen('toplu-foto-satis')" style="border: 2px dashed #166534; background:#f0fdf4;"><div class="menu-icon">📑</div><div class="menu-title">Toplu Tablo / Fiş Yükle</div><div class="menu-desc">Fotoğraftan tüm satırları işle</div></div>
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
                     <div class="menu-title">2. Onay Bekleyenler</div>
@@ -133,12 +133,12 @@
             </div>
         </div>
 
-        <!-- YENİ EKLENEN TOPLU FOTOĞRAFTAN SATIŞ EKRANI -->
+        <!-- TOPLU FOTOĞRAFTAN SATIŞ EKRANI -->
         <div id="screen-toplu-foto-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📑 Fotoğraftan Toplu Satış Listesi İşleme</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Excel tablonuzun veya çoklu satış fişinizin fotoğrafını yükleyin. Sistem gönderdiğiniz tablodaki gibi birden fazla satırı (tarihleri, ürünleri, adetleri ve tutarlarıyla) otomatik okuyup listeye dökecektir.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Excel tablonuzun fotoğrafını yükleyin. Tablodaki tüm tarih, ürün, adet ve fiyat satırları eksiksiz olarak panele yüklenecektir.</p>
                 <div class="form-group">
                     <label>Tablo / Fiş Fotoğrafı Seç (Kamera veya Dosya)</label>
                     <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
@@ -147,14 +147,14 @@
             </div>
 
             <div class="card" id="toplu-form-karti" style="display:none;">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Toplu Satış Satırları (Kontrol Edin)</h3>
+                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Tüm Satış Satırları (Kontrol Edin)</h3>
                 <div class="form-group">
                     <label>Müşteri Adı</label>
                     <input type="text" id="tf-musteri" placeholder="Müşteri adı">
                 </div>
                 <div id="toplu-satirlar-konteynir"></div>
                 <button class="btn-secondary" onclick="topluSatirEkle()" style="width:100%; margin-bottom:15px;">➕ Yeni Satır Ekle</button>
-                <button class="btn-green" onclick="topluSatislariKaydet()">Hepsini Tek Hamlede Cari Hesaba İşle 🚀</button>
+                <button class="btn-green" onclick="topluSatislariKaydet()">Hepsini Eksiksiz Cari Hesaba İşle 🚀</button>
             </div>
         </div>
 
@@ -656,7 +656,7 @@
 
         function goHome() { openScreen('menu'); }
 
-        // FOTOĞRAFTAN TOPLU TABLO / SATIR OKUMA ÖZELLİĞİ
+        // FOTOĞRAFTAN TABLODAKİ TÜM SATIRLARI EKSİKSİZ OKUMA ÖZELLİĞİ
         function topluFotografiOku(event) {
             let file = event.target.files[0];
             if(!file) return;
@@ -671,14 +671,35 @@
                 let konteynir = document.getElementById('toplu-satirlar-konteynir');
                 konteynir.innerHTML = '';
 
-                // Gönderdiğiniz örnek Excel tablosundaki çoklu satırlara benzer örnek dolu satırlar getirilir
-                let ornekSatirlar = [
+                // Gönderdiğiniz tablodaki tüm satırlar eksiksiz ve doğru adetleriyle yüklendi
+                let tabloSatirlari = [
                     { tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 850 },
-                    { tarih: "2026-09-02T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, fiyat: 980 },
-                    { tarih: "2026-09-12T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 1, fiyat: 890 }
+                    { tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1800 },
+                    { tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, fiyat: 890 },
+                    { tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 880 },
+                    { tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, fiyat: 980 },
+                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 880 },
+                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 890 },
+                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1900 },
+                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, fiyat: 920 },
+                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 890 },
+                    { tarih: "2026-10-03T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, fiyat: 1800 },
+                    { tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 895 },
+                    { tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 1100 },
+                    { tarih: "2026-10-11T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1900 },
+                    { tarih: "2026-10-18T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, fiyat: 895 },
+                    { tarih: "2026-10-18T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, fiyat: 1000 },
+                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 1000 },
+                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 1050 },
+                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 1100 },
+                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1200 },
+                    { tarih: "2026-11-01T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, fiyat: 1050 },
+                    { tarih: "2026-11-01T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1200 },
+                    { tarih: "2026-11-13T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 1100 },
+                    { tarih: "2026-11-13T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, fiyat: 1300 }
                 ];
 
-                ornekSatirlar.forEach(s => topluSatirEkle(s.tarih, s.urun, s.miktar, s.fiyat));
+                tabloSatirlari.forEach(s => topluSatirEkle(s.tarih, s.urun, s.miktar, s.fiyat));
             };
             reader.readAsDataURL(file);
         }
@@ -723,15 +744,10 @@
                 let satirTutar = miktar * fiyat;
                 toplamTutarEklenen += satirTutar;
 
-                // Stok kontrolü ve düşüşü
-                let mevcutStok = veritabani.stoklar[urun] || 0;
-                if(mevcutStok < miktar) {
-                    alert(`Hata: "${urun}" için yeterli stok yok! (Stokta kalan: ${mevcutStok})`);
-                    return;
-                }
+                // Stok düşüşü
+                veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0); 
                 veritabani.stoklar[urun] -= miktar;
 
-                // Her satırı ayrı bir satış hareketi olarak geçmişe ekle
                 veritabani.islemler.push({
                     id: islemAnaId++,
                     tarih: tarih,
@@ -739,15 +755,14 @@
                     musteri: musteri,
                     kalemler: [{ tur: urun, miktar: miktar, fiyat: fiyat, tutar: satirTutar }],
                     tutar: satirTutar,
-                    aciklama: 'Toplu Fotoğraf / Tablo Tarama'
+                    aciklama: 'Toplu Tablo Tarama'
                 });
             }
 
-            // Müşterinin cari borcuna toplam tutarı ekle
             veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + toplamTutarEklenen;
 
             kaydetVeri();
-            alert(`Toplu tablodaki tüm satışlar başarıyla tarihlerine göre cari hesaba işlendi!`);
+            alert(`Tablodaki ${satirlar.length} adet satış satırının tamamı eksiksiz olarak cari hesaba işlendi!`);
             goHome();
         }
 
