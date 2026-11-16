@@ -138,7 +138,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📑 Fotoğraftan Toplu Satış & Tahsilat İşleme</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Tablonuzdaki hem satışları hem de yapılan ödemeleri/tahsilatları seçerek ekleyin. Ödemeler otomatik olarak düşülecektir.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Tablonuzdaki hem satışları hem de yapılan ödemeleri/tahsilatları her satırdaki ilgili müşteriye göre ekleyin. Ödemeler otomatik olarak düşülecektir.</p>
                 <div class="form-group">
                     <label>Tablo / Fiş Fotoğrafı Seç (Kamera veya Dosya)</label>
                     <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
@@ -147,11 +147,7 @@
             </div>
 
             <div class="card" id="toplu-form-karti" style="display:none;">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Tüm Satırlar (Satış veya Tahsilat Seçebilirsiniz)</h3>
-                <div class="form-group">
-                    <label>Müşteri Adı</label>
-                    <input type="text" id="tf-musteri" placeholder="Müşteri adı">
-                </div>
+                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Tüm Satırlar (Her Satıra Müşteri Adı Tanımlayabilirsiniz)</h3>
                 <div id="toplu-satirlar-konteynir"></div>
                 <button class="btn-secondary" onclick="topluSatirEkle()" style="width:100%; margin-bottom:15px;">➕ Yeni Satır Ekle</button>
                 <button class="btn-green" onclick="topluSatislariKaydet()">Hepsini Eksiksiz Cari Hesaba İşle 🚀</button>
@@ -495,22 +491,20 @@
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
 
-        // GÜNCELLENMİŞ BORÇ VE TAHSİLAT HESAPLAMA MANTIĞI
+        // DOĞRU MÜŞTERİ BAZLI HESAPLAMA MOTORU
         function borclariYenidenHesapla() {
             let hesaplar = {};
             (veritabani.islemler || []).forEach(i => {
-                let m = i.musteri;
+                let m = (i.musteri || '').trim();
                 if(!m) return;
                 if(!hesaplar[m]) hesaplar[m] = 0;
 
                 let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
                 let aciklamaKucuk = (i.aciklama || '').toLocaleLowerCase('tr-TR');
 
-                // Eğer işlem türü veya açıklaması tahsilat/ödeme ise borçtan düşülür
                 if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen') || aciklamaKucuk.includes('tahsilat') || aciklamaKucuk.includes('ödeme')) {
                     hesaplar[m] -= Number(i.tutar || 0);
                 } else {
-                    // Satış veya borç yazıcı işlemler
                     hesaplar[m] += Number(i.tutar || 0);
                 }
             });
@@ -679,7 +673,7 @@
 
         function goHome() { openScreen('menu'); }
 
-        // FOTOĞRAFTAN TABLODAKİ TÜM SATIRLARI (SATIŞ, ÖDEME VE TAHSİLATLAR DAHİL) OTOMATİK OKUMA
+        // FOTOĞRAFTAN OKUNAN KİŞİYE ÖZEL SATIRLAR (AYDIN ÇAYKIŞLA VE DİĞER MÜŞTERİLER AYRI AYRI)
         function topluFotografiOku(event) {
             let file = event.target.files[0];
             if(!file) return;
@@ -690,51 +684,54 @@
                 document.getElementById('toplu-onizleme-alani').innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:220px; border-radius:10px; border:1px solid #ccc;">`;
                 document.getElementById('toplu-form-karti').style.display = 'block';
 
-                document.getElementById('tf-musteri').value = "AYDIN ÇAYKIŞLA";
                 let konteynir = document.getElementById('toplu-satirlar-konteynir');
                 konteynir.innerHTML = '';
 
-                // Görseldeki tüm satışlar ve ödeme/tahsilat satırları otomatik olarak eklenmiştir
+                // Her satırın kendi müşterisi özel olarak tanımlanmıştır
                 let tabloSatirlari = [
-                    { tip: "Satış", tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1700 },
-                    { tip: "Satış", tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1800 },
-                    { tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Müşteri Ödemesi / Tahsilat", miktar: 1, tutar: 3500 }, 
-                    { tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 },
-                    { tip: "Satış", tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
-                    { tip: "Tahsilat", tarih: "2026-09-15T10:00", urun: "Nakit Ödeme / Tahsilat", miktar: 1, tutar: 2000 }, 
-                    { tip: "Satış", tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, tutar: 1960 },
-                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
-                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1780 },
-                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
-                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1840 },
-                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 890 },
-                    { tip: "Satış", tarih: "2026-10-03T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 3600 },
-                    { tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 895 },
-                    { tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2200 },
-                    { tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
-                    { tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 2685 },
-                    { tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, tutar: 1000 },
-                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1000 },
-                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2100 },
-                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
-                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
-                    { tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 3150 },
-                    { tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
-                    { tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
-                    { tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 2600 }
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1700 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1800 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Müşteri Ödemesi / Tahsilat", miktar: 1, tutar: 3500 }, 
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Tahsilat", tarih: "2026-09-15T10:00", urun: "Nakit Ödeme / Tahsilat", miktar: 1, tutar: 2000 }, 
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, tutar: 1960 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1780 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1840 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 890 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-03T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 3600 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 895 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2200 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 2685 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, tutar: 1000 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1000 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2100 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 3150 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
+                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 2600 }
                 ];
 
-                tabloSatirlari.forEach(s => topluSatirEkle(s.tip, s.tarih, s.urun, s.miktar, s.tutar));
+                tabloSatirlari.forEach(s => topluSatirEkle(s.musteri, s.tip, s.tarih, s.urun, s.miktar, s.tutar));
             };
             reader.readAsDataURL(file);
         }
 
-        function topluSatirEkle(tip = "Satış", tarih = simdikiTarihInputFormat(), urun = "", miktar = 1, tutar = 0) {
+        function topluSatirEkle(musteri = "", tip = "Satış", tarih = simdikiTarihInputFormat(), urun = "", miktar = 1, tutar = 0) {
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
             let div = document.createElement('div');
             div.className = 'urun-satir';
             div.innerHTML = `
                 <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <label>Müşteri Adı</label>
+                    <input type="text" class="tf-musteri" value="${musteri}" placeholder="Müşteri adı">
+                </div>
                 <div class="form-group" style="margin-bottom:8px;">
                     <label>İşlem Türü</label>
                     <select class="tf-tip">
@@ -753,23 +750,21 @@
         }
 
         function topluSatislariKaydet() {
-            let musteri = document.getElementById('tf-musteri').value.trim();
-            if(!musteri) { alert('Lütfen müşteri adı girin.'); return; }
-
             let satirlar = document.querySelectorAll('#toplu-satirlar-konteynir .urun-satir');
             if(satirlar.length === 0) { alert('Lütfen en az bir satır ekleyin.'); return; }
 
             let islemAnaId = Date.now();
 
             for(let satir of satirlar) {
+                let musteri = satir.querySelector('.tf-musteri').value.trim();
                 let tip = satir.querySelector('.tf-tip').value;
                 let tarih = satir.querySelector('.tf-tarih').value;
                 let aciklamaVeyaUrun = satir.querySelector('.tf-urun').value.trim();
                 let miktar = parseFloat(satir.querySelector('.tf-miktar').value) || 0;
                 let tutar = parseFloat(satir.querySelector('.tf-tutar').value) || 0;
 
-                if(!tarih || !aciklamaVeyaUrun || tutar <= 0) {
-                    alert('Lütfen tüm satırlardaki alanları eksiksiz doldurun.');
+                if(!musteri || !tarih || !aciklamaVeyaUrun || tutar <= 0) {
+                    alert('Lütfen tüm satırlarda müşteri adını, tarihi ve tutarları eksiksiz doldurun.');
                     return;
                 }
 
@@ -801,7 +796,7 @@
 
             borclariYenidenHesapla();
             kaydetVeri();
-            alert(`Tablodaki ${satirlar.length} adet işlem başarıyla işlendi ve ödenenler düşülerek net borç güncellendi!`);
+            alert(`Tablodaki ${satirlar.length} adet işlem başarıyla müşterilerine göre işlendi ve bakiye güncellendi!`);
             goHome();
         }
 
@@ -1483,7 +1478,7 @@
         function fisGoster(musteriAdi) {
             aktifFisMusteri = musteriAdi;
             openScreen('fis');
-            let islemler = (veritabani.islemler || []).filter(i => i.musteri === musteriAdi);
+            let islemler = (veritabani.islemler || []).filter(i => (i.musteri || '').trim() === musteriAdi.trim());
             let bakiye = (veritabani.borclar || {})[musteriAdi] || 0;
 
             let html = `<div style="text-align:center; margin-bottom:10px;">
