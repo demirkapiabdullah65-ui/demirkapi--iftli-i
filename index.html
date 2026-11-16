@@ -495,7 +495,7 @@
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
 
-        // Tüm işlem geçmişini tarayarak net borçları ve düşülen ödemeleri otomatik hesaplar
+        // GÜNCELLENMİŞ BORÇ VE TAHSİLAT HESAPLAMA MANTIĞI
         function borclariYenidenHesapla() {
             let hesaplar = {};
             (veritabani.islemler || []).forEach(i => {
@@ -504,14 +504,14 @@
                 if(!hesaplar[m]) hesaplar[m] = 0;
 
                 let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
-                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi') || tipKucuk.includes('silaj alımı')) {
-                    if(tipKucuk.includes('silaj alımı')) {
-                        hesaplar[m] += Number(i.tutar || 0);
-                    } else {
-                        hesaplar[m] += Number(i.tutar || 0);
-                    }
-                } else if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen')) {
+                let aciklamaKucuk = (i.aciklama || '').toLocaleLowerCase('tr-TR');
+
+                // Eğer işlem türü veya açıklaması tahsilat/ödeme ise borçtan düşülür
+                if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen') || aciklamaKucuk.includes('tahsilat') || aciklamaKucuk.includes('ödeme')) {
                     hesaplar[m] -= Number(i.tutar || 0);
+                } else {
+                    // Satış veya borç yazıcı işlemler
+                    hesaplar[m] += Number(i.tutar || 0);
                 }
             });
             veritabani.borclar = hesaplar;
@@ -698,10 +698,10 @@
                 let tabloSatirlari = [
                     { tip: "Satış", tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1700 },
                     { tip: "Satış", tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1800 },
-                    { tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Müşteri Ödemesi / Tahsilat", miktar: 1, tutar: 3500 }, // Örnek ödeme
+                    { tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Müşteri Ödemesi / Tahsilat", miktar: 1, tutar: 3500 }, 
                     { tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 },
                     { tip: "Satış", tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
-                    { tip: "Tahsilat", tarih: "2026-09-15T10:00", urun: "Nakit Ödeme / Tahsilat", miktar: 1, tutar: 2000 }, // Örnek ödeme
+                    { tip: "Tahsilat", tarih: "2026-09-15T10:00", urun: "Nakit Ödeme / Tahsilat", miktar: 1, tutar: 2000 }, 
                     { tip: "Satış", tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, tutar: 1960 },
                     { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
                     { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1780 },
@@ -1498,7 +1498,9 @@
             } else {
                 islemler.forEach(i => {
                     let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
-                    let isTahsilat = tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen');
+                    let aciklamaKucuk = (i.aciklama || '').toLocaleLowerCase('tr-TR');
+                    let isTahsilat = tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen') || aciklamaKucuk.includes('tahsilat') || aciklamaKucuk.includes('ödeme');
+                    
                     let tutarPrefix = isTahsilat ? '- ' : '+ ';
                     
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
@@ -1562,7 +1564,7 @@
 
         function verileriIceAktar() {
             let input = document.getElementById('yedek-dosya-input');
-            if(!input.files || input.files.length === 0) { alert('Lütfen bir .json dosyası seçin.'); return; }
+            if(!input.files || input.files.length === 0) { alert('Lütfen .json dosyası seçin.'); return; }
             let file = input.files[0];
             let reader = new FileReader();
             reader.onload = function(e) {
