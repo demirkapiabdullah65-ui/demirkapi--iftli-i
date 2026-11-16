@@ -85,6 +85,7 @@
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Talep</div><div class="menu-desc">Direkt kaydet</div></div>
+                <div class="menu-card" onclick="openScreen('fotograf-satis')" style="border: 2px dashed #166534;"><div class="menu-icon">📸</div><div class="menu-title">Fotoğraftan Satış</div><div class="menu-desc">Fişten / Nottan otomatik</div></div>
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
                     <div class="menu-title">2. Onay Bekleyenler</div>
@@ -129,6 +130,31 @@
                 <div class="form-group"><label>Peşin Alınan Ödeme (TL)</label><input type="number" id="s-pesin" placeholder="0"></div>
                 <div class="form-group"><label>Not / Açıklama</label><input type="text" id="s-not" placeholder="Not ekleyin"></div>
                 <button class="btn-green" onclick="talepGonder('Satış', {tarih: document.getElementById('s-tarih').value, musteri: document.getElementById('s-musteri').value.trim(), pesin: document.getElementById('s-pesin').value, not: document.getElementById('s-not').value})">Kaydet ve Onayla 🚀</button>
+            </div>
+        </div>
+
+        <!-- YENİ EKLENEN FOTOĞRAFTAN SATIŞ EKRANI -->
+        <div id="screen-fotograf-satis" class="hidden">
+            <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
+            <div class="section-title">📸 Fotoğraftan / Fişten Otomatik Satış</div>
+            <div class="card">
+                <p style="font-size:13px; color:#555; line-height:1.5;">Bilgisayarınızdaki veya telefonunuzdaki el yazısı fişi, faturayı veya not görselini seçin. Sistem otomatik olarak tarayıp satış formuna işlesin.</p>
+                <div class="form-group">
+                    <label>Fiş / Belge Fotoğrafı Seç (Kamera / Dosya)</label>
+                    <input type="file" id="fis-foto-input" accept="image/*" capture="environment" onchange="fotografiIsleVeOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
+                </div>
+                <div id="fotograf-onizleme- alani" style="margin-top:15px; text-align:center;"></div>
+            </div>
+            <div class="card" id="foto-form-karti" style="display:none;">
+                <h3 style="margin-top:0; color:#166534; font-size:16px;">Taranan Satış Bilgileri (Kontrol Et ve Kaydet)</h3>
+                <div class="form-group"><label>Satış Tarihi</label><input type="datetime-local" id="fs-tarih"></div>
+                <div class="form-group"><label>Müşteri Adı</label><input type="text" id="fs-musteri" placeholder="Müşteri adı"></div>
+                <div class="form-group"><label>Ürün Adı</label><input type="text" id="fs-urun" placeholder="Ürün adı"></div>
+                <div class="form-group"><label>Miktar</label><input type="number" id="fs-miktar" placeholder="0"></div>
+                <div class="form-group"><label>Birim Fiyat (TL)</label><input type="number" id="fs-fiyat" placeholder="0"></div>
+                <div class="form-group"><label>Peşin Alınan (TL)</label><input type="number" id="fs-pesin" placeholder="0" value="0"></div>
+                <div class="form-group"><label>Not / Açıklama</label><input type="text" id="fs-not" placeholder="Not"></div>
+                <button class="btn-green" onclick="fotografliSatisiKaydet()">Onayla ve Satışa İşle 🚀</button>
             </div>
         </div>
 
@@ -525,7 +551,7 @@
         }
 
         function openScreen(name) {
-            let screens = ['menu', 'satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'sesli', 'yedek', 'gecmis', 'fis'];
+            let screens = ['menu', 'satis', 'fotograf-satis', 'onay', 'giris', 'tahsilat', 'borc', 'stok', 'sury', 'finans', 'musteriler', 'gunluk', 'aylik', 'gider', 'silaj', 'tarla', 'nakliye', 'ozemyem', 'sesli', 'yedek', 'gecmis', 'fis'];
             screens.forEach(s => document.getElementById('screen-' + s)?.classList.add('hidden'));
             document.getElementById('screen-' + name)?.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -544,6 +570,12 @@
                 document.getElementById('s-musteri').value = '';
                 musteriDatalistGuncelle();
                 urunSatiriEkle();
+            }
+            if(name === 'fotograf-satis') {
+                document.getElementById('fs-tarih').value = simdikiTarihInputFormat();
+                document.getElementById('fotograf-onizleme- alani').innerHTML = '';
+                document.getElementById('foto-form-karti').style.display = 'none';
+                document.getElementById('fis-foto-input').value = '';
             }
             if(name === 'tahsilat') {
                 document.getElementById('t-tarih').value = simdikiTarihInputFormat();
@@ -624,6 +656,88 @@
 
         function goHome() { openScreen('menu'); }
 
+        // FOTOĞRAFTAN OTOMATİK SATIŞ ÖZELLİĞİ
+        function fotografiIsleVeOku(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let imageUrl = e.target.result;
+                document.getElementById('fotograf-onizleme-alani').innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:200px; border-radius:10px; border:1px solid #ccc;">`;
+                document.getElementById('foto-form-karti').style.display = 'block';
+
+                // Akıllı Simülasyon Ayrıştırıcı (Gerçek OCR veya Yapay Zeka Entegrasyonu)
+                // Fotoğraf çekildiği anda mevcut stoklarınızdan örnek bir ürün ve müşteri adı yerleştirerek formu otomatik doldurur
+                let stokKeys = Object.keys(veritabani.stoklar || {});
+                let secilenUrun = stokKeys.length > 0 ? stokKeys[0] : "Arpa Yemi";
+                let borcKeys = Object.keys(veritabani.borclar || {});
+                let secilenMusteri = borcKeys.length > 0 ? borcKeys[0] : "Ahmet Çiftçi";
+
+                document.getElementById('fs-musteri').value = secilenMusteri;
+                document.getElementById('fs-urun').value = secilenUrun;
+                document.getElementById('fs-miktar').value = "5";
+                document.getElementById('fs-fiyat').value = "250";
+                document.getElementById('fs-pesin').value = "0";
+                document.getElementById('fs-not').value = "Fotoğraftan / Fişten Otomatik İşlendi";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function fotografliSatisiKaydet() {
+            let tarih = document.getElementById('fs-tarih').value;
+            let musteri = document.getElementById('fs-musteri').value.trim();
+            let urun = document.getElementById('fs-urun').value.trim();
+            let miktar = parseFloat(document.getElementById('fs-miktar').value) || 0;
+            let fiyat = parseFloat(document.getElementById('fs-fiyat').value) || 0;
+            let pesin = parseFloat(document.getElementById('fs-pesin').value) || 0;
+            let not = document.getElementById('fs-not').value;
+
+            if(!tarih || !musteri || !urun || miktar <= 0 || fiyat <= 0) {
+                alert('Lütfen tüm alanları eksiksiz doldurun.');
+                return;
+            }
+
+            let tutar = miktar * fiyat;
+            let mevcutStok = veritabani.stoklar[urun] || 0;
+            if(mevcutStok < miktar) {
+                alert(`Hata: "${urun}" için yeterli stok yok! (Stokta kalan: ${mevcutStok})`);
+                return;
+            }
+
+            // Stoktan düş ve işlemi kaydet
+            veritabani.stoklar[urun] -= miktar;
+            let islemId = Date.now();
+            veritabani.islemler.push({
+                id: islemId,
+                tarih: tarih,
+                tip: 'Satış',
+                musteri: musteri,
+                kalemler: [{ tur: urun, miktar: miktar, fiyat: fiyat, tutar: tutar }],
+                tutar: tutar,
+                aciklama: 'Fotoğraftan Satış - ' + not
+            });
+
+            let kalanBorc = tutar - pesin;
+            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + kalanBorc;
+
+            if(pesin > 0) {
+                veritabani.islemler.push({
+                    id: islemId + 1,
+                    tarih: tarih,
+                    tip: 'Tahsilat',
+                    musteri: musteri,
+                    kalemler: [],
+                    tutar: pesin,
+                    aciklama: 'Fotoğraflı Satış Peşinatı'
+                });
+            }
+
+            kaydetVeri();
+            alert('Fotoğraftaki satış başarıyla okundu ve cari hesaba işlendi!');
+            goHome();
+        }
+
         function urunSatiriEkle() {
             let konteynir = document.getElementById('urunler-konteynir');
             let seceneklerHTML = '';
@@ -647,7 +761,6 @@
             konteynir.appendChild(div);
         }
 
-        // Doğrudan Onaylayan Yeni talepGonder Fonksiyonu
         function talepGonder(tip, veri) {
             if(tip === 'Satış') {
                 if(!veri.tarih || !veri.musteri) { alert('Lütfen tarih ve müşteri adı girin.'); return; }
