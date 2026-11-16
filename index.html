@@ -476,6 +476,9 @@
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
             }
 
+            // Bakiyeleri tüm işlem geçmişine göre otomatik yeniden hesapla (Ödemeler ve tahsilatlar düşer)
+            borclariYenidenHesapla();
+
             bekleyenRozetGuncelle();
             musteriDatalistGuncelle();
 
@@ -493,6 +496,25 @@
             if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
+
+        // Tüm işlem geçmişini tarayarak net borçları ve düşülen ödemeleri otomatik hesaplar
+        function borclariYenidenHesapla() {
+            let hesaplar = {};
+            (veritabani.islemler || []).forEach(i => {
+                let m = i.musteri;
+                if(!m) return;
+                if(!hesaplar[m]) hesaplar[m] = 0;
+
+                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') {
+                    hesaplar[m] += Number(i.tutar || 0);
+                } else if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') {
+                    hesaplar[m] -= Number(i.tutar || 0);
+                } else if(i.tip === 'Silaj Alımı') {
+                    hesaplar[m] -= Number(i.tutar || 0);
+                }
+            });
+            veritabani.borclar = hesaplar;
+        }
 
         function musteriDatalistGuncelle() {
             let datalist = document.getElementById('musteri-listesi-datalist');
@@ -727,7 +749,6 @@
             let satirlar = document.querySelectorAll('#toplu-satirlar-konteynir .urun-satir');
             if(satirlar.length === 0) { alert('Lütfen en az bir satış satırı ekleyin.'); return; }
 
-            let toplamTutarEklenen = 0;
             let islemAnaId = Date.now();
 
             for(let satir of satirlar) {
@@ -742,7 +763,6 @@
                 }
 
                 let satirTutar = miktar * fiyat;
-                toplamTutarEklenen += satirTutar;
 
                 // Stok düşüşü
                 veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0); 
@@ -759,10 +779,9 @@
                 });
             }
 
-            veritabani.borclar[musteri] = (veritabani.borclar[musteri] || 0) + toplamTutarEklenen;
-
+            borclariYenidenHesapla();
             kaydetVeri();
-            alert(`Tablodaki ${satirlar.length} adet satış satırının tamamı eksiksiz olarak cari hesaba işlendi!`);
+            alert(`Tablodaki ${satirlar.length} adet satış satırının tamamı eksiksiz işlendi ve net borç güncellendi!`);
             goHome();
         }
 
@@ -818,9 +837,6 @@
                 let islemId = Date.now();
                 veritabani.islemler.push({ id: islemId, tarih: veri.tarih, tip: 'Satış', musteri: veri.musteri, kalemler: veri.kalemler, tutar: toplamSepetTutar, aciklama: veri.not || '' });
                 
-                let kalanBorc = toplamSepetTutar - veri.pesinTutar;
-                veritabani.borclar[veri.musteri] = (veritabani.borclar[veri.musteri] || 0) + kalanBorc;
-
                 if(veri.pesinTutar > 0) {
                     veritabani.islemler.push({ id: islemId + 1, tarih: veri.tarih, tip: 'Tahsilat', musteri: veri.musteri, kalemler: [], tutar: veri.pesinTutar, aciklama: 'Satış Peşinatı - ' + (veri.not || '') });
                 }
@@ -834,7 +850,6 @@
             } else if(tip === 'Tahsilat') {
                 if(!veri.tarih || !veri.musteri || parseFloat(veri.tutar) <= 0) { alert('Eksiksiz doldurun.'); return; }
                 let tutar = parseFloat(veri.tutar);
-                veritabani.borclar[veri.musteri] = (veritabani.borclar[veri.musteri] || 0) - tutar;
                 veritabani.islemler.push({ id: Date.now(), tarih: veri.tarih, tip: 'Tahsilat', musteri: veri.musteri, kalemler: [], tutar: tutar, aciklama: veri.aciklama || '' });
 
             } else if(tip === 'Gider') {
@@ -851,13 +866,10 @@
                 if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
                 veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
                 veri.odenenTutar = parseFloat(veri.odenen) || 0;
-                veri.kalan = Math.max(0, veri.toplam - veri.odenenTutar);
 
                 if(!veritabani.silajlar) veritabani.silajlar = [];
-                let netBorcumuz = veri.toplam - veri.odenenTutar;
 
-                veritabani.silajlar.push({ id: Date.now(), tarih: veri.tarih, sahip: veri.sahip, tarla: veri.tarla, birim: veri.birim, miktar: parseFloat(veri.miktar), fiyat: parseFloat(veri.fiyat), toplam: veri.toplam, odenen: veri.odenenTutar, kalan: veri.kalan, not: veri.not || '' });
-                veritabani.borclar[veri.sahip] = (veritabani.borclar[veri.sahip] || 0) - netBorcumuz;
+                veritabani.silajlar.push({ id: Date.now(), tarih: veri.tarih, sahip: veri.sahip, tarla: veri.tarla, birim: veri.birim, miktar: parseFloat(veri.miktar), fiyat: parseFloat(veri.fiyat), toplam: veri.toplam, odenen: veri.odenenTutar, kalan: Math.max(0, veri.toplam - veri.odenenTutar), not: veri.not || '' });
                 
                 let islemId = Date.now();
                 veritabani.islemler.push({ 
@@ -885,13 +897,10 @@
                 if(!veri.tarih || !veri.sahip || parseFloat(veri.miktar) <= 0 || parseFloat(veri.fiyat) <= 0) { alert('Eksiksiz doldurun.'); return; }
                 veri.toplam = parseFloat(veri.miktar) * parseFloat(veri.fiyat);
                 veri.alinanTutar = parseFloat(veri.alinan) || 0;
-                veri.kalan = Math.max(0, veri.toplam - veri.alinanTutar);
 
                 if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
-                let netAlacagimiz = veri.toplam - veri.alinanTutar;
 
-                veritabani.bicilenTarlalar.push({ id: Date.now(), tarih: veri.tarih, sahip: veri.sahip, konum: veri.konum, birim: veri.birim, miktar: parseFloat(veri.miktar), fiyat: parseFloat(veri.fiyat), toplam: veri.toplam, alinan: veri.alinanTutar, kalan: veri.kalan, not: veri.not || '' });
-                veritabani.borclar[veri.sahip] = (veritabani.borclar[veri.sahip] || 0) + netAlacagimiz;
+                veritabani.bicilenTarlalar.push({ id: Date.now(), tarih: veri.tarih, sahip: veri.sahip, konum: veri.konum, birim: veri.birim, miktar: parseFloat(veri.miktar), fiyat: parseFloat(veri.fiyat), toplam: veri.toplam, alinan: veri.alinanTutar, kalan: Math.max(0, veri.toplam - veri.alinanTutar), not: veri.not || '' });
 
                 let islemId = Date.now();
                 veritabani.islemler.push({ 
@@ -916,8 +925,9 @@
                 }
             }
 
+            borclariYenidenHesapla();
             kaydetVeri();
-            alert('İşlem başarıyla kaydedildi ve doğrudan onaylandı!');
+            alert('İşlem başarıyla kaydedildi ve bakiye güncellendi!');
             goHome();
         }
 
@@ -1024,19 +1034,11 @@
             let islem = veritabani.islemler[index];
             if(islem.tip === 'Satış' && islem.kalemler) {
                 islem.kalemler.forEach(k => { veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar; });
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
-            } else if(islem.tip === 'Tahsilat') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
-            } else if(islem.tip === 'Tarla Biçimi') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
-            } else if(islem.tip === 'Silaj Alımı') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] += islem.tutar;
-            } else if(islem.tip === 'Ödeme Yapıldı') {
-                if(veritabani.borclar[islem.musteri] !== undefined) veritabani.borclar[islem.musteri] -= islem.tutar;
             }
             veritabani.islemler.splice(index, 1);
+            borclariYenidenHesapla();
             kaydetVeri();
-            alert('İşlem silindi.');
+            alert('İşlem silindi ve bakiye güncellendi.');
             borclariListele();
             gecmisiGoster();
         }
@@ -1119,7 +1121,7 @@
             let toplamCiro = 0, toplamTahsilat = 0;
             (veritabani.islemler || []).forEach(i => {
                 if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') toplamCiro += i.tutar;
-                if(i.tip === 'Tahsilat') toplamTahsilat += i.tutar;
+                if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') toplamTahsilat += i.tutar;
             });
             let toplamGider = 0;
             (veritabani.giderler || []).forEach(g => toplamGider += g.tutar);
@@ -1128,7 +1130,7 @@
             document.getElementById('finans-ozet-alani').innerHTML = `
                 <div style="display:grid; grid-template-columns:1fr; gap:12px;">
                     <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fecaca;">
-                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Müşteri Alacakları (Borçlar)</div>
+                        <div style="font-size:13px; color:#991b1b; font-weight:bold;">Toplam Müşteri Alacakları (Net Borçlar)</div>
                         <div style="font-size:24px; font-weight:bold; color:#dc2626;">${toplamAlacak.toFixed(2)} ₺</div>
                     </div>
                     <div style="background:#f0fdf4; padding:15px; border-radius:12px; border:1px solid #bbf7d0;">
@@ -1345,8 +1347,8 @@
             let html = '';
             keys.forEach(k => {
                 let bakiye = borclar[k];
-                let durumMetni = bakiye > 0 ? `<span style="color:#dc2626;font-weight:bold;">Borcu Var: ${bakiye.toFixed(2)} ₺</span>` : 
-                                 bakiye < 0 ? `<span style="color:#166534;font-weight:bold;">Alacaklı: ${Math.abs(bakiye).toFixed(2)} ₺</span>` : 
+                let durumMetni = bakiye > 0 ? `<span style="color:#dc2626;font-weight:bold;">Net Borcu: ${bakiye.toFixed(2)} ₺</span>` : 
+                                 bakiye < 0 ? `<span style="color:#166534;font-weight:bold;">Alacaklı / Fazla Ödeme: ${Math.abs(bakiye).toFixed(2)} ₺</span>` : 
                                  '<span style="color:#666;">Hesap Kapalı (0 ₺)</span>';
                 
                 html += `<div style="background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
@@ -1365,10 +1367,10 @@
             let keys = Object.keys(borclar);
             if(keys.length === 0) { document.getElementById('musteri-listesi').innerHTML = '<p>Kayıtlı müşteri bulunmuyor.</p>'; return; }
             
-            let html = '<table><tr><th>Müşteri Adı</th><th>Bakiye</th><th>WhatsApp</th><th>Sil</th></tr>';
+            let html = '<table><tr><th>Müşteri Adı</th><th>Net Bakiye</th><th>WhatsApp</th><th>Sil</th></tr>';
             keys.forEach(k => {
                 let b = borclar[k];
-                let mesaj = `Sayın ${k}, Demirkapi Çiftliği güncel bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
+                let mesaj = `Sayın ${k}, Demirkapi Çiftliği güncel net bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
                 let waUrl = `https://wa.me/?text=${encodeURIComponent(mesaj)}`;
                 html += `<tr>
                     <td><b>${k}</b></td>
@@ -1389,7 +1391,7 @@
             let ciro = 0, tahsilat = 0;
             gunluk.forEach(i => {
                 if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') ciro += i.tutar;
-                if(i.tip === 'Tahsilat') tahsilat += i.tutar;
+                if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') tahsilat += i.tutar;
             });
 
             document.getElementById('rapor-ozet').innerHTML = `
@@ -1420,7 +1422,7 @@
             let ciro = 0, tahsilat = 0, gider = 0;
             ayIslemler.forEach(i => {
                 if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') ciro += i.tutar;
-                if(i.tip === 'Tahsilat') tahsilat += i.tutar;
+                if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') tahsilat += i.tutar;
             });
             ayGiderler.forEach(g => gider += g.tutar);
 
@@ -1472,13 +1474,14 @@
                 html += 'Kayıtlı hareket bulunamadı.<br>';
             } else {
                 islemler.forEach(i => {
+                    let tutarPrefix = (i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') ? '- ' : '+ ';
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
                     if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
                         i.kalemler.forEach(k => {
                             html += `&nbsp;&nbsp;• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar.toFixed(2)} ₺<br>`;
                         });
                     }
-                    html += `<b>Toplam Tutar:</b> ${i.tutar.toFixed(2)} ₺`;
+                    html += `<b>İşlem Tutarı:</b> ${tutarPrefix}${i.tutar.toFixed(2)} ₺`;
                     if(i.aciklama) {
                         html += `<br><span style="font-size:11px; color:#555;">Not: ${i.aciklama}</span>`;
                     }
@@ -1487,7 +1490,7 @@
             }
 
             html += `<div style="text-align:right; margin-top:10px;">
-                <span class="fis-bakiye">GÜNCEL BAKİYE: ${bakiye.toFixed(2)} ₺</span>
+                <span class="fis-bakiye">NET GÜNCEL BORÇ: ${bakiye.toFixed(2)} ₺</span>
             </div>`;
 
             document.getElementById('fis-alani').innerHTML = html;
