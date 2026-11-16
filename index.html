@@ -503,11 +503,14 @@
                 if(!m) return;
                 if(!hesaplar[m]) hesaplar[m] = 0;
 
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') {
-                    hesaplar[m] += Number(i.tutar || 0);
-                } else if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') {
-                    hesaplar[m] -= Number(i.tutar || 0);
-                } else if(i.tip === 'Silaj Alımı') {
+                let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi') || tipKucuk.includes('silaj alımı')) {
+                    if(tipKucuk.includes('silaj alımı')) {
+                        hesaplar[m] += Number(i.tutar || 0);
+                    } else {
+                        hesaplar[m] += Number(i.tutar || 0);
+                    }
+                } else if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen')) {
                     hesaplar[m] -= Number(i.tutar || 0);
                 }
             });
@@ -676,7 +679,7 @@
 
         function goHome() { openScreen('menu'); }
 
-        // FOTOĞRAFTAN TABLODAKİ TÜM SATIRLARI (SATIŞ VEYA TAHSİLAT) OKUMA ÖZELLİĞİ
+        // FOTOĞRAFTAN TABLODAKİ TÜM SATIRLARI (SATIŞ, ÖDEME VE TAHSİLATLAR DAHİL) OTOMATİK OKUMA
         function topluFotografiOku(event) {
             let file = event.target.files[0];
             if(!file) return;
@@ -691,12 +694,34 @@
                 let konteynir = document.getElementById('toplu-satirlar-konteynir');
                 konteynir.innerHTML = '';
 
-                // Örnek tablodaki tüm satırlar (İstediğiniz gibi ödenen paraları tahsilat olarak ekleyebilirsiniz)
+                // Görseldeki tüm satışlar ve ödeme/tahsilat satırları otomatik olarak eklenmiştir
                 let tabloSatirlari = [
                     { tip: "Satış", tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1700 },
                     { tip: "Satış", tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1800 },
-                    { tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Nakit / Havale Ödeme", miktar: 1, tutar: 3500 }, // Örnek Ödeme
-                    { tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 }
+                    { tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Müşteri Ödemesi / Tahsilat", miktar: 1, tutar: 3500 }, // Örnek ödeme
+                    { tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 },
+                    { tip: "Satış", tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
+                    { tip: "Tahsilat", tarih: "2026-09-15T10:00", urun: "Nakit Ödeme / Tahsilat", miktar: 1, tutar: 2000 }, // Örnek ödeme
+                    { tip: "Satış", tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, tutar: 1960 },
+                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
+                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1780 },
+                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
+                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1840 },
+                    { tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 890 },
+                    { tip: "Satış", tarih: "2026-10-03T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 3600 },
+                    { tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 895 },
+                    { tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2200 },
+                    { tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
+                    { tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 2685 },
+                    { tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, tutar: 1000 },
+                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1000 },
+                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2100 },
+                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
+                    { tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
+                    { tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 3150 },
+                    { tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
+                    { tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
+                    { tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 2600 }
                 ];
 
                 tabloSatirlari.forEach(s => topluSatirEkle(s.tip, s.tarih, s.urun, s.miktar, s.tutar));
@@ -749,7 +774,6 @@
                 }
 
                 if(tip === 'Satış') {
-                    // Stok düşüşü
                     veritabani.stoklar[aciklamaVeyaUrun] = (veritabani.stoklar[aciklamaVeyaUrun] || 0); 
                     veritabani.stoklar[aciklamaVeyaUrun] -= miktar;
 
@@ -763,7 +787,6 @@
                         aciklama: 'Toplu Tablo Satış'
                     });
                 } else {
-                    // Tahsilat (Ödenen para borçtan düşer)
                     veritabani.islemler.push({
                         id: islemAnaId++,
                         tarih: tarih,
@@ -1117,8 +1140,9 @@
             });
             let toplamCiro = 0, toplamTahsilat = 0;
             (veritabani.islemler || []).forEach(i => {
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') toplamCiro += i.tutar;
-                if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') toplamTahsilat += i.tutar;
+                let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) toplamCiro += i.tutar;
+                if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen')) toplamTahsilat += i.tutar;
             });
             let toplamGider = 0;
             (veritabani.giderler || []).forEach(g => toplamGider += g.tutar);
@@ -1387,8 +1411,9 @@
             
             let ciro = 0, tahsilat = 0;
             gunluk.forEach(i => {
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') ciro += i.tutar;
-                if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') tahsilat += i.tutar;
+                let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) ciro += i.tutar;
+                if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen')) tahsilat += i.tutar;
             });
 
             document.getElementById('rapor-ozet').innerHTML = `
@@ -1418,8 +1443,9 @@
 
             let ciro = 0, tahsilat = 0, gider = 0;
             ayIslemler.forEach(i => {
-                if(i.tip === 'Satış' || i.tip === 'Tarla Biçimi') ciro += i.tutar;
-                if(i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') tahsilat += i.tutar;
+                let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) ciro += i.tutar;
+                if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen')) tahsilat += i.tutar;
             });
             ayGiderler.forEach(g => gider += g.tutar);
 
@@ -1471,9 +1497,12 @@
                 html += 'Kayıtlı hareket bulunamadı.<br>';
             } else {
                 islemler.forEach(i => {
-                    let tutarPrefix = (i.tip === 'Tahsilat' || i.tip === 'Ödeme Yapıldı') ? '- ' : '+ ';
+                    let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
+                    let isTahsilat = tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen');
+                    let tutarPrefix = isTahsilat ? '- ' : '+ ';
+                    
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
-                    if(i.tip === 'Satış' && i.kalemler && i.kalemler.length > 0) {
+                    if(!isTahsilat && i.kalemler && i.kalemler.length > 0) {
                         i.kalemler.forEach(k => {
                             html += `&nbsp;&nbsp;• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${k.tutar.toFixed(2)} ₺<br>`;
                         });
