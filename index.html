@@ -136,9 +136,9 @@
         <!-- TOPLU FOTOĞRAFTAN SATIŞ EKRANI -->
         <div id="screen-toplu-foto-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📑 Fotoğraftan Toplu Satış Listesi İşleme</div>
+            <div class="section-title">📑 Fotoğraftan Toplu Satış & Tahsilat İşleme</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Excel tablonuzun fotoğrafını yükleyin. Tablodaki tüm tarih, ürün, adet ve fiyat satırları eksiksiz olarak panele yüklenecektir.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Tablonuzdaki hem satışları hem de yapılan ödemeleri/tahsilatları seçerek ekleyin. Ödemeler otomatik olarak düşülecektir.</p>
                 <div class="form-group">
                     <label>Tablo / Fiş Fotoğrafı Seç (Kamera veya Dosya)</label>
                     <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
@@ -147,7 +147,7 @@
             </div>
 
             <div class="card" id="toplu-form-karti" style="display:none;">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Tüm Satış Satırları (Kontrol Edin)</h3>
+                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Tüm Satırlar (Satış veya Tahsilat Seçebilirsiniz)</h3>
                 <div class="form-group">
                     <label>Müşteri Adı</label>
                     <input type="text" id="tf-musteri" placeholder="Müşteri adı">
@@ -476,9 +476,7 @@
                 if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
             }
 
-            // Bakiyeleri tüm işlem geçmişine göre otomatik yeniden hesapla (Ödemeler ve tahsilatlar düşer)
             borclariYenidenHesapla();
-
             bekleyenRozetGuncelle();
             musteriDatalistGuncelle();
 
@@ -678,7 +676,7 @@
 
         function goHome() { openScreen('menu'); }
 
-        // FOTOĞRAFTAN TABLODAKİ TÜM SATIRLARI EKSİKSİZ OKUMA ÖZELLİĞİ
+        // FOTOĞRAFTAN TABLODAKİ TÜM SATIRLARI (SATIŞ VEYA TAHSİLAT) OKUMA ÖZELLİĞİ
         function topluFotografiOku(event) {
             let file = event.target.files[0];
             if(!file) return;
@@ -693,50 +691,37 @@
                 let konteynir = document.getElementById('toplu-satirlar-konteynir');
                 konteynir.innerHTML = '';
 
-                // Gönderdiğiniz tablodaki tüm satırlar eksiksiz ve doğru adetleriyle yüklendi
+                // Örnek tablodaki tüm satırlar (İstediğiniz gibi ödenen paraları tahsilat olarak ekleyebilirsiniz)
                 let tabloSatirlari = [
-                    { tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 850 },
-                    { tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1800 },
-                    { tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, fiyat: 890 },
-                    { tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 880 },
-                    { tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, fiyat: 980 },
-                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 880 },
-                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 890 },
-                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1900 },
-                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, fiyat: 920 },
-                    { tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 890 },
-                    { tarih: "2026-10-03T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, fiyat: 1800 },
-                    { tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 895 },
-                    { tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 1100 },
-                    { tarih: "2026-10-11T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1900 },
-                    { tarih: "2026-10-18T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, fiyat: 895 },
-                    { tarih: "2026-10-18T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, fiyat: 1000 },
-                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 1000 },
-                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, fiyat: 1050 },
-                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 1100 },
-                    { tarih: "2026-10-26T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1200 },
-                    { tarih: "2026-11-01T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, fiyat: 1050 },
-                    { tarih: "2026-11-01T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, fiyat: 1200 },
-                    { tarih: "2026-11-13T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, fiyat: 1100 },
-                    { tarih: "2026-11-13T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, fiyat: 1300 }
+                    { tip: "Satış", tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1700 },
+                    { tip: "Satış", tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1800 },
+                    { tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Nakit / Havale Ödeme", miktar: 1, tutar: 3500 }, // Örnek Ödeme
+                    { tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 }
                 ];
 
-                tabloSatirlari.forEach(s => topluSatirEkle(s.tarih, s.urun, s.miktar, s.fiyat));
+                tabloSatirlari.forEach(s => topluSatirEkle(s.tip, s.tarih, s.urun, s.miktar, s.tutar));
             };
             reader.readAsDataURL(file);
         }
 
-        function topluSatirEkle(tarih = simdikiTarihInputFormat(), urun = "", miktar = 1, fiyat = 0) {
+        function topluSatirEkle(tip = "Satış", tarih = simdikiTarihInputFormat(), urun = "", miktar = 1, tutar = 0) {
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
             let div = document.createElement('div');
             div.className = 'urun-satir';
             div.innerHTML = `
                 <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
-                <div class="form-group" style="margin-bottom:8px;"><label>Satış Tarihi</label><input type="datetime-local" class="tf-tarih" value="${tarih}"></div>
-                <div class="form-group" style="margin-bottom:8px;"><label>Ürün Adı</label><input type="text" class="tf-urun" value="${urun}" placeholder="Ürün adı"></div>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <label>İşlem Türü</label>
+                    <select class="tf-tip">
+                        <option value="Satış" ${tip === 'Satış' ? 'selected' : ''}>🛒 Satış (Borç Yazar)</option>
+                        <option value="Tahsilat" ${tip === 'Tahsilat' ? 'selected' : ''}>💰 Tahsilat / Ödenen (Borçtan Düşer)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:8px;"><label>Tarih</label><input type="datetime-local" class="tf-tarih" value="${tarih}"></div>
+                <div class="form-group" style="margin-bottom:8px;"><label>Ürün / Açıklama</label><input type="text" class="tf-urun" value="${urun}" placeholder="Ürün adı veya ödeme açıklaması"></div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                     <div class="form-group" style="margin-bottom:0;"><label>Adet / Miktar</label><input type="number" class="tf-miktar" value="${miktar}" placeholder="0"></div>
-                    <div class="form-group" style="margin-bottom:0;"><label>Birim Fiyat (TL)</label><input type="number" class="tf-fiyat" value="${fiyat}" placeholder="0"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>Toplam Tutar (TL)</label><input type="number" class="tf-tutar" value="${tutar}" placeholder="0"></div>
                 </div>
             `;
             konteynir.appendChild(div);
@@ -747,41 +732,53 @@
             if(!musteri) { alert('Lütfen müşteri adı girin.'); return; }
 
             let satirlar = document.querySelectorAll('#toplu-satirlar-konteynir .urun-satir');
-            if(satirlar.length === 0) { alert('Lütfen en az bir satış satırı ekleyin.'); return; }
+            if(satirlar.length === 0) { alert('Lütfen en az bir satır ekleyin.'); return; }
 
             let islemAnaId = Date.now();
 
             for(let satir of satirlar) {
+                let tip = satir.querySelector('.tf-tip').value;
                 let tarih = satir.querySelector('.tf-tarih').value;
-                let urun = satir.querySelector('.tf-urun').value.trim();
+                let aciklamaVeyaUrun = satir.querySelector('.tf-urun').value.trim();
                 let miktar = parseFloat(satir.querySelector('.tf-miktar').value) || 0;
-                let fiyat = parseFloat(satir.querySelector('.tf-fiyat').value) || 0;
+                let tutar = parseFloat(satir.querySelector('.tf-tutar').value) || 0;
 
-                if(!tarih || !urun || miktar <= 0 || fiyat <= 0) {
+                if(!tarih || !aciklamaVeyaUrun || tutar <= 0) {
                     alert('Lütfen tüm satırlardaki alanları eksiksiz doldurun.');
                     return;
                 }
 
-                let satirTutar = miktar * fiyat;
+                if(tip === 'Satış') {
+                    // Stok düşüşü
+                    veritabani.stoklar[aciklamaVeyaUrun] = (veritabani.stoklar[aciklamaVeyaUrun] || 0); 
+                    veritabani.stoklar[aciklamaVeyaUrun] -= miktar;
 
-                // Stok düşüşü
-                veritabani.stoklar[urun] = (veritabani.stoklar[urun] || 0); 
-                veritabani.stoklar[urun] -= miktar;
-
-                veritabani.islemler.push({
-                    id: islemAnaId++,
-                    tarih: tarih,
-                    tip: 'Satış',
-                    musteri: musteri,
-                    kalemler: [{ tur: urun, miktar: miktar, fiyat: fiyat, tutar: satirTutar }],
-                    tutar: satirTutar,
-                    aciklama: 'Toplu Tablo Tarama'
-                });
+                    veritabani.islemler.push({
+                        id: islemAnaId++,
+                        tarih: tarih,
+                        tip: 'Satış',
+                        musteri: musteri,
+                        kalemler: [{ tur: aciklamaVeyaUrun, miktar: miktar, fiyat: tutar/miktar, tutar: tutar }],
+                        tutar: tutar,
+                        aciklama: 'Toplu Tablo Satış'
+                    });
+                } else {
+                    // Tahsilat (Ödenen para borçtan düşer)
+                    veritabani.islemler.push({
+                        id: islemAnaId++,
+                        tarih: tarih,
+                        tip: 'Tahsilat',
+                        musteri: musteri,
+                        kalemler: [],
+                        tutar: tutar,
+                        aciklama: aciklamaVeyaUrun || 'Toplu Tablo Ödeme / Tahsilat'
+                    });
+                }
             }
 
             borclariYenidenHesapla();
             kaydetVeri();
-            alert(`Tablodaki ${satirlar.length} adet satış satırının tamamı eksiksiz işlendi ve net borç güncellendi!`);
+            alert(`Tablodaki ${satirlar.length} adet işlem başarıyla işlendi ve ödenenler düşülerek net borç güncellendi!`);
             goHome();
         }
 
