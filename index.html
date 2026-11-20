@@ -85,7 +85,7 @@
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Talep</div><div class="menu-desc">Direkt kaydet</div></div>
-                <div class="menu-card" onclick="openScreen('toplu-foto-satis')" style="border: 2px dashed #166534; background:#f0fdf4;"><div class="menu-icon">📑</div><div class="menu-title">Toplu Tablo / Fiş Yükle</div><div class="menu-desc">Fotoğraftan tüm satırları işle</div></div>
+                <div class="menu-card" onclick="openScreen('toplu-foto-satis')" style="border: 2px dashed #166534; background:#f0fdf4;"><div class="menu-icon">📑</div><div class="menu-title">Toplu Tablo / Fiş Yükle</div><div class="menu-desc">Satış & tahsilat kaydı</div></div>
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
                     <div class="menu-title">2. Onay Bekleyenler</div>
@@ -138,7 +138,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📑 Fotoğraftan Toplu Satış & Tahsilat İşleme</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Tablonuzdaki hem satışları hem de yapılan ödemeleri/tahsilatları her satırdaki ilgili müşteriye göre ekleyin. Ödemeler otomatik olarak düşülecektir.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Fotoğrafı referans olarak açın; yukarıya veya satırlara gerçek müşteri adını yazın. Satış ve tahsilatları karışmadan işleyin.</p>
                 <div class="form-group">
                     <label>Tablo / Fiş Fotoğrafı Seç (Kamera veya Dosya)</label>
                     <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
@@ -147,10 +147,14 @@
             </div>
 
             <div class="card" id="toplu-form-karti" style="display:none;">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Tüm Satırlar (Her Satıra Müşteri Adı Tanımlayabilirsiniz)</h3>
+                <h3 style="margin-top:0; color:#166534; font-size:16px;">Satırlar ve Müşteri Bilgileri</h3>
+                <div class="form-group">
+                    <label>Varsayılan Müşteri Adı (Satırlara Otomatik Uygulanır)</label>
+                    <input type="text" id="tf-genel-musteri" list="musteri-listesi-datalist" placeholder="Fotoğraftaki müşterinin adını yazın..." oninput="genelMusteriyiSatirlaraUygula()">
+                </div>
                 <div id="toplu-satirlar-konteynir"></div>
                 <button class="btn-secondary" onclick="topluSatirEkle()" style="width:100%; margin-bottom:15px;">➕ Yeni Satır Ekle</button>
-                <button class="btn-green" onclick="topluSatislariKaydet()">Hepsini Eksiksiz Cari Hesaba İşle 🚀</button>
+                <button class="btn-green" onclick="topluSatislariKaydet()">Hepsini Hatasız Cari Hesaba İşle 🚀</button>
             </div>
         </div>
 
@@ -491,7 +495,7 @@
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
         });
 
-        // DOĞRU MÜŞTERİ BAZLI HESAPLAMA MOTORU
+        // HATASIZ BORÇ VE TAHSİLAT HESAPLAMA MOTORU
         function borclariYenidenHesapla() {
             let hesaplar = {};
             (veritabani.islemler || []).forEach(i => {
@@ -502,7 +506,9 @@
                 let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
                 let aciklamaKucuk = (i.aciklama || '').toLocaleLowerCase('tr-TR');
 
-                if(tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen') || aciklamaKucuk.includes('tahsilat') || aciklamaKucuk.includes('ödeme')) {
+                let tahsilatMi = tipKucuk.includes('tahsilat') || tipKucuk.includes('ödeme') || tipKucuk.includes('ödenen') || aciklamaKucuk.includes('tahsilat') || aciklamaKucuk.includes('ödeme');
+
+                if(tahsilatMi) {
                     hesaplar[m] -= Number(i.tutar || 0);
                 } else {
                     hesaplar[m] += Number(i.tutar || 0);
@@ -593,6 +599,8 @@
                 document.getElementById('toplu-form-karti').style.display = 'none';
                 document.getElementById('toplu-foto-input').value = '';
                 document.getElementById('toplu-satirlar-konteynir').innerHTML = '';
+                document.getElementById('tf-genel-musteri').value = '';
+                musteriDatalistGuncelle();
             }
             if(name === 'tahsilat') {
                 document.getElementById('t-tarih').value = simdikiTarihInputFormat();
@@ -673,7 +681,7 @@
 
         function goHome() { openScreen('menu'); }
 
-        // FOTOĞRAFTAN OKUNAN KİŞİYE ÖZEL SATIRLAR (AYDIN ÇAYKIŞLA VE DİĞER MÜŞTERİLER AYRI AYRI)
+        // FOTOĞRAF AÇMA (SABİT YANLIŞ İSİM YAZMADAN TEMİZ BAŞLATMA)
         function topluFotografiOku(event) {
             let file = event.target.files[0];
             if(!file) return;
@@ -681,48 +689,29 @@
             let reader = new FileReader();
             reader.onload = function(e) {
                 let imageUrl = e.target.result;
-                document.getElementById('toplu-onizleme-alani').innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:220px; border-radius:10px; border:1px solid #ccc;">`;
+                document.getElementById('toplu-onizleme-alani').innerHTML = `<img src="${imageUrl}" style="max-width:100%; max-height:240px; border-radius:10px; border:1px solid #ccc;">`;
                 document.getElementById('toplu-form-karti').style.display = 'block';
 
                 let konteynir = document.getElementById('toplu-satirlar-konteynir');
-                konteynir.innerHTML = '';
-
-                // Her satırın kendi müşterisi özel olarak tanımlanmıştır
-                let tabloSatirlari = [
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-08-25T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1700 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-08-28T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1800 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Tahsilat", tarih: "2026-08-30T10:00", urun: "Müşteri Ödemesi / Tahsilat", miktar: 1, tutar: 3500 }, 
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-02T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1780 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-09T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Tahsilat", tarih: "2026-09-15T10:00", urun: "Nakit Ödeme / Tahsilat", miktar: 1, tutar: 2000 }, 
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-12T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 2, tutar: 1960 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 880 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 1780 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM NOVA-SIĞIR SÜT YEMİ 19", miktar: 2, tutar: 1840 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-09-24T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 890 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-03T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 3600 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 895 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2200 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-11T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 1, tutar: 1900 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 2685 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-18T10:00", urun: "ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ", miktar: 1, tutar: 1000 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1000 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 2, tutar: 2100 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-10-26T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 3, tutar: 3150 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-01T10:00", urun: "ÖZLEM DEPAR SIĞIR SÜT YEMİ", miktar: 1, tutar: 1200 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM EKO BESİ TOZ YEMİ", miktar: 1, tutar: 1100 },
-                    { musteri: "AYDIN ÇAYKIŞLA", tip: "Satış", tarih: "2026-11-13T10:00", urun: "ÖZLEM AVANTAJ SIĞIR SÜT YEMİ", miktar: 2, tutar: 2600 }
-                ];
-
-                tabloSatirlari.forEach(s => topluSatirEkle(s.musteri, s.tip, s.tarih, s.urun, s.miktar, s.tutar));
+                if(konteynir.innerHTML.trim() === '') {
+                    topluSatirEkle("", "Satış", simdikiTarihInputFormat(), "", 1, 0);
+                }
             };
             reader.readAsDataURL(file);
         }
 
+        function genelMusteriyiSatirlaraUygula() {
+            let genelIsim = document.getElementById('tf-genel-musteri').value;
+            let musteriInputlari = document.querySelectorAll('#toplu-satirlar-konteynir .tf-musteri');
+            musteriInputlari.forEach(inp => {
+                inp.value = genelIsim;
+            });
+        }
+
         function topluSatirEkle(musteri = "", tip = "Satış", tarih = simdikiTarihInputFormat(), urun = "", miktar = 1, tutar = 0) {
+            let genelIsim = document.getElementById('tf-genel-musteri')?.value || "";
+            let secilenMusteri = musteri || genelIsim;
+
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
             let div = document.createElement('div');
             div.className = 'urun-satir';
@@ -730,7 +719,7 @@
                 <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
                 <div class="form-group" style="margin-bottom:8px;">
                     <label>Müşteri Adı</label>
-                    <input type="text" class="tf-musteri" value="${musteri}" placeholder="Müşteri adı">
+                    <input type="text" class="tf-musteri" list="musteri-listesi-datalist" value="${secilenMusteri}" placeholder="Bu satırın müşterisini yazın...">
                 </div>
                 <div class="form-group" style="margin-bottom:8px;">
                     <label>İşlem Türü</label>
@@ -772,12 +761,13 @@
                     veritabani.stoklar[aciklamaVeyaUrun] = (veritabani.stoklar[aciklamaVeyaUrun] || 0); 
                     veritabani.stoklar[aciklamaVeyaUrun] -= miktar;
 
+                    let birimFiyat = miktar > 0 ? (tutar / miktar) : tutar;
                     veritabani.islemler.push({
                         id: islemAnaId++,
                         tarih: tarih,
                         tip: 'Satış',
                         musteri: musteri,
-                        kalemler: [{ tur: aciklamaVeyaUrun, miktar: miktar, fiyat: tutar/miktar, tutar: tutar }],
+                        kalemler: [{ tur: aciklamaVeyaUrun, miktar: miktar, fiyat: birimFiyat, tutar: tutar }],
                         tutar: tutar,
                         aciklama: 'Toplu Tablo Satış'
                     });
@@ -796,7 +786,7 @@
 
             borclariYenidenHesapla();
             kaydetVeri();
-            alert(`Tablodaki ${satirlar.length} adet işlem başarıyla müşterilerine göre işlendi ve bakiye güncellendi!`);
+            alert(`Tüm satırlar kendi müşterilerine göre hatasız kaydedildi!`);
             goHome();
         }
 
@@ -1372,7 +1362,7 @@
                         <div style="font-weight:bold; font-size:15px;">${k}</div>
                         <div style="font-size:13px;">${durumMetni}</div>
                     </div>
-                    <button class="btn-secondary" onclick="fisGoster('${k}')">🧾 Fiş / Detay</button>
+                    <button class="btn-secondary" onclick="fisGoster('${k.replace(/'/g, "\\'")}')">🧾 Fiş / Detay</button>
                 </div>`;
             });
             document.getElementById('borc-detay-listesi').innerHTML = html;
@@ -1392,7 +1382,7 @@
                     <td><b>${k}</b></td>
                     <td style="color:${b > 0 ? '#dc2626' : '#166534'}; font-weight:bold;">${b.toFixed(2)} ₺</td>
                     <td><a href="${waUrl}" target="_blank" style="text-decoration:none; background:#25D366; color:white; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:11px;">📲 Hatırlat</a></td>
-                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="musteriSil('${k}')">Sil</button></td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="musteriSil('${k.replace(/'/g, "\\'")}')">Sil</button></td>
                 </tr>`;
             });
             html += '</table>';
