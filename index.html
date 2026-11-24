@@ -9,6 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <!-- html2pdf Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- SheetJS Excel Okuyucu Kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Tesseract.js OCR Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
@@ -88,7 +90,7 @@
             <div class="section-title">Ana Sayfa</div>
             <div class="menu-grid">
                 <div class="menu-card" onclick="openScreen('satis')"><div class="menu-icon">🛒</div><div class="menu-title">1. Satış / Talep</div><div class="menu-desc">Direkt kaydet</div></div>
-                <div class="menu-card" onclick="openScreen('toplu-foto-satis')" style="border: 2px dashed #166534; background:#f0fdf4;"><div class="menu-icon">📷</div><div class="menu-title">Resimden Oto Oku & Kaydet</div><div class="menu-desc">Görseli okuyup satır açar</div></div>
+                <div class="menu-card" onclick="openScreen('toplu-foto-satis')" style="border: 2px dashed #166534; background:#f0fdf4;"><div class="menu-icon">📊</div><div class="menu-title">Excel / Resim Oto Aktar</div><div class="menu-desc">Belge seçip sırayla alır</div></div>
                 <div class="menu-card" onclick="openScreen('onay')">
                     <div class="menu-icon">🔔</div>
                     <div class="menu-title">2. Onay Bekleyenler</div>
@@ -136,31 +138,47 @@
             </div>
         </div>
 
-        <!-- RESİMDEN OTO OKU & KAYDET EKRANI -->
+        <!-- EXCEL BELGE SEÇME & KADEMELİ AKTARIM EKRANI -->
         <div id="screen-toplu-foto-satis" class="hidden">
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
-            <div class="section-title">📷 Resim Okuma & Cari Kayıt</div>
+            <div class="section-title">📊 Excel Belge Seçme & Kademeli Aktarım</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Tablo görüntüsünü yakın ve net çekin. Bozuk okunan harf yığınları kutulara yazılmaz; net okunan isim, yem adı ve sayılar ayrıştırılır.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Excel belgenizi seçin. Sistem içindeki tüm müşterileri ve satırları sırayla, hatasız şekilde tarayıp kutulara getirir.</p>
+
                 <div class="form-group">
-                    <label>Fotoğraf Çek veya Seç</label>
-                    <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
+                    <label>1. Excel / CSV Belgesi Seç (.xlsx, .xlsm, .xls, .csv)</label>
+                    <input type="file" id="excel-belge-input" accept=".xlsx,.xlsm,.xls,.csv" onchange="excelBelgesiOku(event)" style="padding:12px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer; font-weight:bold;">
                 </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>2. Alternatif: Tablo Fotoğrafı Seç (.jpg, .png)</label>
+                    <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:8px; background:#fafafa; border:1px solid #ddd; cursor:pointer;">
+                </div>
+
                 <div id="ocr-durum-kutusu" class="ocr-durum hidden"></div>
                 <div id="toplu-onizleme-alani" style="margin-top:15px; text-align:center;"></div>
             </div>
 
             <div class="card" id="toplu-form-karti" style="display:none;">
-                <h3 style="margin-top:0; color:#166534; font-size:16px;">Okunan Metin ve Satırlar</h3>
+                <h3 style="margin-top:0; color:#166534; font-size:16px;">Aktarılan Müşteriler ve Satırlar</h3>
+
                 <div class="form-group">
-                    <label>Okunan Ham Metin (İsterseniz düzeltebilir veya tekrar satıra çevirebilirsiniz)</label>
-                    <textarea id="ocr-ham-metin" rows="6" placeholder="Okunan yazılar burada görünür..."></textarea>
-                    <button type="button" class="btn-secondary" style="margin-top:8px;" onclick="hamMetindenSatirOlustur()">🔄 Metinden Satırları Yeniden Oluştur</button>
+                    <label>Belgedeki Müşteri Filtresi (İsterseniz belirli bir müşteriyi seçin)</label>
+                    <select id="excel-musteri-filtre" onchange="seciliMusteriyeGoreYukle()">
+                        <option value="__TUMU__">Tüm Müşteriler (Sırayla Tümü)</option>
+                    </select>
                 </div>
+
+                <div class="form-group hidden">
+                    <textarea id="ocr-ham-metin" rows="4"></textarea>
+                </div>
+
                 <div class="form-group">
-                    <label>Tespit Edilen / Seçilen Müşteri Adı (Tüm Satırlara Uygulanır)</label>
-                    <input type="text" id="tf-genel-musteri" list="musteri-listesi-datalist" placeholder="Kayıtlı müşteriden seçin veya adı yazın..." oninput="genelMusteriyiSatirlaraUygula()">
+                    <label>Seçili / Ortak Müşteri Adı (İsterseniz Tüm Satırlara Uygulayabilirsiniz)</label>
+                    <input type="text" id="tf-genel-musteri" list="musteri-listesi-datalist" placeholder="Müşteri adı...">
+                    <button type="button" class="btn-secondary" style="margin-top:8px;" onclick="genelMusteriyiSatirlaraUygula()">Bu Müşteri Adını Satırlara Yaz</button>
                 </div>
+
                 <div id="toplu-satirlar-konteynir"></div>
                 <button class="btn-secondary" onclick="topluSatirEkle()" style="width:100%; margin-bottom:15px;">➕ Yeni Satır Ekle</button>
                 <button class="btn-green" onclick="topluSatislariKaydet()">Kontrol Ettim, Hatasız Kaydet 🚀</button>
@@ -466,6 +484,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] };
+        let excelAyiklananSatirlar = [];
+        let kademeliYuklemeTimer = null;
 
         db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
             const data = snapshot.val();
@@ -574,9 +594,28 @@
             return d.toISOString().slice(0, 16);
         }
 
-        function excelTarihToDatetimeLocal(tarihStr) {
-            if (!tarihStr) return simdikiTarihInputFormat();
-            let m = tarihStr.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+        function excelHucreTarihToDatetimeLocal(hucre) {
+            if (hucre === null || hucre === undefined || hucre === '') return simdikiTarihInputFormat();
+
+            if (hucre instanceof Date && !isNaN(hucre.getTime())) {
+                let gun = String(hucre.getDate()).padStart(2, '0');
+                let ay = String(hucre.getMonth() + 1).padStart(2, '0');
+                let yil = hucre.getFullYear();
+                return `${yil}-${ay}-${gun}T12:00`;
+            }
+
+            if (typeof hucre === 'number' && hucre > 25000 && hucre < 70000) {
+                let d = new Date(Math.round((hucre - 25569) * 86400 * 1000));
+                if (!isNaN(d.getTime())) {
+                    let gun = String(d.getUTCDate()).padStart(2, '0');
+                    let ay = String(d.getUTCMonth() + 1).padStart(2, '0');
+                    let yil = d.getUTCFullYear();
+                    return `${yil}-${ay}-${gun}T12:00`;
+                }
+            }
+
+            let str = String(hucre).trim();
+            let m = str.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
             if (m) {
                 let gun = m[1].padStart(2, '0');
                 let ay = m[2].padStart(2, '0');
@@ -615,12 +654,19 @@
                 urunSatiriEkle();
             }
             if(name === 'toplu-foto-satis') {
+                if (kademeliYuklemeTimer) {
+                    clearInterval(kademeliYuklemeTimer);
+                    kademeliYuklemeTimer = null;
+                }
+                excelAyiklananSatirlar = [];
                 document.getElementById('toplu-onizleme-alani').innerHTML = '';
                 document.getElementById('toplu-form-karti').style.display = 'none';
+                document.getElementById('excel-belge-input').value = '';
                 document.getElementById('toplu-foto-input').value = '';
                 document.getElementById('toplu-satirlar-konteynir').innerHTML = '';
                 document.getElementById('tf-genel-musteri').value = '';
                 document.getElementById('ocr-ham-metin').value = '';
+                document.getElementById('excel-musteri-filtre').innerHTML = '<option value="__TUMU__">Tüm Müşteriler (Sırayla Tümü)</option>';
                 document.getElementById('ocr-durum-kutusu').classList.add('hidden');
                 musteriDatalistGuncelle();
             }
@@ -703,29 +749,10 @@
 
         function goHome() { openScreen('menu'); }
 
-        function gorseliHazirla(imgEl) {
-            const canvas = document.createElement('canvas');
-            const maxWidth = 1800;
-            let width = imgEl.naturalWidth || imgEl.width;
-            let height = imgEl.naturalHeight || imgEl.height;
-
-            if (width > maxWidth) {
-                height = Math.round((height * maxWidth) / width);
-                width = maxWidth;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.filter = 'grayscale(100%) contrast(155%) brightness(105%)';
-            ctx.drawImage(imgEl, 0, 0, width, height);
-            return canvas.toDataURL('image/png');
-        }
-
         function excelSayiTemizle(str) {
-            if (!str) return 0;
+            if (str === null || str === undefined || str === '') return 0;
+            if (typeof str === 'number') return isNaN(str) ? 0 : str;
+
             let s = String(str).replace(/₺|tl/gi, '').trim();
             if (!s) return 0;
 
@@ -746,275 +773,219 @@
             return isNaN(num) ? 0 : num;
         }
 
-        function excelArayuzGurultusuMu(satir) {
-            let s = satir.trim();
-            if (!s) return true;
-            if (/^(dosya|giriş|ekle|çiz|sayfa\s*düzeni|formüller|veri|gözden\s*geçir|görünüm|geliştirici|yardım|pano|kes|kopyala|biçim\s*boyacısı|yazı\s*tipi|hizalama|sayı|stiller|normal|iyi|açıklama\s*m.*|ne\s*yapmak\s*istediğinizi\s*söyleyin|bu\s*belgeyi\s*yedekle|onedrive.*|yem\s*satış\.xlsm.*excel|metni\s*kaydır|birleştir\s*ve\s*ortala|koşullu\s*biçimlendirme|tablo\s*olarak\s*biçimlendir)\b/i.test(s)) {
-                return true;
-            }
-            let harfSayisi = (s.match(/[a-zA-ZçğıöşüÇĞİÖŞÜ]/g) || []).length;
-            let rakamSayisi = (s.match(/\d/g) || []).length;
-            if (harfSayisi + rakamSayisi < 2) return true;
-            return false;
-        }
-
-        function kelimeAnlamliMi(kelime) {
-            let k = (kelime || '').replace(/[^a-zA-ZçğıöşüÇĞİÖŞÜ]/g, '');
-            if (k.length < 3) return false;
-            let kucuk = k.toLocaleLowerCase('tr-TR');
-
-            // Bilinen yem / tarım / ticari sözcükler
-            const gecerliSozcukler = [
-                'özlem', 'avantaj', 'buzağı', 'buzagi', 'büyütme', 'buyutme', 'yemi', 'yem',
-                'eko', 'besi', 'toz', 'süt', 'sut', 'kuzu', 'dana', 'düve', 'duve', 'pelet',
-                'satış', 'satis', 'fiyatı', 'fiyati', 'toplam', 'tahsilat', 'borç', 'borc', 'tarih', 'müşteri', 'musteri'
-            ];
-            if (gecerliSozcukler.includes(kucuk)) return true;
-
-            // En az bir sesli ve en az bir sessiz harf olmalı
-            if (!/[aeıioöuü]/.test(kucuk) || !/[bcçdfgğhjklmnprsştvyz]/.test(kucuk)) return false;
-
-            // Ardışık aynı harf veya harf ikilisi tekrarı (eeayanya, bberarii, oooo vb.)
-            if (/(.)\1{1,}/.test(kucuk)) return false;
-            if (/([a-zçğıöşü]{2})\1/.test(kucuk)) return false;
-
-            // Tekrarlayan hece/kalıp (ayan, arr, eea vb. anlamsız OCR parçaları)
-            if (/^[a-zçğıöşü]{2,4}$/.test(kucuk) && !['yem', 'süt', 'sut', 'eko', 'toz', 'dana', 'kuzu', 'düve', 'duve', 'borç', 'borc'].includes(kucuk)) {
-                // Kısa 3-4 harfli kelimelerde fazla tekrarlı ünlü varsa bozuk OCR sayılır
-                let unluSayisi = (kucuk.match(/[aeıioöuü]/g) || []).length;
-                if (unluSayisi >= 2 && kucuk.length <= 4) return false;
+        function satirlarKademeliYukle(satirDizisi, durumMesaji) {
+            if (kademeliYuklemeTimer) {
+                clearInterval(kademeliYuklemeTimer);
+                kademeliYuklemeTimer = null;
             }
 
-            return true;
-        }
-
-        function yemAdiTemizle(hamYem) {
-            let temiz = (hamYem || '').replace(/[^a-zA-ZçğıöşüÇĞİÖŞÜ0-9\s-]/g, ' ').replace(/\s+/g, ' ').trim();
-            let kucuk = temiz.toLocaleLowerCase('tr-TR');
-
-            if (kucuk.includes('avantaj') && (kucuk.includes('buzağı') || kucuk.includes('buzagi'))) {
-                return 'ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ';
-            }
-            if (kucuk.includes('eko') && (kucuk.includes('besi') || kucuk.includes('toz'))) {
-                return 'ÖZLEM EKO BESİ TOZ YEMİ';
-            }
-            if ((kucuk.includes('süt') || kucuk.includes('sut')) && kucuk.includes('yem')) {
-                return 'ÖZLEM SÜT YEMİ';
-            }
-
-            let temizKelimeler = temiz.split(' ').filter(k => kelimeAnlamliMi(k));
-            return temizKelimeler.join(' ').trim();
-        }
-
-        function gecerliMusteriAdiMi(ad) {
-            let t = (ad || '').replace(/[^a-zA-ZçğıöşüÇĞİÖŞÜ\s]/g, ' ').replace(/\s+/g, ' ').trim();
-            if (!t || excelArayuzGurultusuMu(t)) return '';
-
-            let mevcutMusteriler = Object.keys(veritabani.borclar || {});
-            let tamEslesme = mevcutMusteriler.find(m => m.trim().toLocaleLowerCase('tr-TR') === t.toLocaleLowerCase('tr-TR'));
-            if (tamEslesme) return tamEslesme.trim();
-
-            let kelimeler = t.split(' ').filter(k => k.length >= 2);
-            if (kelimeler.length < 2) return '';
-
-            for (let k of kelimeler) {
-                if (!kelimeAnlamliMi(k)) return '';
-            }
-            return kelimeler.join(' ');
-        }
-
-        function musteriAdiBul(satirlar) {
-            let mevcutMusteriler = Object.keys(veritabani.borclar || {});
-            for (let s of satirlar) {
-                let sKucuk = s.toLocaleLowerCase('tr-TR');
-                let eslesen = mevcutMusteriler.find(m => m.trim().length >= 3 && sKucuk.includes(m.trim().toLocaleLowerCase('tr-TR')));
-                if (eslesen) return eslesen.trim();
-            }
-
-            for (let s of satirlar) {
-                if (excelArayuzGurultusuMu(s)) continue;
-                let adayMac = s.match(/\b([A-ZÇĞİÖŞÜa-zçğıöşü]{3,}\s+[A-ZÇĞİÖŞÜa-zçğıöşü]{3,})\b/);
-                if (adayMac) {
-                    let temizAday = gecerliMusteriAdiMi(adayMac[1]);
-                    if (temizAday && !/ÖZLEM|YEM|BUZAĞI|BESİ|SATIŞ|TOPLAM|TAHSİLAT|BORÇ|SAYFA|DÜZENİ/i.test(temizAday)) {
-                        return temizAday;
-                    }
-                }
-            }
-            return '';
-        }
-
-        function excelSatirAyikla(satirText, varsayilanMusteri) {
-            let temiz = satirText.replace(/\s+/g, ' ').trim();
-
-            let tarihEslesme = temiz.match(/\b(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b/);
-            let tarihInput = tarihEslesme ? excelTarihToDatetimeLocal(tarihEslesme[1]) : simdikiTarihInputFormat();
-            let kalanMetin = tarihEslesme ? temiz.replace(tarihEslesme[0], ' ') : temiz;
-
-            let paraEslesmeleri = [...kalanMetin.matchAll(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g)];
-            let tamSayilar = [...kalanMetin.matchAll(/\b\d+\b/g)].map(m => parseInt(m[0], 10)).filter(n => !isNaN(n) && n > 0 && n < 100000);
-
-            let adet = '';
-            let satisFiyati = 0;
-            let toplam = 0;
-            let tahsilat = 0;
-            let borc = 0;
-
-            if (paraEslesmeleri.length >= 4) {
-                let sonDort = paraEslesmeleri.slice(-4).map(m => excelSayiTemizle(m[0]));
-                satisFiyati = sonDort[0];
-                toplam = sonDort[1];
-                tahsilat = sonDort[2];
-                borc = sonDort[3];
-
-                let ilkParaIndex = kalanMetin.indexOf(paraEslesmeleri[paraEslesmeleri.length - 4][0]);
-                let onKisim = kalanMetin.slice(0, ilkParaIndex).trim();
-                let adetEslesme = onKisim.match(/\b(\d{1,4})\s*$/);
-                if (adetEslesme) {
-                    adet = parseInt(adetEslesme[1], 10);
-                    onKisim = onKisim.slice(0, onKisim.lastIndexOf(adetEslesme[1])).trim();
-                } else if (satisFiyati > 0 && toplam > 0) {
-                    adet = Math.round(toplam / satisFiyati) || '';
-                }
-                kalanMetin = onKisim;
-            } else if (paraEslesmeleri.length === 3) {
-                let sonUc = paraEslesmeleri.map(m => excelSayiTemizle(m[0]));
-                toplam = sonUc[0];
-                tahsilat = sonUc[1];
-                borc = sonUc[2];
-
-                let ilkParaIndex = kalanMetin.indexOf(paraEslesmeleri[0][0]);
-                let onKisim = kalanMetin.slice(0, ilkParaIndex).trim();
-                let adetEslesme = onKisim.match(/\b(\d{1,4})\s*$/);
-                if (adetEslesme) {
-                    adet = parseInt(adetEslesme[1], 10);
-                    onKisim = onKisim.slice(0, onKisim.lastIndexOf(adetEslesme[1])).trim();
-                }
-                satisFiyati = (adet > 0) ? Number((toplam / adet).toFixed(2)) : toplam;
-                kalanMetin = onKisim;
-            } else if (paraEslesmeleri.length >= 1) {
-                let sonSayi = excelSayiTemizle(paraEslesmeleri[paraEslesmeleri.length - 1][0]);
-                toplam = sonSayi;
-                borc = sonSayi;
-                let adetEslesme = kalanMetin.match(/\b(\d{1,4})\b/);
-                if (adetEslesme) {
-                    adet = parseInt(adetEslesme[1], 10);
-                }
-                satisFiyati = (adet > 0) ? Number((toplam / adet).toFixed(2)) : toplam;
-            } else if (tamSayilar.length > 0) {
-                if (tamSayilar.length >= 4) {
-                    adet = tamSayilar[0];
-                    satisFiyati = tamSayilar[1];
-                    toplam = tamSayilar[2];
-                    tahsilat = tamSayilar[3];
-                    borc = tamSayilar[4] !== undefined ? tamSayilar[4] : Math.max(0, toplam - tahsilat);
-                } else if (tamSayilar.length === 2) {
-                    adet = tamSayilar[0];
-                    satisFiyati = tamSayilar[1];
-                    toplam = adet * satisFiyati;
-                    borc = toplam;
-                } else if (tamSayilar.length === 1) {
-                    adet = tamSayilar[0];
-                }
-            }
-
-            if (toplam > 0 && tahsilat === 0 && borc === 0) {
-                borc = toplam;
-            }
-
-            let musteri = gecerliMusteriAdiMi(varsayilanMusteri);
-            let hamAdMetni = kalanMetin;
-
-            if (musteri) {
-                let mRegex = new RegExp(musteri.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
-                hamAdMetni = hamAdMetni.replace(mRegex, ' ');
-            }
-
-            let yemAdi = yemAdiTemizle(hamAdMetni);
-
-            return {
-                tarih: tarihInput,
-                musteri: musteri,
-                yemAdi: yemAdi,
-                adet: adet,
-                satisFiyati: satisFiyati,
-                toplam: toplam,
-                tahsilat: tahsilat,
-                borc: borc
-            };
-        }
-
-        function hamMetindenSatirOlustur() {
-            let metin = document.getElementById('ocr-ham-metin').value || '';
-            let satirlar = metin.split(/\r?\n/).map(s => s.trim()).filter(s => s.length >= 2);
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
+            let durumKutusu = document.getElementById('ocr-durum-kutusu');
             konteynir.innerHTML = '';
+            document.getElementById('toplu-form-karti').style.display = 'block';
+            durumKutusu.classList.remove('hidden');
 
-            let genelMusteriInput = document.getElementById('tf-genel-musteri');
-            let mevcutGenel = gecerliMusteriAdiMi(genelMusteriInput.value);
-            if (!mevcutGenel) {
-                genelMusteriInput.value = '';
-                mevcutGenel = musteriAdiBul(satirlar);
-                if (mevcutGenel) {
-                    genelMusteriInput.value = mevcutGenel;
-                }
-            } else {
-                genelMusteriInput.value = mevcutGenel;
-            }
-
-            let veriSatirlari = satirlar.filter(s => {
-                if (/^(TARİH|MÜŞTERİ|YEM ADI|ADET|SATIŞ FİYATI|TOPLAM|TAHSİLAT|BORÇ)\b/i.test(s)) return false;
-                if (excelArayuzGurultusuMu(s)) return false;
-                return /\d/.test(s) || /yem|buzağı|buzagi|besi|süt|tahsilat|borç/i.test(s);
-            });
-
-            if (veriSatirlari.length === 0) {
-                topluSatirEkle(simdikiTarihInputFormat(), mevcutGenel, '', '', 0, 0, 0, 0);
+            if (!satirDizisi || satirDizisi.length === 0) {
+                topluSatirEkle(simdikiTarihInputFormat(), '', '', 1, 0, 0, 0, 0);
+                durumKutusu.innerHTML = durumMesaji || 'Satır bulunamadı; manuel ekleyebilirsiniz.';
                 return;
             }
 
-            veriSatirlari.forEach(s => {
-                let p = excelSatirAyikla(s, mevcutGenel);
-                topluSatirEkle(p.tarih, p.musteri, p.yemAdi, p.adet, p.satisFiyati, p.toplam, p.tahsilat, p.borc);
-            });
+            let index = 0;
+            const toplamAdet = satirDizisi.length;
+
+            const tekSatirEkleVeGuncelle = () => {
+                if (index >= toplamAdet) {
+                    clearInterval(kademeliYuklemeTimer);
+                    kademeliYuklemeTimer = null;
+                    durumKutusu.innerHTML = `✅ ${durumMesaji} (<b>${toplamAdet} / ${toplamAdet}</b> satır sırayla hazırlandı)`;
+                    return;
+                }
+                let s = satirDizisi[index];
+                topluSatirEkle(s.tarih, s.musteri, s.yemAdi, s.adet, s.satisFiyati, s.toplam, s.tahsilat, s.borc);
+                index++;
+                durumKutusu.innerHTML = `⏳ Satırlar sırayla alınıyor: <b>${index} / ${toplamAdet}</b> (${s.musteri || 'Müşteri'} - ${s.yemAdi || 'Yem'})`;
+            };
+
+            tekSatirEkleVeGuncelle();
+            if (toplamAdet > 1) {
+                kademeliYuklemeTimer = setInterval(tekSatirEkleVeGuncelle, 180);
+            }
+        }
+
+        function excelBelgesiOku(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let durumKutusu = document.getElementById('ocr-durum-kutusu');
+            durumKutusu.classList.remove('hidden');
+            durumKutusu.innerHTML = '⏳ Excel belgesi okunuyor, müşteriler ve satırlar ayrıştırılıyor...';
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    let ilkSayfaAdi = workbook.SheetNames[0];
+                    let worksheet = workbook.Sheets[ilkSayfaAdi];
+                    let hamSatirlar = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+                    let baslikIndex = -1;
+                    let colMap = { tarih: 0, musteri: 1, yem: 2, adet: 3, fiyat: 4, toplam: 5, tahsilat: 6, borc: 7 };
+
+                    for (let i = 0; i < Math.min(hamSatirlar.length, 15); i++) {
+                        let r = hamSatirlar[i].map(c => String(c || '').trim().toLocaleLowerCase('tr-TR'));
+                        if (r.some(c => c.includes('tarih')) && r.some(c => c.includes('müşteri') || c.includes('musteri'))) {
+                            baslikIndex = i;
+                            r.forEach((colText, idx) => {
+                                if (colText.includes('tarih')) colMap.tarih = idx;
+                                else if (colText.includes('müşteri') || colText.includes('musteri')) colMap.musteri = idx;
+                                else if (colText.includes('yem') || colText.includes('ürün') || colText.includes('urun')) colMap.yem = idx;
+                                else if (colText.includes('adet') || colText.includes('miktar')) colMap.adet = idx;
+                                else if (colText.includes('satış fiyatı') || colText.includes('satis fiyati') || colText.includes('fiyat')) colMap.fiyat = idx;
+                                else if (colText.includes('toplam')) colMap.toplam = idx;
+                                else if (colText.includes('tahsilat')) colMap.tahsilat = idx;
+                                else if (colText.includes('borç') || colText.includes('borc')) colMap.borc = idx;
+                            });
+                            break;
+                        }
+                    }
+
+                    // Eğer başlık satırı A..H düzende bulunduysa ama A sütunu sıra no ise kaydır
+                    if (baslikIndex !== -1 && colMap.tarih === 1 && colMap.musteri === 2) {
+                        // A sütunu sıra numarası, B..I veri sütunları
+                    }
+
+                    let baslangic = baslikIndex !== -1 ? baslikIndex + 1 : 0;
+                    let ayiklanan = [];
+                    let aktifMusteri = '';
+
+                    for (let i = baslangic; i < hamSatirlar.length; i++) {
+                        let row = hamSatirlar[i];
+                        if (!row || row.every(c => String(c || '').trim() === '')) continue;
+
+                        let tarihHam = row[colMap.tarih];
+                        let musteriHam = String(row[colMap.musteri] || '').trim();
+                        let yemHam = String(row[colMap.yem] || '').trim();
+                        let adetHam = excelSayiTemizle(row[colMap.adet]);
+                        let fiyatHam = excelSayiTemizle(row[colMap.fiyat]);
+                        let toplamHam = excelSayiTemizle(row[colMap.toplam]);
+                        let tahsilatHam = excelSayiTemizle(row[colMap.tahsilat]);
+                        let borcHam = excelSayiTemizle(row[colMap.borc]);
+
+                        // Bazı tablolarda ilk sütun sıra numarası (örn: 58, 89) olup başlık algılanmamışsa
+                        if (baslikIndex === -1 && /^\d+$/.test(String(row[0] || '').trim()) && String(row[2] || '').trim()) {
+                            tarihHam = row[1];
+                            musteriHam = String(row[2] || '').trim();
+                            yemHam = String(row[3] || '').trim();
+                            adetHam = excelSayiTemizle(row[4]);
+                            fiyatHam = excelSayiTemizle(row[5]);
+                            toplamHam = excelSayiTemizle(row[6]);
+                            tahsilatHam = excelSayiTemizle(row[7]);
+                            borcHam = excelSayiTemizle(row[8]);
+                        }
+
+                        if (!musteriHam && aktifMusteri) {
+                            musteriHam = aktifMusteri;
+                        } else if (musteriHam) {
+                            aktifMusteri = musteriHam;
+                        }
+
+                        if (!yemHam && toplamHam <= 0 && tahsilatHam <= 0) continue;
+
+                        let adet = adetHam > 0 ? adetHam : ((fiyatHam > 0 && toplamHam > 0) ? Math.round(toplamHam / fiyatHam) : 1);
+                        let satisFiyati = fiyatHam > 0 ? fiyatHam : ((toplamHam > 0 && adet > 0) ? Number((toplamHam / adet).toFixed(2)) : 0);
+                        let toplam = toplamHam > 0 ? toplamHam : (adet * satisFiyati);
+                        let borc = borcHam > 0 ? borcHam : Math.max(0, toplam - tahsilatHam);
+
+                        ayiklanan.push({
+                            tarih: excelHucreTarihToDatetimeLocal(tarihHam),
+                            musteri: musteriHam,
+                            yemAdi: yemHam || 'Yem Satışı',
+                            adet: adet,
+                            satisFiyati: satisFiyati,
+                            toplam: toplam,
+                            tahsilat: tahsilatHam,
+                            borc: borc
+                        });
+                    }
+
+                    excelAyiklananSatirlar = ayiklanan;
+
+                    // Müşteri filtre açılır kutusunu doldur
+                    let filtreSelect = document.getElementById('excel-musteri-filtre');
+                    let benzersizMusteriler = [...new Set(ayiklanan.map(s => s.musteri).filter(Boolean))];
+                    let filtreHtml = `<option value="__TUMU__">Tüm Müşteriler (${benzersizMusteriler.length} Müşteri / ${ayiklanan.length} Satır)</option>`;
+                    benzersizMusteriler.forEach(m => {
+                        let mSatirSayisi = ayiklanan.filter(s => s.musteri === m).length;
+                        filtreHtml += `<option value="${m.replace(/"/g, '&quot;')}">${m} (${mSatirSayisi} satır)</option>`;
+                    });
+                    filtreSelect.innerHTML = filtreHtml;
+
+                    if (benzersizMusteriler.length === 1) {
+                        document.getElementById('tf-genel-musteri').value = benzersizMusteriler[0];
+                    } else {
+                        document.getElementById('tf-genel-musteri').value = '';
+                    }
+
+                    satirlarKademeliYukle(ayiklanan, `"${file.name}" belgesinden ${benzersizMusteriler.length} müşteri ve ${ayiklanan.length} satır okundu.`);
+                } catch (err) {
+                    durumKutusu.innerHTML = '⚠️ Excel dosyası okunurken hata oluştu. Dosyanın bozuk olmadığından emin olun.';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function seciliMusteriyeGoreYukle() {
+            let secim = document.getElementById('excel-musteri-filtre').value;
+            if (!excelAyiklananSatirlar || excelAyiklananSatirlar.length === 0) return;
+
+            if (secim === '__TUMU__') {
+                satirlarKademeliYukle(excelAyiklananSatirlar, 'Tüm müşterilerin satırları sırayla getiriliyor.');
+            } else {
+                document.getElementById('tf-genel-musteri').value = secim;
+                let filtreli = excelAyiklananSatirlar.filter(s => s.musteri === secim);
+                satirlarKademeliYukle(filtreli, `"${secim}" müşterisinin satırları sırayla getiriliyor.`);
+            }
+        }
+
+        // Yedek OCR desteği (fotoğraf seçilirse)
+        function gorseliHazirla(imgEl) {
+            const canvas = document.createElement('canvas');
+            const maxWidth = 1800;
+            let width = imgEl.naturalWidth || imgEl.width;
+            let height = imgEl.naturalHeight || imgEl.height;
+            if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.filter = 'grayscale(100%) contrast(155%) brightness(105%)';
+            ctx.drawImage(imgEl, 0, 0, width, height);
+            return canvas.toDataURL('image/png');
         }
 
         async function topluFotografiOku(event) {
             let file = event.target.files[0];
             if(!file) return;
-
             let durumKutusu = document.getElementById('ocr-durum-kutusu');
             durumKutusu.classList.remove('hidden');
-            durumKutusu.innerHTML = '⏳ Tablo görüntüsü hazırlanıyor ve satırlar okunuyor... Lütfen bekleyin.';
-
+            durumKutusu.innerHTML = '⏳ Fotoğraf okunuyor...';
             let reader = new FileReader();
             reader.onload = async function(e) {
-                let imageUrl = e.target.result;
-                document.getElementById('toplu-onizleme-alani').innerHTML = `<img id="kaynak-gorsel" src="${imageUrl}" style="max-width:100%; max-height:240px; border-radius:10px; border:1px solid #ccc;">`;
+                document.getElementById('toplu-onizleme-alani').innerHTML = `<img id="kaynak-gorsel" src="${e.target.result}" style="max-width:100%; max-height:220px; border-radius:10px; border:1px solid #ccc;">`;
                 document.getElementById('toplu-form-karti').style.display = 'block';
-
                 let imgEl = document.getElementById('kaynak-gorsel');
                 imgEl.onload = async function() {
                     try {
-                        let hazirGorsel = gorseliHazirla(imgEl);
-                        const result = await Tesseract.recognize(hazirGorsel, 'tur', {
-                            logger: m => {
-                                if (m.status === 'recognizing text') {
-                                    let yuzde = Math.round((m.progress || 0) * 100);
-                                    durumKutusu.innerHTML = `🔍 Tablo satırları okunuyor: <b>%${yuzde}</b> (İsim, yem adı ve sayılar temizleniyor...)`;
-                                }
-                            }
-                        });
-
-                        let okunanMetin = (result && result.data && result.data.text) ? result.data.text.trim() : '';
-                        document.getElementById('ocr-ham-metin').value = okunanMetin;
-                        durumKutusu.innerHTML = '✅ Okuma tamamlandı. Bozuk harfler ayıklandı; eksik kalan isim, yem adı veya adet varsa kutulardan tamamlayabilirsiniz.';
-                        hamMetindenSatirOlustur();
+                        const result = await Tesseract.recognize(gorseliHazirla(imgEl), 'tur');
+                        let metin = (result && result.data && result.data.text) ? result.data.text.trim() : '';
+                        document.getElementById('ocr-ham-metin').value = metin;
+                        satirlarKademeliYukle([{ tarih: simdikiTarihInputFormat(), musteri: '', yemAdi: '', adet: 1, satisFiyati: 0, toplam: 0, tahsilat: 0, borc: 0 }], 'Fotoğraf okundu; Excel belgesi seçerseniz tüm müşteriler %100 hatasız gelir.');
                     } catch (err) {
-                        durumKutusu.innerHTML = '⚠️ Otomatik okuma tamamlanamadı; satırları aşağıdan manuel girip kaydedebilirsiniz.';
-                        if (document.querySelectorAll('#toplu-satirlar-konteynir .urun-satir').length === 0) {
-                            topluSatirEkle(simdikiTarihInputFormat(), '', '', '', 0, 0, 0, 0);
-                        }
+                        satirlarKademeliYukle([{ tarih: simdikiTarihInputFormat(), musteri: '', yemAdi: '', adet: 1, satisFiyati: 0, toplam: 0, tahsilat: 0, borc: 0 }], 'Satırı aşağıdan doldurabilirsiniz.');
                     }
                 };
             };
@@ -1048,12 +1019,8 @@
             borcEl.value = Math.max(0, toplam - tahsilat).toFixed(2);
         }
 
-        function topluSatirEkle(tarih = simdikiTarihInputFormat(), musteri = "", yemAdi = "", adet = "", satisFiyati = 0, toplam = 0, tahsilat = 0, borc = 0) {
-            let genelIsim = gecerliMusteriAdiMi(document.getElementById('tf-genel-musteri')?.value || "");
-            let secilenMusteri = gecerliMusteriAdiMi(musteri) || genelIsim;
-            let temizYem = yemAdiTemizle(yemAdi);
-            let adetDegeri = (adet === '' || adet === null || adet === undefined) ? '' : adet;
-            let hesaplananToplam = toplam > 0 ? toplam : (((parseFloat(adetDegeri) || 0) * (parseFloat(satisFiyati) || 0)) || 0);
+        function topluSatirEkle(tarih = simdikiTarihInputFormat(), musteri = "", yemAdi = "", adet = 1, satisFiyati = 0, toplam = 0, tahsilat = 0, borc = 0) {
+            let hesaplananToplam = toplam > 0 ? toplam : ((parseFloat(adet) || 0) * (parseFloat(satisFiyati) || 0));
             let hesaplananBorc = borc > 0 ? borc : Math.max(0, hesaplananToplam - (parseFloat(tahsilat) || 0));
 
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
@@ -1067,14 +1034,14 @@
                 </div>
                 <div class="form-group" style="margin-bottom:8px;">
                     <label>MÜŞTERİ</label>
-                    <input type="text" class="tf-musteri" list="musteri-listesi-datalist" value="${secilenMusteri}" placeholder="Müşteri adı seçin veya yazın...">
+                    <input type="text" class="tf-musteri" list="musteri-listesi-datalist" value="${musteri}" placeholder="Müşteri adı...">
                 </div>
                 <div class="form-group" style="margin-bottom:8px;">
                     <label>YEM ADI</label>
-                    <input type="text" class="tf-urun" value="${temizYem}" placeholder="Örn: ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ">
+                    <input type="text" class="tf-urun" value="${yemAdi}" placeholder="Yem adı...">
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
-                    <div class="form-group" style="margin-bottom:0;"><label>ADET</label><input type="number" step="0.01" class="tf-miktar" value="${adetDegeri}" placeholder="Adet girin" oninput="satirTutarlariGuncelle(this)"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>ADET</label><input type="number" step="0.01" class="tf-miktar" value="${adet}" placeholder="0" oninput="satirTutarlariGuncelle(this)"></div>
                     <div class="form-group" style="margin-bottom:0;"><label>SATIŞ FİYATI</label><input type="number" step="0.01" class="tf-fiyat" value="${satisFiyati}" placeholder="0" oninput="satirTutarlariGuncelle(this)"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
@@ -1087,6 +1054,10 @@
         }
 
         function topluSatislariKaydet() {
+            if (kademeliYuklemeTimer) {
+                clearInterval(kademeliYuklemeTimer);
+                kademeliYuklemeTimer = null;
+            }
             let satirlar = document.querySelectorAll('#toplu-satirlar-konteynir .urun-satir');
             if(satirlar.length === 0) { alert('Lütfen en az bir satır ekleyin.'); return; }
 
@@ -1117,7 +1088,7 @@
                         musteri: musteri,
                         kalemler: [{ tur: yemAdi, miktar: adet || 1, fiyat: birimFiyat, tutar: toplam }],
                         tutar: toplam,
-                        aciklama: 'Yem Satış Tablosundan Kayıt'
+                        aciklama: 'Excel Belgesinden Aktarım'
                     });
                 }
 
@@ -1136,7 +1107,7 @@
 
             borclariYenidenHesapla();
             kaydetVeri();
-            alert(`Tüm satırlar kendi müşterilerine göre kaydedildi!`);
+            alert(`Tüm müşteri satırları hatasız şekilde kaydedildi!`);
             goHome();
         }
 
