@@ -849,11 +849,16 @@
 
         function excelSayiTemizle(str) {
             if (str === null || str === undefined || str === '') return 0;
-            if (typeof str === 'number') return isNaN(str) ? 0 : Number(str.toFixed(2));
+            if (typeof str === 'number') {
+                if (!isFinite(str) || isNaN(str)) return 0;
+                return Number(str.toFixed(2));
+            }
 
             let s = String(str).replace(/₺|tl/gi, '').trim();
             if (!s) return 0;
+            s = s.replace(/\s+/g, '');
 
+            // Hem nokta hem virgül varsa son ayırıcı ondalıktır
             if (s.includes(',') && s.includes('.')) {
                 let sonVirgul = s.lastIndexOf(',');
                 let sonNokta = s.lastIndexOf('.');
@@ -866,17 +871,25 @@
                 }
             }
 
+            // Sadece virgül varsa Türkçe ondalık ayırıcı kabul edilir
             if (s.includes(',')) {
                 let parts = s.split(',');
-                let tam = parts[0].replace(/\./g, '').replace(/\s+/g, '');
+                let tam = parts[0].replace(/\./g, '').replace(/[^\d-]/g, '');
                 let ondalik = (parts[1] || '0').replace(/[^\d]/g, '');
-                let num = parseFloat(`${tam}.${ondalik}`);
+                let num = parseFloat(`${tam || '0'}.${ondalik || '0'}`);
                 return isNaN(num) ? 0 : Number(num.toFixed(2));
             }
 
-            if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
-                let num = parseFloat(s.replace(/\./g, ''));
-                return isNaN(num) ? 0 : Number(num.toFixed(2));
+            // Sadece nokta varsa: kesin 3 basamaklı binlik grupları (örn. 1.250 veya 12.500.000) binliktir,
+            // tek nokta ve 1-2 basamak veya >3 basamak ise ondalıktır.
+            if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+                let noktaSayisi = (s.match(/\./g) || []).length;
+                // Tek noktada örneğin 1.500 vs 1.250 ayrımı: 3 basamaklı tek noktada sayı >= 100 ise genelde binliktir,
+                // ancak fiyatlarda 1.50 veya 12.5 gibi değerler noktaSayisi === 1 ve son parça 1-2 basamak olur.
+                if (noktaSayisi > 1) {
+                    let num = parseFloat(s.replace(/\./g, ''));
+                    return isNaN(num) ? 0 : Number(num.toFixed(2));
+                }
             }
 
             let num = parseFloat(s.replace(/[^\d.-]/g, ''));
@@ -961,6 +974,29 @@
             return { map, eslesmeSayisi };
         }
 
+        function satirFiyatVeToplamDengeliHesapla(adetHam, fiyatHam, toplamHam, fiyatVarMi, toplamVarMi) {
+            let adet = adetHam > 0 ? adetHam : 0;
+            if (adet > 0 && !Number.isInteger(adet) && Math.abs(adet - Math.round(adet)) < 0.01) {
+                adet = Math.round(adet);
+            }
+
+            let satisFiyati = fiyatVarMi && fiyatHam > 0 ? fiyatHam : 0;
+            let toplam = toplamVarMi && toplamHam > 0 ? toplamHam : 0;
+
+            if (toplam > 0 && satisFiyati > 0 && adet <= 0) {
+                adet = Number((toplam / satisFiyati).toFixed(2));
+                if (!Number.isInteger(adet) && Math.abs(adet - Math.round(adet)) < 0.01) {
+                    adet = Math.round(adet);
+                }
+            } else if (adet > 0 && satisFiyati > 0 && toplam <= 0) {
+                toplam = Number((adet * satisFiyati).toFixed(2));
+            } else if (adet > 0 && toplam > 0 && satisFiyati <= 0) {
+                satisFiyati = Number((toplam / adet).toFixed(2));
+            }
+
+            return { adet, satisFiyati, toplam };
+        }
+
         function satisSayfaSatirlariniAyikla(hamSatirlar) {
             let baslikIndex = -1;
             let colMap = null;
@@ -995,8 +1031,14 @@
                 let musteriHam = colMap.musteri >= 0 ? String(row[colMap.musteri] || '').trim() : '';
                 let yemHam = colMap.yem >= 0 ? String(row[colMap.yem] || '').trim() : '';
                 let adetHam = colMap.adet >= 0 ? excelSayiTemizle(row[colMap.adet]) : 0;
-                let fiyatHam = colMap.fiyat >= 0 ? excelSayiTemizle(row[colMap.fiyat]) : 0;
-                let toplamHam = colMap.toplam >= 0 ? excelSayiTemizle(row[colMap.toplam]) : 0;
+
+                let fiyatHamHucre = colMap.fiyat >= 0 ? row[colMap.fiyat] : '';
+                let toplamHamHucre = colMap.toplam >= 0 ? row[colMap.toplam] : '';
+                let fiyatVarMi = fiyatHamHucre !== undefined && fiyatHamHucre !== null && String(fiyatHamHucre).trim() !== '';
+                let toplamVarMi = toplamHamHucre !== undefined && toplamHamHucre !== null && String(toplamHamHucre).trim() !== '';
+
+                let fiyatHam = fiyatVarMi ? excelSayiTemizle(fiyatHamHucre) : 0;
+                let toplamHam = toplamVarMi ? excelSayiTemizle(toplamHamHucre) : 0;
                 let tahsilatHam = colMap.tahsilat >= 0 ? excelSayiTemizle(row[colMap.tahsilat]) : 0;
                 let borcHam = colMap.borc >= 0 ? excelSayiTemizle(row[colMap.borc]) : 0;
 
@@ -1013,13 +1055,7 @@
                 let tutarVeyaMiktarVarMi = Boolean(yemHam || adetHam > 0 || fiyatHam > 0 || toplamHam > 0 || tahsilatHam > 0 || borcHam > 0);
                 if (!tutarVeyaMiktarVarMi) continue;
 
-                let adet = adetHam > 0 ? adetHam : ((fiyatHam > 0 && toplamHam > 0) ? Number((toplamHam / fiyatHam).toFixed(2)) : 0);
-                if (adet > 0 && !Number.isInteger(adet) && Math.abs(adet - Math.round(adet)) < 0.01) {
-                    adet = Math.round(adet);
-                }
-
-                let satisFiyati = fiyatHam > 0 ? fiyatHam : ((toplamHam > 0 && adet > 0) ? Number((toplamHam / adet).toFixed(2)) : 0);
-                let toplam = toplamHam > 0 ? toplamHam : (adet > 0 && satisFiyati > 0 ? Number((adet * satisFiyati).toFixed(2)) : 0);
+                let { adet, satisFiyati, toplam } = satirFiyatVeToplamDengeliHesapla(adetHam, fiyatHam, toplamHam, fiyatVarMi, toplamVarMi);
 
                 let borc = 0;
                 if (colMap.borc >= 0 && row[colMap.borc] !== undefined && String(row[colMap.borc]).trim() !== '') {
