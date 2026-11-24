@@ -70,7 +70,7 @@
                 <div class="title-sub">ÇİFTLİĞİ</div>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🔥 Canlı Bulut</div>
+        <div id="sync-indicator" class="sync-status">🔥 Yerel + Bulut</div>
     </div>
 
     <div class="container">
@@ -483,28 +483,55 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let veritabani = { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] };
+        const YEREL_DEPOLAMA_ANAHTARI = 'demirkapi_ciftligi_veritabani_v1';
+
+        function bosVeritabaniOlustur() {
+            return { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] };
+        }
+
+        function veritabaniAlanlariniTamamla(hamVeri) {
+            let temel = bosVeritabaniOlustur();
+            if (!hamVeri || typeof hamVeri !== 'object') return temel;
+            let birlesik = Object.assign(temel, hamVeri);
+            if (!Array.isArray(birlesik.islemler)) birlesik.islemler = [];
+            if (!birlesik.stoklar || typeof birlesik.stoklar !== 'object') birlesik.stoklar = {};
+            if (!birlesik.kritikStok || typeof birlesik.kritikStok !== 'object') birlesik.kritikStok = {};
+            if (!birlesik.borclar || typeof birlesik.borclar !== 'object') birlesik.borclar = {};
+            if (!Array.isArray(birlesik.bekleyenler)) birlesik.bekleyenler = [];
+            if (!birlesik.girisler || typeof birlesik.girisler !== 'object') birlesik.girisler = {};
+            if (!Array.isArray(birlesik.giderler)) birlesik.giderler = [];
+            if (!Array.isArray(birlesik.hayvanlar)) birlesik.hayvanlar = [];
+            if (!Array.isArray(birlesik.silajlar)) birlesik.silajlar = [];
+            if (!Array.isArray(birlesik.bicilenTarlalar)) birlesik.bicilenTarlalar = [];
+            if (!Array.isArray(birlesik.nakliyeler)) birlesik.nakliyeler = [];
+            if (!Array.isArray(birlesik.ozemYemler)) birlesik.ozemYemler = [];
+            return birlesik;
+        }
+
+        function yerelVeriyiOku() {
+            try {
+                let raw = localStorage.getItem(YEREL_DEPOLAMA_ANAHTARI);
+                if (!raw) return null;
+                return veritabaniAlanlariniTamamla(JSON.parse(raw));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function yerelVeriyiYaz(veri) {
+            try {
+                localStorage.setItem(YEREL_DEPOLAMA_ANAHTARI, JSON.stringify(veri));
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        let veritabani = yerelVeriyiOku() || bosVeritabaniOlustur();
         let excelAyiklananSatirlar = [];
         let kademeliYuklemeTimer = null;
 
-        db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                veritabani = data;
-                if(!veritabani.islemler) veritabani.islemler = [];
-                if(!veritabani.stoklar) veritabani.stoklar = {};
-                if(!veritabani.kritikStok) veritabani.kritikStok = {};
-                if(!veritabani.borclar) veritabani.borclar = {};
-                if(!veritabani.bekleyenler) veritabani.bekleyenler = [];
-                if(!veritabani.girisler) veritabani.girisler = {};
-                if(!veritabani.giderler) veritabani.giderler = [];
-                if(!veritabani.hayvanlar) veritabani.hayvanlar = [];
-                if(!veritabani.silajlar) veritabani.silajlar = [];
-                if(!veritabani.bicilenTarlalar) veritabani.bicilenTarlalar = [];
-                if(!veritabani.nakliyeler) veritabani.nakliyeler = [];
-                if(!veritabani.ozemYemler) veritabani.ozemYemler = [];
-            }
-
+        function aktifEkranlariYenile() {
             borclariYenidenHesapla();
             bekleyenRozetGuncelle();
             musteriDatalistGuncelle();
@@ -522,6 +549,41 @@
             if (!document.getElementById('screen-tarla').classList.contains('hidden')) tarlalariGoster();
             if (!document.getElementById('screen-nakliye').classList.contains('hidden')) nakliyeleriGoster();
             if (!document.getElementById('screen-ozemyem').classList.contains('hidden')) ozemYemGoster();
+            if (!document.getElementById('screen-gecmis').classList.contains('hidden')) gecmisiGoster();
+        }
+
+        aktifEkranlariYenile();
+
+        db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const syncEl = document.getElementById('sync-indicator');
+            if (data) {
+                let bulutVeri = veritabaniAlanlariniTamamla(data);
+                let yerelVeri = yerelVeriyiOku();
+                if (yerelVeri && yerelVeri.islemler.length > bulutVeri.islemler.length) {
+                    veritabani = yerelVeri;
+                    db.ref('demirkapi_ciftligi').set(veritabani).catch(() => {});
+                } else {
+                    veritabani = bulutVeri;
+                    yerelVeriyiYaz(veritabani);
+                }
+                if (syncEl) syncEl.innerText = '🔥 Canlı Bulut';
+            } else {
+                let yerelVeri = yerelVeriyiOku();
+                if (yerelVeri && yerelVeri.islemler.length > 0) {
+                    veritabani = yerelVeri;
+                    db.ref('demirkapi_ciftligi').set(veritabani).catch(() => {});
+                }
+                if (syncEl) syncEl.innerText = '💾 Yerel Kayıt';
+            }
+            aktifEkranlariYenile();
+        }, () => {
+            const syncEl = document.getElementById('sync-indicator');
+            if (syncEl) syncEl.innerText = '💾 Yerel Mod';
+        });
+
+        window.addEventListener('beforeunload', () => {
+            yerelVeriyiYaz(veritabani);
         });
 
         function borclariYenidenHesapla() {
@@ -595,8 +657,17 @@
         havaDurumuGetir();
 
         function kaydetVeri() {
+            veritabani = veritabaniAlanlariniTamamla(veritabani);
+            yerelVeriyiYaz(veritabani);
+            bekleyenRozetGuncelle();
+            const syncEl = document.getElementById('sync-indicator');
             db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
+                yerelVeriyiYaz(veritabani);
                 bekleyenRozetGuncelle();
+                if (syncEl) syncEl.innerText = '🔥 Canlı Bulut';
+            }).catch(() => {
+                yerelVeriyiYaz(veritabani);
+                if (syncEl) syncEl.innerText = '💾 Yerel Kayıt';
             });
         }
 
@@ -1980,7 +2051,7 @@
                 try {
                     let importedData = JSON.parse(e.target.result);
                     if(confirm('Mevcut verilerin üzerine yazılacak. Onaylıyor musunuz?')) {
-                        veritabani = importedData;
+                        veritabani = veritabaniAlanlariniTamamla(importedData);
                         kaydetVeri();
                         alert('Veriler başarıyla yüklendi!');
                         goHome();
