@@ -141,7 +141,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📷 Resim Okuma & Cari Kayıt</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Resmi çekin veya seçin; sistem müşteri adı, yem/ürün adı, adet, birim fiyat ve tahsilatları satırlara ayırır. Kaydetmeden önce kontrol edip düzeltebilirsiniz.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Tablo düzenine göre <b>Tarih, Müşteri, Yem Adı, Adet, Satış Fiyatı, Toplam, Tahsilat ve Borç</b> alanlarını ayrıştırır. Kaydetmeden önce kontrol edip düzeltebilirsiniz.</p>
                 <div class="form-group">
                     <label>Fotoğraf Çek veya Seç</label>
                     <input type="file" id="toplu-foto-input" accept="image/*" capture="environment" onchange="topluFotografiOku(event)" style="padding:10px; background:#f0fdf4; border:2px dashed #166534; cursor:pointer;">
@@ -574,6 +574,18 @@
             return d.toISOString().slice(0, 16);
         }
 
+        function excelTarihToDatetimeLocal(tarihStr) {
+            if (!tarihStr) return simdikiTarihInputFormat();
+            let m = tarihStr.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+            if (m) {
+                let gun = m[1].padStart(2, '0');
+                let ay = m[2].padStart(2, '0');
+                let yil = m[3];
+                return `${yil}-${ay}-${gun}T12:00`;
+            }
+            return simdikiTarihInputFormat();
+        }
+
         function formatliTarihGoster(inputStr) {
             if(!inputStr) return '';
             let d = new Date(inputStr);
@@ -711,125 +723,142 @@
             return canvas.toDataURL('image/png');
         }
 
-        function sayiTemizle(str) {
+        // Türk / Excel sayı formatı (örn: 4.750,00 veya 950,00 veya 2.000,00)
+        function excelSayiTemizle(str) {
             if (!str) return 0;
-            let cleaned = str.replace(/[^\d.,]/g, '');
-            if (cleaned.includes(',') && cleaned.includes('.')) {
-                if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
-                    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-                } else {
-                    cleaned = cleaned.replace(/,/g, '');
-                }
-            } else if (cleaned.includes(',')) {
-                let parts = cleaned.split(',');
-                if (parts[1] && parts[1].length === 3) {
-                    cleaned = cleaned.replace(/,/g, '');
-                } else {
-                    cleaned = cleaned.replace(',', '.');
-                }
-            } else if (cleaned.includes('.')) {
-                let parts = cleaned.split('.');
-                if (parts[1] && parts[1].length === 3 && parts.length === 2) {
-                    cleaned = cleaned.replace(/\./g, '');
-                }
+            let s = String(str).replace(/₺|tl/gi, '').trim();
+            if (!s) return 0;
+
+            if (s.includes(',')) {
+                let parts = s.split(',');
+                let tam = parts[0].replace(/\./g, '').replace(/\s+/g, '');
+                let ondalik = (parts[1] || '0').replace(/[^\d]/g, '');
+                let num = parseFloat(`${tam}.${ondalik}`);
+                return isNaN(num) ? 0 : num;
             }
-            let num = parseFloat(cleaned);
+
+            if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+                let num = parseFloat(s.replace(/\./g, ''));
+                return isNaN(num) ? 0 : num;
+            }
+
+            let num = parseFloat(s.replace(/,/g, '.').replace(/[^\d.-]/g, ''));
             return isNaN(num) ? 0 : num;
         }
 
-        function musteriAdiTespitEt(satirlar) {
-            let mevcutMusteriler = Object.keys(veritabani.borclar || {});
-            for (let s of satirlar) {
-                let sKucuk = s.toLocaleLowerCase('tr-TR');
-                let eslesen = mevcutMusteriler.find(m => m.length >= 2 && sKucuk.includes(m.toLocaleLowerCase('tr-TR')));
-                if (eslesen) return eslesen;
-            }
-
-            for (let s of satirlar) {
-                let etiketEslesme = s.match(/(?:müşteri|cari|sayın|alıcı|kişi|adı\s*soyadı)\s*[:\-]?\s*([a-zA-ZçğıöşüÇĞİÖŞÜ\s]{2,40})/i);
-                if (etiketEslesme && etiketEslesme[1]) {
-                    let aday = etiketEslesme[1].replace(/\s+/g, ' ').trim();
-                    if (aday.length >= 2) return aday;
-                }
-            }
-
-            for (let s of satirlar) {
-                let kucuk = s.toLocaleLowerCase('tr-TR');
-                let anahtarVarMi = /(yem|süt|besi|buzağı|arpa|mısır|kepek|küspe|silaj|yonca|saman|çuval|torba|kg|ton|adet|tahsilat|ödeme|ödenen|nakit|havale|fatura|fiş|tarih|toplam|tl|₺)/i.test(kucuk);
-                if (!/\d/.test(s) && !anahtarVarMi && s.length >= 2 && s.length <= 40) {
-                    return s.replace(/\s+/g, ' ').trim();
-                }
-            }
-            return '';
-        }
-
-        function satirAyikla(satirText, varsayilanMusteri) {
+        // Excel tablosundaki satırı: TARİH | MÜŞTERİ | YEM ADI | ADET | SATIŞ FİYATI | TOPLAM | TAHSİLAT | BORÇ
+        function excelSatirAyikla(satirText, varsayilanMusteri) {
             let temiz = satirText.replace(/\s+/g, ' ').trim();
-            let kucuk = temiz.toLocaleLowerCase('tr-TR');
 
-            let tahsilatMi = /(tahsilat|ödeme|ödenen|peşin|aldım|verdi|nakit|havale|eft|kapora)/i.test(kucuk);
-            let tip = tahsilatMi ? 'Tahsilat' : 'Satış';
+            // 1. Tarih yakala (örn: 18.07.2026)
+            let tarihEslesme = temiz.match(/\b(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b/);
+            let tarihInput = tarihEslesme ? excelTarihToDatetimeLocal(tarihEslesme[1]) : simdikiTarihInputFormat();
+            let kalanMetin = tarihEslesme ? temiz.replace(tarihEslesme[0], ' ') : temiz;
 
-            // "10 adet x 500" veya "20 x 450" gibi kalıpları yakala
-            let carpimEslesme = temiz.match(/(\d+(?:[.,]\d+)?)\s*(?:adet|çuval|torba|kg|ton|paket)?\s*[xX*×]\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)/);
-            let sayilar = [...temiz.matchAll(/\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?/g)].map(m => sayiTemizle(m[0]));
+            // 2. Satır sonundaki para sütunlarını yakala (TOPLAM, TAHSİLAT, BORÇ ve SATIŞ FİYATI)
+            let paraEslesmeleri = [...kalanMetin.matchAll(/\b\d{1,3}(?:\.\d{3})*,\d{2}\b/g)];
+            let sayilarMetinde = [...kalanMetin.matchAll(/\b\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?\b|\b\d+\b/g)];
 
             let adet = 1;
-            let birimFiyat = 0;
-            let toplamTutar = 0;
+            let satisFiyati = 0;
+            let toplam = 0;
+            let tahsilat = 0;
+            let borc = 0;
 
-            if (carpimEslesme) {
-                adet = sayiTemizle(carpimEslesme[1]) || 1;
-                birimFiyat = sayiTemizle(carpimEslesme[2]) || 0;
-                toplamTutar = adet * birimFiyat;
-            } else if (sayilar.length >= 3) {
-                adet = sayilar[0] > 0 ? sayilar[0] : 1;
-                birimFiyat = sayilar[1] || 0;
-                toplamTutar = sayilar[sayilar.length - 1] || (adet * birimFiyat);
-            } else if (sayilar.length === 2) {
-                let s1 = sayilar[0];
-                let s2 = sayilar[1];
-                if (s1 > 0 && s1 <= 200 && s2 > s1) {
-                    adet = s1;
-                    birimFiyat = s2;
-                    toplamTutar = adet * birimFiyat;
-                } else {
-                    birimFiyat = s1;
-                    toplamTutar = s2;
+            if (paraEslesmeleri.length >= 4) {
+                // SATIŞ FİYATI, TOPLAM, TAHSİLAT, BORÇ
+                let sonDort = paraEslesmeleri.slice(-4).map(m => excelSayiTemizle(m[0]));
+                satisFiyati = sonDort[0];
+                toplam = sonDort[1];
+                tahsilat = sonDort[2];
+                borc = sonDort[3];
+
+                let ilkParaIndex = kalanMetin.indexOf(paraEslesmeleri[paraEslesmeleri.length - 4][0]);
+                let onKisim = kalanMetin.slice(0, ilkParaIndex).trim();
+                let adetEslesme = onKisim.match(/\b(\d{1,3})\s*$/);
+                if (adetEslesme) {
+                    adet = parseFloat(adetEslesme[1]) || 1;
+                    onKisim = onKisim.slice(0, onKisim.lastIndexOf(adetEslesme[1])).trim();
+                } else if (satisFiyati > 0 && toplam > 0) {
+                    adet = Math.round(toplam / satisFiyati) || 1;
                 }
-            } else if (sayilar.length === 1) {
-                birimFiyat = sayilar[0];
-                toplamTutar = sayilar[0];
+                kalanMetin = onKisim;
+            } else if (paraEslesmeleri.length === 3) {
+                // TOPLAM, TAHSİLAT, BORÇ (veya Fiyat, Toplam, Tahsilat)
+                let sonUc = paraEslesmeleri.map(m => excelSayiTemizle(m[0]));
+                toplam = sonUc[0];
+                tahsilat = sonUc[1];
+                borc = sonUc[2];
+
+                let ilkParaIndex = kalanMetin.indexOf(paraEslesmeleri[0][0]);
+                let onKisim = kalanMetin.slice(0, ilkParaIndex).trim();
+                let adetEslesme = onKisim.match(/\b(\d{1,3})\s*$/);
+                if (adetEslesme) {
+                    adet = parseFloat(adetEslesme[1]) || 1;
+                    onKisim = onKisim.slice(0, onKisim.lastIndexOf(adetEslesme[1])).trim();
+                }
+                satisFiyati = adet > 0 ? Number((toplam / adet).toFixed(2)) : toplam;
+                kalanMetin = onKisim;
+            } else if (paraEslesmeleri.length >= 1) {
+                let sonSayi = excelSayiTemizle(paraEslesmeleri[paraEslesmeleri.length - 1][0]);
+                toplam = sonSayi;
+                borc = sonSayi;
+                let adetEslesme = kalanMetin.match(/\b(\d{1,3})\s+/);
+                if (adetEslesme) {
+                    adet = parseFloat(adetEslesme[1]) || 1;
+                }
+                satisFiyati = adet > 0 ? Number((toplam / adet).toFixed(2)) : toplam;
+            } else if (sayilarMetinde.length > 0) {
+                let tumSayilar = sayilarMetinde.map(m => excelSayiTemizle(m[0])).filter(n => n > 0);
+                if (tumSayilar.length >= 4) {
+                    adet = tumSayilar[0];
+                    satisFiyati = tumSayilar[1];
+                    toplam = tumSayilar[2];
+                    tahsilat = tumSayilar[3];
+                    borc = tumSayilar[4] !== undefined ? tumSayilar[4] : Math.max(0, toplam - tahsilat);
+                } else if (tumSayilar.length === 1) {
+                    toplam = tumSayilar[0];
+                    satisFiyati = tumSayilar[0];
+                    borc = tumSayilar[0];
+                }
             }
 
-            // Yem / Ürün adını çıkar
-            let urunAdi = temiz
-                .replace(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)\s*(?:tl|₺|lira|adet|çuval|torba|kg|ton|gr)?/gi, ' ')
-                .replace(/[xX*×=]/g, ' ')
-                .replace(/\b(satış|tahsilat|ödeme|ödenen|peşin|nakit|havale|eft|fatura|fiş)\b/gi, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            if (!urunAdi) {
-                urunAdi = tip === 'Tahsilat' ? 'Tahsilat / Ödeme' : 'Yem / Ürün';
-            } else if (tip !== 'Tahsilat' && !/yem|süt|besi|buzağı|arpa|mısır|kepek|küspe|silaj|yonca|saman/i.test(urunAdi.toLocaleLowerCase('tr-TR'))) {
-                // Eğer yem kelimesi geçmiyorsa ürün adını koru; kullanıcı satırda kolayca görebilir
+            if (toplam > 0 && tahsilat === 0 && borc === 0) {
+                borc = toplam;
             }
+
+            // 3. Müşteri adı ve Yem adı ayıkla
+            let musteri = varsayilanMusteri || '';
+            let yemAdi = kalanMetin.replace(/[^\wçğıöşüÇĞİÖŞÜ\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+
+            if (!musteri) {
+                let isimEslesme = yemAdi.match(/^([A-ZÇĞİÖŞÜ]{2,}\s+[A-ZÇĞİÖŞÜ]{2,}(?:\s+[A-ZÇĞİÖŞÜ]{2,})?)\s+(.*)$/);
+                if (isimEslesme) {
+                    musteri = isimEslesme[1].trim();
+                    yemAdi = isimEslesme[2].trim();
+                }
+            } else {
+                let mRegex = new RegExp(musteri.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+                yemAdi = yemAdi.replace(mRegex, ' ').replace(/\s+/g, ' ').trim();
+            }
+
+            if (!yemAdi) yemAdi = 'Yem Satışı';
 
             return {
-                musteri: varsayilanMusteri,
-                tip: tip,
-                tarih: simdikiTarihInputFormat(),
-                urun: urunAdi,
-                miktar: adet,
-                fiyat: birimFiyat,
-                tutar: toplamTutar
+                tarih: tarihInput,
+                musteri: musteri,
+                yemAdi: yemAdi,
+                adet: adet || 1,
+                satisFiyati: satisFiyati || 0,
+                toplam: toplam || 0,
+                tahsilat: tahsilat || 0,
+                borc: borc || 0
             };
         }
 
         function hamMetindenSatirOlustur() {
             let metin = document.getElementById('ocr-ham-metin').value || '';
-            let satirlar = metin.split(/\r?\n/).map(s => s.trim()).filter(s => s.length >= 2);
+            let satirlar = metin.split(/\r?\n/).map(s => s.trim()).filter(s => s.length >= 3);
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
             konteynir.innerHTML = '';
 
@@ -837,27 +866,44 @@
             let bulunanMusteri = genelMusteriInput.value.trim();
 
             if (!bulunanMusteri) {
-                bulunanMusteri = musteriAdiTespitEt(satirlar);
+                let mevcutMusteriler = Object.keys(veritabani.borclar || {});
+                for (let s of satirlar) {
+                    let sKucuk = s.toLocaleLowerCase('tr-TR');
+                    let eslesen = mevcutMusteriler.find(m => m.length >= 2 && sKucuk.includes(m.toLocaleLowerCase('tr-TR')));
+                    if (eslesen) {
+                        bulunanMusteri = eslesen;
+                        break;
+                    }
+                }
+                if (!bulunanMusteri) {
+                    for (let s of satirlar) {
+                        let isimEslesme = s.match(/\b([A-ZÇĞİÖŞÜ]{2,}\s+[A-ZÇĞİÖŞÜ]{2,}(?:\s+[A-ZÇĞİÖŞÜ]{2,})?)\b/);
+                        if (isimEslesme && !/ÖZLEM|YEM|BUZAĞI|BESİ|SATIŞ|TOPLAM|TAHSİLAT|BORÇ/i.test(isimEslesme[1])) {
+                            bulunanMusteri = isimEslesme[1].trim();
+                            break;
+                        }
+                    }
+                }
                 if (bulunanMusteri) {
                     genelMusteriInput.value = bulunanMusteri;
                 }
             }
 
-            let islemSatirlari = satirlar.filter(s => {
-                if (bulunanMusteri && s.toLocaleLowerCase('tr-TR').trim() === bulunanMusteri.toLocaleLowerCase('tr-TR').trim()) {
-                    return false;
-                }
-                return /\d/.test(s) || /(tahsilat|ödeme|ödenen|yem|süt|besi|buzağı|arpa|mısır|kepek|küspe|silaj|yonca|saman)/i.test(s);
+            // Başlık satırlarını veya sol kenardaki sıra numarası sütununu atla
+            let veriSatirlari = satirlar.filter(s => {
+                if (/^(TARİH|MÜŞTERİ|YEM ADI|ADET|SATIŞ FİYATI|TOPLAM|TAHSİLAT|BORÇ)\b/i.test(s)) return false;
+                if (/^\d{1,4}$/.test(s)) return false;
+                return /\d/.test(s) || /YEM|BUZAĞI|BESİ|TAHSİLAT|BORÇ/i.test(s);
             });
 
-            if (islemSatirlari.length === 0) {
-                topluSatirEkle(bulunanMusteri, 'Satış', simdikiTarihInputFormat(), '', 1, 0, 0);
+            if (veriSatirlari.length === 0) {
+                topluSatirEkle(simdikiTarihInputFormat(), bulunanMusteri, '', 1, 0, 0, 0, 0);
                 return;
             }
 
-            islemSatirlari.forEach(s => {
-                let parsed = satirAyikla(s, bulunanMusteri);
-                topluSatirEkle(parsed.musteri, parsed.tip, parsed.tarih, parsed.urun, parsed.miktar, parsed.fiyat, parsed.tutar);
+            veriSatirlari.forEach(s => {
+                let p = excelSatirAyikla(s, bulunanMusteri);
+                topluSatirEkle(p.tarih, p.musteri, p.yemAdi, p.adet, p.satisFiyati, p.toplam, p.tahsilat, p.borc);
             });
         }
 
@@ -867,7 +913,7 @@
 
             let durumKutusu = document.getElementById('ocr-durum-kutusu');
             durumKutusu.classList.remove('hidden');
-            durumKutusu.innerHTML = '⏳ Resim hazırlanıyor ve yazılar okunuyor... Lütfen bekleyin.';
+            durumKutusu.innerHTML = '⏳ Tablo görüntüsü hazırlanıyor ve satırlar okunuyor... Lütfen bekleyin.';
 
             let reader = new FileReader();
             reader.onload = async function(e) {
@@ -883,19 +929,19 @@
                             logger: m => {
                                 if (m.status === 'recognizing text') {
                                     let yuzde = Math.round((m.progress || 0) * 100);
-                                    durumKutusu.innerHTML = `🔍 Yazılar okunuyor: <b>%${yuzde}</b> (Müşteri, yem adı, adet, fiyat ve tahsilatlar ayrıştırılıyor...)`;
+                                    durumKutusu.innerHTML = `🔍 Tablo satırları okunuyor: <b>%${yuzde}</b> (Tarih, Müşteri, Yem Adı, Adet, Fiyat, Toplam, Tahsilat ve Borç ayrıştırılıyor...)`;
                                 }
                             }
                         });
 
                         let okunanMetin = (result && result.data && result.data.text) ? result.data.text.trim() : '';
                         document.getElementById('ocr-ham-metin').value = okunanMetin;
-                        durumKutusu.innerHTML = '✅ Okuma tamamlandı. Aşağıdaki müşteri, yem/ürün, adet, birim fiyat, tutar ve tahsilat alanlarını kontrol edip kaydedebilirsiniz.';
+                        durumKutusu.innerHTML = '✅ Okuma tamamlandı. Aşağıdaki satırlarda müşteri adı, yem adı, adet, satış fiyatı, toplam, tahsilat ve borç alanlarını kontrol edip kaydedebilirsiniz.';
                         hamMetindenSatirOlustur();
                     } catch (err) {
                         durumKutusu.innerHTML = '⚠️ Otomatik okuma tamamlanamadı; satırları aşağıdan manuel girip kaydedebilirsiniz.';
                         if (document.querySelectorAll('#toplu-satirlar-konteynir .urun-satir').length === 0) {
-                            topluSatirEkle('', 'Satış', simdikiTarihInputFormat(), '', 1, 0, 0);
+                            topluSatirEkle(simdikiTarihInputFormat(), '', '', 1, 0, 0, 0, 0);
                         }
                     }
                 };
@@ -911,20 +957,30 @@
             });
         }
 
-        function satirTutarHesapla(btnOrInput) {
-            let satir = btnOrInput.closest('.urun-satir');
+        function satirTutarlariGuncelle(el) {
+            let satir = el.closest('.urun-satir');
             if (!satir) return;
-            let miktar = parseFloat(satir.querySelector('.tf-miktar').value) || 0;
+            let adet = parseFloat(satir.querySelector('.tf-miktar').value) || 0;
             let fiyat = parseFloat(satir.querySelector('.tf-fiyat').value) || 0;
-            if (miktar > 0 && fiyat > 0) {
-                satir.querySelector('.tf-tutar').value = (miktar * fiyat).toFixed(2);
+            let toplamEl = satir.querySelector('.tf-tutar');
+            let tahsilat = parseFloat(satir.querySelector('.tf-tahsilat').value) || 0;
+            let borcEl = satir.querySelector('.tf-borc');
+
+            if (el.classList.contains('tf-miktar') || el.classList.contains('tf-fiyat')) {
+                if (adet > 0 && fiyat > 0) {
+                    toplamEl.value = (adet * fiyat).toFixed(2);
+                }
             }
+
+            let toplam = parseFloat(toplamEl.value) || 0;
+            borcEl.value = Math.max(0, toplam - tahsilat).toFixed(2);
         }
 
-        function topluSatirEkle(musteri = "", tip = "Satış", tarih = simdikiTarihInputFormat(), urun = "", miktar = 1, fiyat = 0, tutar = 0) {
+        function topluSatirEkle(tarih = simdikiTarihInputFormat(), musteri = "", yemAdi = "", adet = 1, satisFiyati = 0, toplam = 0, tahsilat = 0, borc = 0) {
             let genelIsim = document.getElementById('tf-genel-musteri')?.value || "";
             let secilenMusteri = musteri || genelIsim;
-            let hesaplananTutar = tutar > 0 ? tutar : ((parseFloat(miktar) || 0) * (parseFloat(fiyat) || 0));
+            let hesaplananToplam = toplam > 0 ? toplam : ((parseFloat(adet) || 0) * (parseFloat(satisFiyati) || 0));
+            let hesaplananBorc = borc > 0 ? borc : Math.max(0, hesaplananToplam - (parseFloat(tahsilat) || 0));
 
             let konteynir = document.getElementById('toplu-satirlar-konteynir');
             let div = document.createElement('div');
@@ -932,22 +988,25 @@
             div.innerHTML = `
                 <button type="button" class="btn-danger" style="position:absolute; right:10px; top:10px;" onclick="this.parentElement.remove()">Sil</button>
                 <div class="form-group" style="margin-bottom:8px;">
-                    <label>Müşteri Adı</label>
+                    <label>TARİH</label>
+                    <input type="datetime-local" class="tf-tarih" value="${tarih}">
+                </div>
+                <div class="form-group" style="margin-bottom:8px;">
+                    <label>MÜŞTERİ</label>
                     <input type="text" class="tf-musteri" list="musteri-listesi-datalist" value="${secilenMusteri}" placeholder="Müşteri adı...">
                 </div>
                 <div class="form-group" style="margin-bottom:8px;">
-                    <label>İşlem Türü</label>
-                    <select class="tf-tip">
-                        <option value="Satış" ${tip === 'Satış' ? 'selected' : ''}>🛒 Satış / Yem (Borç Yazar)</option>
-                        <option value="Tahsilat" ${tip === 'Tahsilat' ? 'selected' : ''}>💰 Tahsilat / Ödenen (Borçtan Düşer)</option>
-                    </select>
+                    <label>YEM ADI</label>
+                    <input type="text" class="tf-urun" value="${yemAdi}" placeholder="Örn: ÖZLEM AVANTAJ BUZAĞI BÜYÜTME YEMİ">
                 </div>
-                <div class="form-group" style="margin-bottom:8px;"><label>Tarih</label><input type="datetime-local" class="tf-tarih" value="${tarih}"></div>
-                <div class="form-group" style="margin-bottom:8px;"><label>Yem / Ürün Adı veya Tahsilat Notu</label><input type="text" class="tf-urun" value="${urun}" placeholder="Örn: Süt Yemi, Besi Yemi veya Tahsilat"></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+                    <div class="form-group" style="margin-bottom:0;"><label>ADET</label><input type="number" step="0.01" class="tf-miktar" value="${adet}" placeholder="1" oninput="satirTutarlariGuncelle(this)"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>SATIŞ FİYATI</label><input type="number" step="0.01" class="tf-fiyat" value="${satisFiyati}" placeholder="0" oninput="satirTutarlariGuncelle(this)"></div>
+                </div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
-                    <div class="form-group" style="margin-bottom:0;"><label>Adet</label><input type="number" step="0.01" class="tf-miktar" value="${miktar}" placeholder="1" oninput="satirTutarHesapla(this)"></div>
-                    <div class="form-group" style="margin-bottom:0;"><label>Birim Fiyat</label><input type="number" step="0.01" class="tf-fiyat" value="${fiyat}" placeholder="0" oninput="satirTutarHesapla(this)"></div>
-                    <div class="form-group" style="margin-bottom:0;"><label>Toplam Tutar</label><input type="number" step="0.01" class="tf-tutar" value="${hesaplananTutar}" placeholder="0"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>TOPLAM</label><input type="number" step="0.01" class="tf-tutar" value="${hesaplananToplam}" placeholder="0" oninput="satirTutarlariGuncelle(this)"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>TAHSİLAT</label><input type="number" step="0.01" class="tf-tahsilat" value="${tahsilat}" placeholder="0" oninput="satirTutarlariGuncelle(this)"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>BORÇ</label><input type="number" step="0.01" class="tf-borc" value="${hesaplananBorc}" placeholder="0"></div>
                 </div>
             `;
             konteynir.appendChild(div);
@@ -960,42 +1019,43 @@
             let islemAnaId = Date.now();
 
             for(let satir of satirlar) {
-                let musteri = satir.querySelector('.tf-musteri').value.trim();
-                let tip = satir.querySelector('.tf-tip').value;
                 let tarih = satir.querySelector('.tf-tarih').value;
-                let aciklamaVeyaUrun = satir.querySelector('.tf-urun').value.trim();
-                let miktar = parseFloat(satir.querySelector('.tf-miktar').value) || 0;
-                let birimFiyat = parseFloat(satir.querySelector('.tf-fiyat').value) || 0;
-                let tutar = parseFloat(satir.querySelector('.tf-tutar').value) || (miktar * birimFiyat);
+                let musteri = satir.querySelector('.tf-musteri').value.trim();
+                let yemAdi = satir.querySelector('.tf-urun').value.trim();
+                let adet = parseFloat(satir.querySelector('.tf-miktar').value) || 0;
+                let satisFiyati = parseFloat(satir.querySelector('.tf-fiyat').value) || 0;
+                let toplam = parseFloat(satir.querySelector('.tf-tutar').value) || (adet * satisFiyati);
+                let tahsilat = parseFloat(satir.querySelector('.tf-tahsilat').value) || 0;
 
-                if(!musteri || !tarih || !aciklamaVeyaUrun || tutar <= 0) {
-                    alert('Lütfen tüm satırlarda müşteri adını, tarihi, yem/ürün adını ve tutarları eksiksiz doldurun.');
+                if(!musteri || !tarih || !yemAdi || (toplam <= 0 && tahsilat <= 0)) {
+                    alert('Lütfen tüm satırlarda tarih, müşteri, yem adı ve tutarları eksiksiz doldurun.');
                     return;
                 }
 
-                let hesaplananBirimFiyat = birimFiyat > 0 ? birimFiyat : (miktar > 0 ? (tutar / miktar) : tutar);
+                let birimFiyat = satisFiyati > 0 ? satisFiyati : (adet > 0 ? (toplam / adet) : toplam);
 
-                if(tip === 'Satış') {
-                    veritabani.stoklar[aciklamaVeyaUrun] = (veritabani.stoklar[aciklamaVeyaUrun] || 0) - miktar;
-
+                if (toplam > 0) {
+                    veritabani.stoklar[yemAdi] = (veritabani.stoklar[yemAdi] || 0) - adet;
                     veritabani.islemler.push({
                         id: islemAnaId++,
                         tarih: tarih,
                         tip: 'Satış',
                         musteri: musteri,
-                        kalemler: [{ tur: aciklamaVeyaUrun, miktar: miktar || 1, fiyat: hesaplananBirimFiyat, tutar: tutar }],
-                        tutar: tutar,
-                        aciklama: 'Resimden Kayıt - Satış'
+                        kalemler: [{ tur: yemAdi, miktar: adet || 1, fiyat: birimFiyat, tutar: toplam }],
+                        tutar: toplam,
+                        aciklama: 'Yem Satış Tablosundan Kayıt'
                     });
-                } else {
+                }
+
+                if (tahsilat > 0) {
                     veritabani.islemler.push({
                         id: islemAnaId++,
                         tarih: tarih,
                         tip: 'Tahsilat',
                         musteri: musteri,
                         kalemler: [],
-                        tutar: tutar,
-                        aciklama: aciklamaVeyaUrun || 'Resimden Kayıt - Tahsilat'
+                        tutar: tahsilat,
+                        aciklama: `${yemAdi} - Tahsilat`
                     });
                 }
             }
