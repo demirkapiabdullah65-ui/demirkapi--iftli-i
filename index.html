@@ -143,7 +143,7 @@
             <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
             <div class="section-title">📊 Excel Belge Seçme & Kademeli Aktarım</div>
             <div class="card">
-                <p style="font-size:13px; color:#555; line-height:1.5;">Excel belgenizi seçin. Sistem içindeki tüm müşterileri ve satırları sırayla, hatasız şekilde tarayıp kutulara getirir.</p>
+                <p style="font-size:13px; color:#555; line-height:1.5;">Excel belgenizi seçin. Sistem tüm sayfalardaki müşterileri ve satırları sırayla, hatasız şekilde tarayıp kutulara getirir.</p>
 
                 <div class="form-group">
                     <label>1. Excel / CSV Belgesi Seç (.xlsx, .xlsm, .xls, .csv)</label>
@@ -809,8 +809,97 @@
 
             tekSatirEkleVeGuncelle();
             if (toplamAdet > 1) {
-                kademeliYuklemeTimer = setInterval(tekSatirEkleVeGuncelle, 180);
+                kademeliYuklemeTimer = setInterval(tekSatirEkleVeGuncelle, 160);
             }
+        }
+
+        function sayfaSatirlariniAyikla(hamSatirlar, sayfaAdi) {
+            let baslikIndex = -1;
+            let colMap = { tarih: 0, musteri: 1, yem: 2, adet: 3, fiyat: 4, toplam: 5, tahsilat: 6, borc: 7 };
+
+            for (let i = 0; i < Math.min(hamSatirlar.length, 40); i++) {
+                let r = (hamSatirlar[i] || []).map(c => String(c || '').trim().toLocaleLowerCase('tr-TR'));
+                let eslesmeSayisi = 0;
+                if (r.some(c => c.includes('tarih'))) eslesmeSayisi++;
+                if (r.some(c => c.includes('müşteri') || c.includes('musteri') || c.includes('cari'))) eslesmeSayisi++;
+                if (r.some(c => c.includes('yem') || c.includes('ürün') || c.includes('urun') || c.includes('cins'))) eslesmeSayisi++;
+                if (r.some(c => c.includes('toplam') || c.includes('borç') || c.includes('borc') || c.includes('tutar'))) eslesmeSayisi++;
+
+                if (eslesmeSayisi >= 2) {
+                    baslikIndex = i;
+                    r.forEach((colText, idx) => {
+                        if (colText.includes('tarih')) colMap.tarih = idx;
+                        else if (colText.includes('müşteri') || colText.includes('musteri') || colText.includes('cari')) colMap.musteri = idx;
+                        else if (colText.includes('yem') || colText.includes('ürün') || colText.includes('urun') || colText.includes('cins')) colMap.yem = idx;
+                        else if (colText.includes('adet') || colText.includes('miktar')) colMap.adet = idx;
+                        else if (colText.includes('satış fiyatı') || colText.includes('satis fiyati') || colText.includes('fiyat')) colMap.fiyat = idx;
+                        else if (colText.includes('toplam')) colMap.toplam = idx;
+                        else if (colText.includes('tahsilat') || colText.includes('ödenen')) colMap.tahsilat = idx;
+                        else if (colText.includes('borç') || colText.includes('borc') || colText.includes('kalan')) colMap.borc = idx;
+                    });
+                    break;
+                }
+            }
+
+            let baslangic = baslikIndex !== -1 ? baslikIndex + 1 : 0;
+            let ayiklanan = [];
+            let aktifMusteri = '';
+
+            for (let i = baslangic; i < hamSatirlar.length; i++) {
+                let row = hamSatirlar[i];
+                if (!row || row.every(c => String(c || '').trim() === '')) continue;
+
+                let satirMetni = row.map(c => String(c || '').trim()).join(' ').toLocaleLowerCase('tr-TR');
+                if (/^(genel\s*)?toplam\s*$/i.test(String(row[0] || '').trim()) || satirMetni.includes('genel toplam')) continue;
+
+                let tarihHam = row[colMap.tarih];
+                let musteriHam = String(row[colMap.musteri] || '').trim();
+                let yemHam = String(row[colMap.yem] || '').trim();
+                let adetHam = excelSayiTemizle(row[colMap.adet]);
+                let fiyatHam = excelSayiTemizle(row[colMap.fiyat]);
+                let toplamHam = excelSayiTemizle(row[colMap.toplam]);
+                let tahsilatHam = excelSayiTemizle(row[colMap.tahsilat]);
+                let borcHam = excelSayiTemizle(row[colMap.borc]);
+
+                if (baslikIndex === -1 && /^\d+$/.test(String(row[0] || '').trim()) && String(row[2] || '').trim()) {
+                    tarihHam = row[1];
+                    musteriHam = String(row[2] || '').trim();
+                    yemHam = String(row[3] || '').trim();
+                    adetHam = excelSayiTemizle(row[4]);
+                    fiyatHam = excelSayiTemizle(row[5]);
+                    toplamHam = excelSayiTemizle(row[6]);
+                    tahsilatHam = excelSayiTemizle(row[7]);
+                    borcHam = excelSayiTemizle(row[8]);
+                }
+
+                if (!musteriHam && aktifMusteri) {
+                    musteriHam = aktifMusteri;
+                } else if (musteriHam) {
+                    aktifMusteri = musteriHam;
+                }
+
+                let herhangiBirDegerVarMi = Boolean(musteriHam || yemHam || adetHam > 0 || fiyatHam > 0 || toplamHam > 0 || tahsilatHam > 0 || borcHam > 0);
+                if (!herhangiBirDegerVarMi) continue;
+
+                let adet = adetHam > 0 ? adetHam : ((fiyatHam > 0 && toplamHam > 0) ? Math.round(toplamHam / fiyatHam) : 1);
+                let satisFiyati = fiyatHam > 0 ? fiyatHam : ((toplamHam > 0 && adet > 0) ? Number((toplamHam / adet).toFixed(2)) : 0);
+                let toplam = toplamHam > 0 ? toplamHam : (adet * satisFiyati);
+                let borc = borcHam > 0 ? borcHam : Math.max(0, toplam - tahsilatHam);
+
+                ayiklanan.push({
+                    tarih: excelHucreTarihToDatetimeLocal(tarihHam),
+                    musteri: musteriHam || 'Belirtilmemiş Müşteri',
+                    yemAdi: yemHam || (tahsilatHam > 0 ? 'Tahsilat İşlemi' : 'Yem Satışı'),
+                    adet: adet,
+                    satisFiyati: satisFiyati,
+                    toplam: toplam,
+                    tahsilat: tahsilatHam,
+                    borc: borc,
+                    sayfa: sayfaAdi
+                });
+            }
+
+            return ayiklanan;
         }
 
         function excelBelgesiOku(event) {
@@ -819,105 +908,34 @@
 
             let durumKutusu = document.getElementById('ocr-durum-kutusu');
             durumKutusu.classList.remove('hidden');
-            durumKutusu.innerHTML = '⏳ Excel belgesi okunuyor, müşteriler ve satırlar ayrıştırılıyor...';
+            durumKutusu.innerHTML = '⏳ Excel belgesi okunuyor, tüm sayfalar ve müşteriler taranıyor...';
 
             let reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     let data = new Uint8Array(e.target.result);
                     let workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    let ilkSayfaAdi = workbook.SheetNames[0];
-                    let worksheet = workbook.Sheets[ilkSayfaAdi];
-                    let hamSatirlar = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
-                    let baslikIndex = -1;
-                    let colMap = { tarih: 0, musteri: 1, yem: 2, adet: 3, fiyat: 4, toplam: 5, tahsilat: 6, borc: 7 };
+                    let tumAyiklanan = [];
+                    let tarananSayfalar = [];
 
-                    for (let i = 0; i < Math.min(hamSatirlar.length, 15); i++) {
-                        let r = hamSatirlar[i].map(c => String(c || '').trim().toLocaleLowerCase('tr-TR'));
-                        if (r.some(c => c.includes('tarih')) && r.some(c => c.includes('müşteri') || c.includes('musteri'))) {
-                            baslikIndex = i;
-                            r.forEach((colText, idx) => {
-                                if (colText.includes('tarih')) colMap.tarih = idx;
-                                else if (colText.includes('müşteri') || colText.includes('musteri')) colMap.musteri = idx;
-                                else if (colText.includes('yem') || colText.includes('ürün') || colText.includes('urun')) colMap.yem = idx;
-                                else if (colText.includes('adet') || colText.includes('miktar')) colMap.adet = idx;
-                                else if (colText.includes('satış fiyatı') || colText.includes('satis fiyati') || colText.includes('fiyat')) colMap.fiyat = idx;
-                                else if (colText.includes('toplam')) colMap.toplam = idx;
-                                else if (colText.includes('tahsilat')) colMap.tahsilat = idx;
-                                else if (colText.includes('borç') || colText.includes('borc')) colMap.borc = idx;
-                            });
-                            break;
+                    for (let sayfaAdi of workbook.SheetNames) {
+                        let worksheet = workbook.Sheets[sayfaAdi];
+                        let hamSatirlar = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                        let sayfaSatirlari = sayfaSatirlariniAyikla(hamSatirlar, sayfaAdi);
+                        if (sayfaSatirlari.length > 0) {
+                            tarananSayfalar.push(`${sayfaAdi} (${sayfaSatirlari.length})`);
+                            tumAyiklanan = tumAyiklanan.concat(sayfaSatirlari);
                         }
                     }
 
-                    // Eğer başlık satırı A..H düzende bulunduysa ama A sütunu sıra no ise kaydır
-                    if (baslikIndex !== -1 && colMap.tarih === 1 && colMap.musteri === 2) {
-                        // A sütunu sıra numarası, B..I veri sütunları
-                    }
+                    excelAyiklananSatirlar = tumAyiklanan;
 
-                    let baslangic = baslikIndex !== -1 ? baslikIndex + 1 : 0;
-                    let ayiklanan = [];
-                    let aktifMusteri = '';
-
-                    for (let i = baslangic; i < hamSatirlar.length; i++) {
-                        let row = hamSatirlar[i];
-                        if (!row || row.every(c => String(c || '').trim() === '')) continue;
-
-                        let tarihHam = row[colMap.tarih];
-                        let musteriHam = String(row[colMap.musteri] || '').trim();
-                        let yemHam = String(row[colMap.yem] || '').trim();
-                        let adetHam = excelSayiTemizle(row[colMap.adet]);
-                        let fiyatHam = excelSayiTemizle(row[colMap.fiyat]);
-                        let toplamHam = excelSayiTemizle(row[colMap.toplam]);
-                        let tahsilatHam = excelSayiTemizle(row[colMap.tahsilat]);
-                        let borcHam = excelSayiTemizle(row[colMap.borc]);
-
-                        // Bazı tablolarda ilk sütun sıra numarası (örn: 58, 89) olup başlık algılanmamışsa
-                        if (baslikIndex === -1 && /^\d+$/.test(String(row[0] || '').trim()) && String(row[2] || '').trim()) {
-                            tarihHam = row[1];
-                            musteriHam = String(row[2] || '').trim();
-                            yemHam = String(row[3] || '').trim();
-                            adetHam = excelSayiTemizle(row[4]);
-                            fiyatHam = excelSayiTemizle(row[5]);
-                            toplamHam = excelSayiTemizle(row[6]);
-                            tahsilatHam = excelSayiTemizle(row[7]);
-                            borcHam = excelSayiTemizle(row[8]);
-                        }
-
-                        if (!musteriHam && aktifMusteri) {
-                            musteriHam = aktifMusteri;
-                        } else if (musteriHam) {
-                            aktifMusteri = musteriHam;
-                        }
-
-                        if (!yemHam && toplamHam <= 0 && tahsilatHam <= 0) continue;
-
-                        let adet = adetHam > 0 ? adetHam : ((fiyatHam > 0 && toplamHam > 0) ? Math.round(toplamHam / fiyatHam) : 1);
-                        let satisFiyati = fiyatHam > 0 ? fiyatHam : ((toplamHam > 0 && adet > 0) ? Number((toplamHam / adet).toFixed(2)) : 0);
-                        let toplam = toplamHam > 0 ? toplamHam : (adet * satisFiyati);
-                        let borc = borcHam > 0 ? borcHam : Math.max(0, toplam - tahsilatHam);
-
-                        ayiklanan.push({
-                            tarih: excelHucreTarihToDatetimeLocal(tarihHam),
-                            musteri: musteriHam,
-                            yemAdi: yemHam || 'Yem Satışı',
-                            adet: adet,
-                            satisFiyati: satisFiyati,
-                            toplam: toplam,
-                            tahsilat: tahsilatHam,
-                            borc: borc
-                        });
-                    }
-
-                    excelAyiklananSatirlar = ayiklanan;
-
-                    // Müşteri filtre açılır kutusunu doldur
                     let filtreSelect = document.getElementById('excel-musteri-filtre');
-                    let benzersizMusteriler = [...new Set(ayiklanan.map(s => s.musteri).filter(Boolean))];
-                    let filtreHtml = `<option value="__TUMU__">Tüm Müşteriler (${benzersizMusteriler.length} Müşteri / ${ayiklanan.length} Satır)</option>`;
+                    let benzersizMusteriler = [...new Set(tumAyiklanan.map(s => s.musteri).filter(m => m && m !== 'Belirtilmemiş Müşteri'))];
+                    let filtreHtml = `<option value="__TUMU__">Tüm Müşteriler (${benzersizMusteriler.length} Müşteri / ${tumAyiklanan.length} Satır)</option>`;
                     benzersizMusteriler.forEach(m => {
-                        let mSatirSayisi = ayiklanan.filter(s => s.musteri === m).length;
+                        let mSatirSayisi = tumAyiklanan.filter(s => s.musteri === m).length;
                         filtreHtml += `<option value="${m.replace(/"/g, '&quot;')}">${m} (${mSatirSayisi} satır)</option>`;
                     });
                     filtreSelect.innerHTML = filtreHtml;
@@ -928,9 +946,19 @@
                         document.getElementById('tf-genel-musteri').value = '';
                     }
 
-                    satirlarKademeliYukle(ayiklanan, `"${file.name}" belgesinden ${benzersizMusteriler.length} müşteri ve ${ayiklanan.length} satır okundu.`);
+                    if (tumAyiklanan.length === 0) {
+                        document.getElementById('toplu-form-karti').style.display = 'block';
+                        durumKutusu.innerHTML = `⚠️ "${file.name}" belgesindeki sayfalar (${workbook.SheetNames.join(', ')}) okundu ancak dolu veri satırı bulunamadı. Aşağıdan yeni satır ekleyerek girebilirsiniz.`;
+                        topluSatirEkle(simdikiTarihInputFormat(), '', '', 1, 0, 0, 0, 0);
+                        return;
+                    }
+
+                    satirlarKademeliYukle(
+                        tumAyiklanan,
+                        `"${file.name}" [${tarananSayfalar.join(', ')}] belgesinden ${benzersizMusteriler.length} müşteri ve ${tumAyiklanan.length} satır okundu.`
+                    );
                 } catch (err) {
-                    durumKutusu.innerHTML = '⚠️ Excel dosyası okunurken hata oluştu. Dosyanın bozuk olmadığından emin olun.';
+                    durumKutusu.innerHTML = '⚠️ Excel belgesi açılırken hata oluştu. Dosyanın şifreli veya bozuk olmadığından emin olun.';
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -949,7 +977,6 @@
             }
         }
 
-        // Yedek OCR desteği (fotoğraf seçilirse)
         function gorseliHazirla(imgEl) {
             const canvas = document.createElement('canvas');
             const maxWidth = 1800;
@@ -983,7 +1010,7 @@
                         const result = await Tesseract.recognize(gorseliHazirla(imgEl), 'tur');
                         let metin = (result && result.data && result.data.text) ? result.data.text.trim() : '';
                         document.getElementById('ocr-ham-metin').value = metin;
-                        satirlarKademeliYukle([{ tarih: simdikiTarihInputFormat(), musteri: '', yemAdi: '', adet: 1, satisFiyati: 0, toplam: 0, tahsilat: 0, borc: 0 }], 'Fotoğraf okundu; Excel belgesi seçerseniz tüm müşteriler %100 hatasız gelir.');
+                        satirlarKademeliYukle([{ tarih: simdikiTarihInputFormat(), musteri: '', yemAdi: '', adet: 1, satisFiyati: 0, toplam: 0, tahsilat: 0, borc: 0 }], 'Fotoğraf okundu; satırları kontrol edebilirsiniz.');
                     } catch (err) {
                         satirlarKademeliYukle([{ tarih: simdikiTarihInputFormat(), musteri: '', yemAdi: '', adet: 1, satisFiyati: 0, toplam: 0, tahsilat: 0, borc: 0 }], 'Satırı aşağıdan doldurabilirsiniz.');
                     }
