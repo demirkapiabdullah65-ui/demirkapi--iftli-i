@@ -33,9 +33,10 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #444; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 15px; box-sizing: border-box; background-color: #fafafa; font-family: inherit; }
+        input[type="checkbox"] { width: auto; padding: 0; accent-color: #166534; cursor: pointer; }
         .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
-        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+        .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
@@ -48,6 +49,8 @@
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
         .hidden { display: none !important; }
         .ocr-durum { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 12px; border-radius: 10px; font-size: 13px; margin-top: 12px; line-height: 1.5; }
+        .gecmis-aksiyon-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+        .gecmis-secim-grubu { display: flex; gap: 8px; flex-wrap: wrap; }
 
         .fis-baslik { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
         .fis-musteri { font-size: 18px; font-weight: bold; }
@@ -858,7 +861,6 @@
             if (!s) return 0;
             s = s.replace(/\s+/g, '');
 
-            // Hem nokta hem virgül varsa son ayırıcı ondalıktır
             if (s.includes(',') && s.includes('.')) {
                 let sonVirgul = s.lastIndexOf(',');
                 let sonNokta = s.lastIndexOf('.');
@@ -871,7 +873,6 @@
                 }
             }
 
-            // Sadece virgül varsa Türkçe ondalık ayırıcı kabul edilir
             if (s.includes(',')) {
                 let parts = s.split(',');
                 let tam = parts[0].replace(/\./g, '').replace(/[^\d-]/g, '');
@@ -880,12 +881,8 @@
                 return isNaN(num) ? 0 : Number(num.toFixed(2));
             }
 
-            // Sadece nokta varsa: kesin 3 basamaklı binlik grupları (örn. 1.250 veya 12.500.000) binliktir,
-            // tek nokta ve 1-2 basamak veya >3 basamak ise ondalıktır.
             if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
                 let noktaSayisi = (s.match(/\./g) || []).length;
-                // Tek noktada örneğin 1.500 vs 1.250 ayrımı: 3 basamaklı tek noktada sayı >= 100 ise genelde binliktir,
-                // ancak fiyatlarda 1.50 veya 12.5 gibi değerler noktaSayisi === 1 ve son parça 1-2 basamak olur.
                 if (noktaSayisi > 1) {
                     let num = parseFloat(s.replace(/\./g, ''));
                     return isNaN(num) ? 0 : Number(num.toFixed(2));
@@ -1563,18 +1560,71 @@
             }
         }
 
+        function islemStogunuIadeEt(islem) {
+            if (islem && islem.tip === 'Satış' && Array.isArray(islem.kalemler)) {
+                islem.kalemler.forEach(k => {
+                    veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + (parseFloat(k.miktar) || 0);
+                });
+            }
+        }
+
         function islemSil(islemId) {
             if(!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
             let index = veritabani.islemler.findIndex(i => i.id === islemId);
             if(index === -1) return;
             let islem = veritabani.islemler[index];
-            if(islem.tip === 'Satış' && islem.kalemler) {
-                islem.kalemler.forEach(k => { veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) + k.miktar; });
-            }
+            islemStogunuIadeEt(islem);
             veritabani.islemler.splice(index, 1);
             borclariYenidenHesapla();
             kaydetVeri();
             alert('İşlem silindi ve bakiye güncellendi.');
+            borclariListele();
+            gecmisiGoster();
+        }
+
+        function tumGecmisKutulariniDegistir(kaynakCheckbox) {
+            let kutular = document.querySelectorAll('.gecmis-satir-secim');
+            kutular.forEach(cb => { cb.checked = kaynakCheckbox.checked; });
+        }
+
+        function seciliGecmisIslemleriniSil() {
+            let seciliKutular = Array.from(document.querySelectorAll('.gecmis-satir-secim:checked'));
+            if (seciliKutular.length === 0) {
+                alert('Lütfen silmek için en az bir işlem seçin.');
+                return;
+            }
+            if (!confirm(`Seçilen ${seciliKutular.length} işlemi silmek istediğinize emin misiniz?`)) return;
+
+            let silinecekIdSet = new Set(seciliKutular.map(cb => String(cb.value)));
+            veritabani.islemler = (veritabani.islemler || []).filter(i => {
+                if (silinecekIdSet.has(String(i.id))) {
+                    islemStogunuIadeEt(i);
+                    return false;
+                }
+                return true;
+            });
+
+            borclariYenidenHesapla();
+            kaydetVeri();
+            alert(`${seciliKutular.length} işlem silindi ve bakiye güncellendi.`);
+            borclariListele();
+            gecmisiGoster();
+        }
+
+        function tumGecmisIslemleriniSil() {
+            let islemler = veritabani.islemler || [];
+            if (islemler.length === 0) {
+                alert('Silinecek işlem geçmişi bulunmuyor.');
+                return;
+            }
+            if (!confirm(`TÜM işlem geçmişini (${islemler.length} kayıt) silmek istediğinize emin misiniz?`)) return;
+            if (!confirm('Son onay: Bu işlem geri alınamaz. Tüm geçmişi silmek istiyor musunuz?')) return;
+
+            islemler.forEach(i => islemStogunuIadeEt(i));
+            veritabani.islemler = [];
+            borclariYenidenHesapla();
+            kaydetVeri();
+            alert('Tüm işlem geçmişi silindi ve bakiyeler sıfırlandı.');
             borclariListele();
             gecmisiGoster();
         }
@@ -1981,9 +2031,22 @@
         function gecmisiGoster() {
             let islemler = veritabani.islemler || [];
             if(islemler.length === 0) { document.getElementById('gecmis-listesi').innerHTML = '<p>Henüz işlem yapılmadı.</p>'; return; }
-            let html = '<table><tr><th>Tarih</th><th>Tür</th><th>Müşteri</th><th>Tutar</th><th>Sil</th></tr>';
+            let html = `
+                <div class="gecmis-aksiyon-bar">
+                    <label style="margin:0; display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
+                        <input type="checkbox" id="gecmis-tumunu-sec" onchange="tumGecmisKutulariniDegistir(this)">
+                        <span>Tümünü Seç (${islemler.length})</span>
+                    </label>
+                    <div class="gecmis-secim-grubu">
+                        <button type="button" class="btn-danger" onclick="seciliGecmisIslemleriniSil()">🗑️ Seçilenleri Sil</button>
+                        <button type="button" class="btn-danger" style="background:#991b1b;" onclick="tumGecmisIslemleriniSil()">⚠️ Tüm Geçmişi Sil</button>
+                    </div>
+                </div>
+            `;
+            html += '<table><tr><th style="width:28px;">Seç</th><th>Tarih</th><th>Tür</th><th>Müşteri</th><th>Tutar</th><th>Sil</th></tr>';
             islemler.slice().reverse().forEach(i => {
                 html += `<tr>
+                    <td><input type="checkbox" class="gecmis-satir-secim" value="${i.id}"></td>
                     <td>${formatliTarihGoster(i.tarih)}</td>
                     <td><b>${i.tip}</b></td>
                     <td>${i.musteri}</td>
