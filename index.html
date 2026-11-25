@@ -77,7 +77,7 @@
                 <div class="title-sub">ÇİFTLİĞİ</div>
             </div>
         </div>
-        <div id="sync-indicator" class="sync-status">🔥 Yerel + Bulut</div>
+        <div id="sync-indicator" class="sync-status">🔥 Bulut Bağlanıyor...</div>
     </div>
 
     <div class="container">
@@ -505,22 +505,29 @@
             return { islemler: [], stoklar: {}, kritikStok: {}, borclar: {}, bekleyenler: [], girisler: {}, giderler: [], hayvanlar: [], silajlar: [], bicilenTarlalar: [], nakliyeler: [], ozemYemler: [] };
         }
 
+        function diziyeCevir(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val.filter(Boolean);
+            if (typeof val === 'object') return Object.values(val).filter(Boolean);
+            return [];
+        }
+
         function veritabaniAlanlariniTamamla(hamVeri) {
             let temel = bosVeritabaniOlustur();
             if (!hamVeri || typeof hamVeri !== 'object') return temel;
             let birlesik = Object.assign(temel, hamVeri);
-            if (!Array.isArray(birlesik.islemler)) birlesik.islemler = [];
+            birlesik.islemler = diziyeCevir(birlesik.islemler);
             if (!birlesik.stoklar || typeof birlesik.stoklar !== 'object') birlesik.stoklar = {};
             if (!birlesik.kritikStok || typeof birlesik.kritikStok !== 'object') birlesik.kritikStok = {};
             if (!birlesik.borclar || typeof birlesik.borclar !== 'object') birlesik.borclar = {};
-            if (!Array.isArray(birlesik.bekleyenler)) birlesik.bekleyenler = [];
+            birlesik.bekleyenler = diziyeCevir(birlesik.bekleyenler);
             if (!birlesik.girisler || typeof birlesik.girisler !== 'object') birlesik.girisler = {};
-            if (!Array.isArray(birlesik.giderler)) birlesik.giderler = [];
-            if (!Array.isArray(birlesik.hayvanlar)) birlesik.hayvanlar = [];
-            if (!Array.isArray(birlesik.silajlar)) birlesik.silajlar = [];
-            if (!Array.isArray(birlesik.bicilenTarlalar)) birlesik.bicilenTarlalar = [];
-            if (!Array.isArray(birlesik.nakliyeler)) birlesik.nakliyeler = [];
-            if (!Array.isArray(birlesik.ozemYemler)) birlesik.ozemYemler = [];
+            birlesik.giderler = diziyeCevir(birlesik.giderler);
+            birlesik.hayvanlar = diziyeCevir(birlesik.hayvanlar);
+            birlesik.silajlar = diziyeCevir(birlesik.silajlar);
+            birlesik.bicilenTarlalar = diziyeCevir(birlesik.bicilenTarlalar);
+            birlesik.nakliyeler = diziyeCevir(birlesik.nakliyeler);
+            birlesik.ozemYemler = diziyeCevir(birlesik.ozemYemler);
             return birlesik;
         }
 
@@ -570,17 +577,18 @@
 
         aktifEkranlariYenile();
 
-        db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
-            const data = snapshot.val();
+        function bulutVerisiniSenkronizeEt(data) {
             const syncEl = document.getElementById('sync-indicator');
             if (data) {
                 let bulutVeri = veritabaniAlanlariniTamamla(data);
                 let yerelVeri = yerelVeriyiOku();
                 if (yerelVeri && yerelVeri.islemler.length > bulutVeri.islemler.length) {
                     veritabani = yerelVeri;
+                    borclariYenidenHesapla();
                     db.ref('demirkapi_ciftligi').set(veritabani).catch(() => {});
                 } else {
                     veritabani = bulutVeri;
+                    borclariYenidenHesapla();
                     yerelVeriyiYaz(veritabani);
                 }
                 if (syncEl) syncEl.innerText = '🔥 Canlı Bulut';
@@ -588,14 +596,26 @@
                 let yerelVeri = yerelVeriyiOku();
                 if (yerelVeri && yerelVeri.islemler.length > 0) {
                     veritabani = yerelVeri;
+                    borclariYenidenHesapla();
                     db.ref('demirkapi_ciftligi').set(veritabani).catch(() => {});
+                    if (syncEl) syncEl.innerText = '🔥 Buluta Yazıldı';
+                } else {
+                    borclariYenidenHesapla();
+                    if (syncEl) syncEl.innerText = '🔥 Bulut Aktif';
                 }
-                if (syncEl) syncEl.innerText = '💾 Yerel Kayıt';
             }
             aktifEkranlariYenile();
+        }
+
+        db.ref('demirkapi_ciftligi').once('value').then((snapshot) => {
+            bulutVerisiniSenkronizeEt(snapshot.val());
+        }).catch(() => {});
+
+        db.ref('demirkapi_ciftligi').on('value', (snapshot) => {
+            bulutVerisiniSenkronizeEt(snapshot.val());
         }, () => {
             const syncEl = document.getElementById('sync-indicator');
-            if (syncEl) syncEl.innerText = '💾 Yerel Mod';
+            if (syncEl) syncEl.innerText = '⚠️ Bulut İzni Kontrol Et';
         });
 
         window.addEventListener('beforeunload', () => {
@@ -615,13 +635,13 @@
             (veritabani.islemler || []).forEach(i => {
                 let m = (i.musteri || '').trim();
                 if(!m) return;
-                if(!hesaplar[m]) hesaplar[m] = 0;
+                if(!Object.prototype.hasOwnProperty.call(hesaplar, m)) hesaplar[m] = 0;
 
                 let tahsilatMi = tahsilatIslemMi(i);
 
                 let tutarNum = Number(i.tutar || 0);
                 let tarihGun = String(i.tarih || '').slice(0, 10);
-                let kalemOzeti = (i.kalemler || []).map(k => `${k.tur}:${k.miktar}:${k.tutar}`).join('|');
+                let kalemOzeti = diziyeCevir(i.kalemler).map(k => `${k.tur}:${k.miktar}:${k.tutar}`).join('|');
                 let tekilAnahtar = `${m.toLocaleLowerCase('tr-TR')}__${tarihGun}__${tahsilatMi ? 'T' : 'S'}__${tutarNum.toFixed(2)}__${kalemOzeti}`;
 
                 if (gorulenAnahtarlar.has(tekilAnahtar)) {
@@ -676,6 +696,7 @@
         havaDurumuGetir();
 
         function kaydetVeri() {
+            borclariYenidenHesapla();
             veritabani = veritabaniAlanlariniTamamla(veritabani);
             yerelVeriyiYaz(veritabani);
             bekleyenRozetGuncelle();
@@ -1716,6 +1737,7 @@
         }
 
         function gelismisFinansGoster() {
+            borclariYenidenHesapla();
             let toplamAlacak = 0;
             Object.values(veritabani.borclar || {}).forEach(b => {
                 if(b > 0) toplamAlacak += b;
@@ -1723,11 +1745,11 @@
             let toplamCiro = 0, toplamTahsilat = 0;
             (veritabani.islemler || []).forEach(i => {
                 let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
-                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) toplamCiro += i.tutar;
-                if(tahsilatIslemMi(i)) toplamTahsilat += i.tutar;
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) toplamCiro += Number(i.tutar || 0);
+                if(tahsilatIslemMi(i)) toplamTahsilat += Number(i.tutar || 0);
             });
             let toplamGider = 0;
-            (veritabani.giderler || []).forEach(g => toplamGider += g.tutar);
+            (veritabani.giderler || []).forEach(g => toplamGider += Number(g.tutar || 0));
             let netKasa = toplamTahsilat - toplamGider;
 
             document.getElementById('finans-ozet-alani').innerHTML = `
@@ -1938,6 +1960,7 @@
         }
 
         function borclariListele() {
+            borclariYenidenHesapla();
             let arama = (document.getElementById('borc-arama')?.value || '').toLocaleLowerCase('tr-TR');
             let borclar = veritabani.borclar || {};
             let keys = Object.keys(borclar).filter(k => k.toLocaleLowerCase('tr-TR').includes(arama));
@@ -1949,7 +1972,7 @@
 
             let html = '';
             keys.forEach(k => {
-                let bakiye = borclar[k];
+                let bakiye = Number(borclar[k] || 0);
                 let durumMetni = bakiye > 0 ? `<span style="color:#dc2626;font-weight:bold;">Net Borcu: ${bakiye.toFixed(2)} ₺</span>` : 
                                  bakiye < 0 ? `<span style="color:#166534;font-weight:bold;">Alacaklı / Fazla Ödeme: ${Math.abs(bakiye).toFixed(2)} ₺</span>` : 
                                  '<span style="color:#666;">Hesap Kapalı (0 ₺)</span>';
@@ -1966,13 +1989,14 @@
         }
 
         function musterileriGoster() {
+            borclariYenidenHesapla();
             let borclar = veritabani.borclar || {};
             let keys = Object.keys(borclar);
             if(keys.length === 0) { document.getElementById('musteri-listesi').innerHTML = '<p>Kayıtlı müşteri bulunmuyor.</p>'; return; }
             
             let html = '<table><tr><th>Müşteri Adı</th><th>Net Bakiye</th><th>WhatsApp</th><th>Sil</th></tr>';
             keys.forEach(k => {
-                let b = borclar[k];
+                let b = Number(borclar[k] || 0);
                 let mesaj = `Sayın ${k}, Demirkapi Çiftliği güncel net bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
                 let waUrl = `https://wa.me/?text=${encodeURIComponent(mesaj)}`;
                 html += `<tr>
@@ -1994,8 +2018,8 @@
             let ciro = 0, tahsilat = 0;
             gunluk.forEach(i => {
                 let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
-                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) ciro += i.tutar;
-                if(tahsilatIslemMi(i)) tahsilat += i.tutar;
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) ciro += Number(i.tutar || 0);
+                if(tahsilatIslemMi(i)) tahsilat += Number(i.tutar || 0);
             });
 
             document.getElementById('rapor-ozet').innerHTML = `
@@ -2009,7 +2033,7 @@
             let html = '<table><tr><th>Saat</th><th>Tür</th><th>Müşteri</th><th>Tutar</th></tr>';
             gunluk.forEach(i => {
                 let saat = i.tarih ? i.tarih.split('T')[1] || '' : '';
-                html += `<tr><td>${saat}</td><td>${i.tip}</td><td><b>${i.musteri}</b></td><td>${i.tutar.toFixed(2)} ₺</td></tr>`;
+                html += `<tr><td>${saat}</td><td>${i.tip}</td><td><b>${i.musteri}</b></td><td>${Number(i.tutar || 0).toFixed(2)} ₺</td></tr>`;
             });
             html += '</table>';
             document.getElementById('rapor-detay').innerHTML = html;
@@ -2026,10 +2050,10 @@
             let ciro = 0, tahsilat = 0, gider = 0;
             ayIslemler.forEach(i => {
                 let tipKucuk = (i.tip || '').toLocaleLowerCase('tr-TR');
-                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) ciro += i.tutar;
-                if(tahsilatIslemMi(i)) tahsilat += i.tutar;
+                if(tipKucuk.includes('satış') || tipKucuk.includes('tarla biçimi')) ciro += Number(i.tutar || 0);
+                if(tahsilatIslemMi(i)) tahsilat += Number(i.tutar || 0);
             });
-            ayGiderler.forEach(g => gider += g.tutar);
+            ayGiderler.forEach(g => gider += Number(g.tutar || 0));
 
             let kar = ciro - gider;
 
@@ -2089,8 +2113,9 @@
                 let borcSatiriMi = !tahsilatIslemMi(item.islem);
                 let etiketRenk = borcSatiriMi ? '#dc2626' : '#166534';
                 let isaret = borcSatiriMi ? '+' : '-';
-                let kalemOzeti = Array.isArray(item.islem.kalemler) && item.islem.kalemler.length > 0
-                    ? item.islem.kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat})`).join(', ')
+                let kalemler = diziyeCevir(item.islem.kalemler);
+                let kalemOzeti = kalemler.length > 0
+                    ? kalemler.map(k => `${k.tur} (${k.miktar}x${k.fiyat})`).join(', ')
                     : (item.islem.aciklama || '');
 
                 html += `
@@ -2124,8 +2149,9 @@
         }
 
         function fisIceriginiGuncelle() {
+            borclariYenidenHesapla();
             let musteriAdi = aktifFisMusteri;
-            let genelBakiye = (veritabani.borclar || {})[musteriAdi] || 0;
+            let genelBakiye = Number((veritabani.borclar || {})[musteriAdi] || 0);
             let seciliIndexler = Array.from(document.querySelectorAll('.fis-satir-checkbox:checked'))
                 .map(cb => Number(cb.dataset.index));
 
@@ -2153,10 +2179,11 @@
                     let i = item.islem;
                     let isTahsilat = tahsilatIslemMi(i);
                     let tutarPrefix = isTahsilat ? '- ' : '+ ';
+                    let kalemler = diziyeCevir(i.kalemler);
 
                     html += `<b>${formatliTarihGoster(i.tarih)} - ${i.tip}</b><br>`;
-                    if(!isTahsilat && i.kalemler && i.kalemler.length > 0) {
-                        i.kalemler.forEach(k => {
+                    if(!isTahsilat && kalemler.length > 0) {
+                        kalemler.forEach(k => {
                             html += `&nbsp;&nbsp;• ${k.tur}: ${k.miktar} Adet x ${k.fiyat} ₺ = ${Number(k.tutar || 0).toFixed(2)} ₺<br>`;
                         });
                     }
@@ -2177,6 +2204,7 @@
         }
 
         function fisGoster(musteriAdi) {
+            borclariYenidenHesapla();
             aktifFisMusteri = musteriAdi;
             openScreen('fis');
             aktifFisIslemler = (veritabani.islemler || [])
