@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <!-- html2pdf Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- SheetJS Excel Okuyucu Kütüphanesi -->
+    <!-- SheetJS Excel Okuyucu & Yazıcı Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Tesseract.js OCR Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -37,6 +37,7 @@
         input[type="checkbox"] { width: auto; padding: 0; accent-color: #166534; cursor: pointer; }
         .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .btn-excel { background-color: #0f766e; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-whatsapp { background-color: #25D366; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 0; }
         .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
@@ -2122,6 +2123,82 @@
             musterileriGoster();
         }
 
+        function musteriExcelIndir(musteriAdi) {
+            if (typeof XLSX === 'undefined') {
+                alert('Excel kütüphanesi yüklenemedi. Lütfen sayfayı yenileyin.');
+                return;
+            }
+            borclariYenidenHesapla();
+            let temizAd = (musteriAdi || '').trim();
+            let musteriHareketleri = (veritabani.islemler || []).filter(i => (i.musteri || '').trim() === temizAd);
+
+            if (musteriHareketleri.length === 0) {
+                alert(`"${temizAd}" müşterisine ait hareket kaydı bulunamadı.`);
+                return;
+            }
+
+            let toplamBorcHareketi = 0;
+            let toplamTahsilatHareketi = 0;
+
+            let satirlar = musteriHareketleri.map(i => {
+                let isTahsilat = tahsilatIslemMi(i);
+                let tutar = Number(i.tutar || 0);
+                let borcTutar = isTahsilat ? 0 : tutar;
+                let tahsilatTutar = isTahsilat ? tutar : 0;
+                let netEtki = isTahsilat ? -tutar : tutar;
+
+                toplamBorcHareketi += borcTutar;
+                toplamTahsilatHareketi += tahsilatTutar;
+
+                let kalemler = diziyeCevir(i.kalemler);
+                let kalemMetni = kalemler.length > 0
+                    ? kalemler.map(k => `${k.tur} (${k.miktar} x ${Number(k.fiyat || 0).toFixed(2)} = ${Number(k.tutar || 0).toFixed(2)})`).join(' | ')
+                    : '-';
+
+                return {
+                    'Tarih': formatliTarihGoster(i.tarih),
+                    'Müşteri': temizAd,
+                    'İşlem Türü': i.tip || '',
+                    'Ürün / Kalemler': kalemMetni,
+                    'Borç / Satış (TL)': Number(borcTutar.toFixed(2)),
+                    'Tahsilat / Ödeme (TL)': Number(tahsilatTutar.toFixed(2)),
+                    'Net Hareket (TL)': Number(netEtki.toFixed(2)),
+                    'Açıklama': i.aciklama || ''
+                };
+            });
+
+            let netGuncelBakiye = Number(((veritabani.borclar || {})[temizAd] || 0).toFixed(2));
+            satirlar.push({
+                'Tarih': '',
+                'Müşteri': temizAd,
+                'İşlem Türü': 'GENEL ÖZET',
+                'Ürün / Kalemler': '',
+                'Borç / Satış (TL)': Number(toplamBorcHareketi.toFixed(2)),
+                'Tahsilat / Ödeme (TL)': Number(toplamTahsilatHareketi.toFixed(2)),
+                'Net Hareket (TL)': netGuncelBakiye,
+                'Açıklama': 'Net Güncel Bakiye'
+            });
+
+            let worksheet = XLSX.utils.json_to_sheet(satirlar);
+            worksheet['!cols'] = [
+                { wch: 18 },
+                { wch: 24 },
+                { wch: 16 },
+                { wch: 36 },
+                { wch: 18 },
+                { wch: 20 },
+                { wch: 18 },
+                { wch: 28 }
+            ];
+
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Musteri_Hareketleri');
+
+            let guvenliDosyaAdi = temizAd.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ_-]+/g, '_');
+            let bugun = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Hesap_Ozeti_${guvenliDosyaAdi}_${bugun}.xlsx`);
+        }
+
         function bekleyenRozetGuncelle() {
             let badge = document.getElementById('menu-badge');
             let count = (veritabani.bekleyenler || []).length;
@@ -2382,13 +2459,17 @@
                 let durumMetni = bakiye > 0 ? `<span style="color:#dc2626;font-weight:bold;">Net Borcu: ${bakiye.toFixed(2)} ₺</span>` :
                                  bakiye < 0 ? `<span style="color:#166534;font-weight:bold;">Alacaklı / Fazla Ödeme: ${Math.abs(bakiye).toFixed(2)} ₺</span>` :
                                  '<span style="color:#666;">Hesap Kapalı (0 ₺)</span>';
+                let guvenliAd = k.replace(/'/g, "\\'");
 
-                html += `<div style="background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                html += `<div style="background:#f8fafc; padding:12px; border-radius:10px; margin-bottom:10px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                     <div>
                         <div style="font-weight:bold; font-size:15px;">${k}</div>
                         <div style="font-size:13px;">${durumMetni}</div>
                     </div>
-                    <button class="btn-secondary" onclick="fisGoster('${k.replace(/'/g, "\\'")}')">🧾 Fiş / Detay</button>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button type="button" class="btn-excel" onclick="musteriExcelIndir('${guvenliAd}')">📊 Excel</button>
+                        <button type="button" class="btn-secondary" onclick="fisGoster('${guvenliAd}')">🧾 Fiş / Detay</button>
+                    </div>
                 </div>`;
             });
             document.getElementById('borc-detay-listesi').innerHTML = html;
@@ -2401,16 +2482,22 @@
             let keys = Object.keys(borclar);
             if(keys.length === 0) { document.getElementById('musteri-listesi').innerHTML = '<p>Kayıtlı müşteri yok.</p>'; return; }
 
-            let html = '<table><tr><th>Müşteri Adı</th><th>Net Bakiye</th><th>WhatsApp</th><th>Sil</th></tr>';
+            let html = '<table><tr><th>Müşteri Adı</th><th>Net Bakiye</th><th>Excel / WP</th><th>Sil</th></tr>';
             keys.forEach(k => {
                 let b = Number(borclar[k] || 0);
                 let mesaj = `Sayın ${k}, ${isletme} güncel net bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
                 let waUrl = `https://wa.me/?text=${encodeURIComponent(mesaj)}`;
+                let guvenliAd = k.replace(/'/g, "\\'");
                 html += `<tr>
                     <td><b>${k}</b></td>
                     <td style="color:${b > 0 ? '#dc2626' : '#166534'}; font-weight:bold;">${b.toFixed(2)} ₺</td>
-                    <td><a href="${waUrl}" target="_blank" style="text-decoration:none; background:#25D366; color:white; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:11px;">📲 Hatırlat</a></td>
-                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="musteriSil('${k.replace(/'/g, "\\'")}')">Sil</button></td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap; align-items:center;">
+                            <button type="button" class="btn-excel" style="padding:4px 7px; font-size:11px;" onclick="musteriExcelIndir('${guvenliAd}')">📊 Excel</button>
+                            <a href="${waUrl}" target="_blank" style="text-decoration:none; background:#25D366; color:white; padding:4px 8px; border-radius:6px; font-weight:bold; font-size:11px;">📲 Hatırlat</a>
+                        </div>
+                    </td>
+                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="musteriSil('${guvenliAd}')">Sil</button></td>
                 </tr>`;
             });
             html += '</table>';
