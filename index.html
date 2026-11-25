@@ -37,6 +37,7 @@
         input[type="checkbox"] { width: auto; padding: 0; accent-color: #166534; cursor: pointer; }
         .btn-green { background-color: #166534; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-secondary { background-color: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .btn-whatsapp { background-color: #25D366; color: white; border: none; width: 100%; padding: 14px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 0; }
         .btn-danger { background-color: #ef4444; color: white; border: none; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-back { background-color: #e5e7eb; color: #374151; border: none; width: 100%; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
         .urun-satir { background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 12px; position: relative; }
@@ -56,6 +57,8 @@
         .gecmis-ozet-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; font-size: 13px; }
         .gecmis-aksiyon-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
         .gecmis-secim-grubu { display: flex; gap: 8px; flex-wrap: wrap; }
+        .satir-aksiyon-grubu { display: flex; gap: 4px; flex-wrap: wrap; }
+        .duzenleme-karti { background: #fffbeb; border: 2px solid #f59e0b; border-radius: 14px; padding: 14px; margin-bottom: 14px; }
         .fis-secim-kutu { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 15px; }
         .fis-secim-butonlar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
         .fis-hareket-satir { display: flex; align-items: flex-start; gap: 8px; padding: 8px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer; }
@@ -530,6 +533,41 @@
                 <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
                 <div class="section-title">🧾 Tüm İşlem Geçmişi</div>
                 <div class="card">
+                    <div id="islem-duzenleme-kutu" class="duzenleme-karti hidden">
+                        <div style="font-weight:800; font-size:15px; color:#92400e; margin-bottom:10px;">✏️ İşlemi Düzenle</div>
+                        <input type="hidden" id="duz-islem-id">
+                        <div class="form-group">
+                            <label>Tarih ve Saat</label>
+                            <input type="datetime-local" id="duz-tarih">
+                        </div>
+                        <div class="form-group">
+                            <label>İşlem Türü</label>
+                            <select id="duz-tip">
+                                <option value="Satış">Satış</option>
+                                <option value="Tahsilat">Tahsilat</option>
+                                <option value="Silaj Alımı">Silaj Alımı</option>
+                                <option value="Tarla Biçimi">Tarla Biçimi</option>
+                                <option value="Ödeme Yapıldı">Ödeme Yapıldı</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Müşteri / Kişi</label>
+                            <input type="text" id="duz-musteri" list="musteri-listesi-datalist" placeholder="Müşteri adı...">
+                        </div>
+                        <div class="form-group">
+                            <label>Tutar (TL)</label>
+                            <input type="number" step="0.01" id="duz-tutar" placeholder="0">
+                        </div>
+                        <div class="form-group" style="margin-bottom:12px;">
+                            <label>Not / Açıklama</label>
+                            <input type="text" id="duz-aciklama" placeholder="Açıklama">
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn-green" style="margin-top:0; flex:1;" onclick="islemDuzenlemeyiKaydet()">Değişiklikleri Kaydet ✅</button>
+                            <button type="button" class="btn-secondary" style="padding:14px 16px;" onclick="islemDuzenlemeyiIptal()">Vazgeç</button>
+                        </div>
+                    </div>
+
                     <div class="gecmis-filtre-kutu">
                         <div class="gecmis-filtre-grid">
                             <div class="form-group" style="margin-bottom:0; grid-column: span 2;">
@@ -580,8 +618,9 @@
                     </div>
                     <div id="fis-alani" style="font-family: monospace; padding: 15px; border: 1px solid #ccc; background: #fff; margin-bottom: 15px; border-radius: 8px;"></div>
                     <div style="display: flex; gap: 10px; flex-direction: column;">
-                        <button class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
-                        <button class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
+                        <button type="button" class="btn-whatsapp" onclick="fisWhatsAppPaylas()">📲 WhatsApp'ta Paylaş</button>
+                        <button type="button" class="btn-green" style="margin-top:0;" onclick="fisPdfIndir()">📥 PDF Olarak İndir / Kaydet</button>
+                        <button type="button" class="btn-secondary" style="margin-top:0; width:100%; padding:14px; font-size:16px;" onclick="fisYazdir()">🖨️ Yazıcıya Gönder (Çıktı Al)</button>
                     </div>
                 </div>
             </div>
@@ -859,7 +898,7 @@
                 let tutarNum = Number(i.tutar || 0);
                 let tarihGun = String(i.tarih || '').slice(0, 10);
                 let kalemOzeti = diziyeCevir(i.kalemler).map(k => `${k.tur}:${k.miktar}:${k.tutar}`).join('|');
-                let tekilAnahtar = `${m.toLocaleLowerCase('tr-TR')}__${tarihGun}__${tahsilatMi ? 'T' : 'S'}__${tutarNum.toFixed(2)}__${kalemOzeti}`;
+                let tekilAnahtar = `${i.id || ''}__${m.toLocaleLowerCase('tr-TR')}__${tarihGun}__${tahsilatMi ? 'T' : 'S'}__${tutarNum.toFixed(2)}__${kalemOzeti}`;
 
                 if (gorulenAnahtarlar.has(tekilAnahtar)) {
                     return;
@@ -1120,7 +1159,10 @@
             if(name === 'sury') hayvanlariGoster();
             if(name === 'finans') gelismisFinansGoster();
             if(name === 'musteriler') musterileriGoster();
-            if(name === 'gecmis') gecmisiGoster();
+            if(name === 'gecmis') {
+                islemDuzenlemeyiIptal();
+                gecmisiGoster();
+            }
         }
 
         function goHome() { openScreen('menu'); }
@@ -1872,6 +1914,96 @@
             }
         }
 
+        function islemDuzenle(islemId) {
+            let islem = (veritabani.islemler || []).find(i => String(i.id) === String(islemId));
+            if (!islem) {
+                alert('Düzenlenecek işlem bulunamadı.');
+                return;
+            }
+            document.getElementById('duz-islem-id').value = islem.id;
+            document.getElementById('duz-tarih').value = islem.tarih || simdikiTarihInputFormat();
+            let tipSelect = document.getElementById('duz-tip');
+            let mevcutTipSecenek = Array.from(tipSelect.options).some(opt => opt.value === islem.tip);
+            if (!mevcutTipSecenek && islem.tip) {
+                let yeniOpt = document.createElement('option');
+                yeniOpt.value = islem.tip;
+                yeniOpt.textContent = islem.tip;
+                tipSelect.appendChild(yeniOpt);
+            }
+            tipSelect.value = islem.tip || 'Satış';
+            document.getElementById('duz-musteri').value = islem.musteri || '';
+            document.getElementById('duz-tutar').value = Number(islem.tutar || 0);
+            document.getElementById('duz-aciklama').value = islem.aciklama || '';
+
+            let kutu = document.getElementById('islem-duzenleme-kutu');
+            kutu.classList.remove('hidden');
+            kutu.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function islemDuzenlemeyiIptal() {
+            document.getElementById('duz-islem-id').value = '';
+            document.getElementById('islem-duzenleme-kutu').classList.add('hidden');
+        }
+
+        function islemDuzenlemeyiKaydet() {
+            let islemId = document.getElementById('duz-islem-id').value;
+            let idx = (veritabani.islemler || []).findIndex(i => String(i.id) === String(islemId));
+            if (idx === -1) {
+                alert('İşlem kaydı bulunamadı.');
+                return;
+            }
+
+            let yeniTarih = document.getElementById('duz-tarih').value || simdikiTarihInputFormat();
+            let yeniTip = document.getElementById('duz-tip').value;
+            let yeniMusteri = document.getElementById('duz-musteri').value.trim();
+            let yeniTutar = parseFloat(document.getElementById('duz-tutar').value);
+            let yeniAciklama = document.getElementById('duz-aciklama').value.trim();
+
+            if (!yeniMusteri || isNaN(yeniTutar) || yeniTutar < 0) {
+                alert('Lütfen geçerli bir müşteri adı ve tutar girin.');
+                return;
+            }
+
+            let eskiIslem = veritabani.islemler[idx];
+            let eskiMusteri = eskiIslem.musteri;
+            islemStogunuIadeEt(eskiIslem);
+
+            let yeniKalemler = diziyeCevir(eskiIslem.kalemler);
+            if (yeniTip === 'Satış' && yeniKalemler.length > 0) {
+                let toplamMiktar = yeniKalemler.reduce((acc, k) => acc + (parseFloat(k.miktar) || 0), 0);
+                let oran = Number(eskiIslem.tutar || 0) > 0 ? (yeniTutar / Number(eskiIslem.tutar)) : 1;
+                yeniKalemler = yeniKalemler.map(k => {
+                    let guncelTutar = Number((Number(k.tutar || 0) * oran).toFixed(2));
+                    let miktar = parseFloat(k.miktar) || 0;
+                    let guncelFiyat = miktar > 0 ? Number((guncelTutar / miktar).toFixed(2)) : Number(k.fiyat || 0);
+                    veritabani.stoklar[k.tur] = (veritabani.stoklar[k.tur] || 0) - miktar;
+                    return Object.assign({}, k, { fiyat: guncelFiyat, tutar: guncelTutar });
+                });
+                if (toplamMiktar <= 0 && yeniKalemler.length === 1) {
+                    yeniKalemler[0].tutar = yeniTutar;
+                }
+            } else if (tahsilatIslemMi({ tip: yeniTip, aciklama: yeniAciklama })) {
+                yeniKalemler = [];
+            }
+
+            veritabani.islemler[idx] = Object.assign({}, eskiIslem, {
+                tarih: yeniTarih,
+                tip: yeniTip,
+                musteri: yeniMusteri,
+                kalemler: yeniKalemler,
+                tutar: Number(yeniTutar.toFixed(2)),
+                aciklama: yeniAciklama
+            });
+
+            borclariYenidenHesapla();
+            islemsizMusterileriTemizle([eskiMusteri, yeniMusteri]);
+            kaydetVeri();
+            islemDuzenlemeyiIptal();
+            alert('İşlem güncellendi ve bakiye yeniden hesaplandı.');
+            borclariListele();
+            gecmisiGoster();
+        }
+
         function islemSil(islemId) {
             if(!confirm('Bu işlemi iptal edip silmek istediğinize emin misiniz?')) return;
             let index = veritabani.islemler.findIndex(i => i.id === islemId);
@@ -2410,7 +2542,7 @@
                 return;
             }
 
-            html += '<table><tr><th style="width:28px;">Seç</th><th>Tarih</th><th>Tür</th><th>Müşteri</th><th>Tutar</th><th>İptal / Sil</th></tr>';
+            html += '<table><tr><th style="width:28px;">Seç</th><th>Tarih</th><th>Tür</th><th>Müşteri</th><th>Tutar</th><th>İşlem</th></tr>';
             filtrelenmis.slice().reverse().forEach(i => {
                 html += `<tr>
                     <td><input type="checkbox" class="gecmis-satir-secim" value="${i.id}"></td>
@@ -2418,7 +2550,12 @@
                     <td><b>${i.tip}</b></td>
                     <td>${i.musteri}</td>
                     <td>${Number(i.tutar || 0).toFixed(2)} ₺</td>
-                    <td><button class="btn-danger" style="padding:4px 6px;" onclick="islemSil(${i.id})">İptal / Sil</button></td>
+                    <td>
+                        <div class="satir-aksiyon-grubu">
+                            <button type="button" class="btn-secondary" style="padding:4px 6px; font-size:11px;" onclick="islemDuzenle(${i.id})">Düzenle</button>
+                            <button type="button" class="btn-danger" style="padding:4px 6px; font-size:11px;" onclick="islemSil(${i.id})">İptal / Sil</button>
+                        </div>
+                    </td>
                 </tr>`;
             });
             html += '</table>';
@@ -2545,6 +2682,49 @@
 
             fisSecimListesiniOlustur(aktifFisIslemler);
             fisIceriginiGuncelle();
+        }
+
+        function fisWhatsAppPaylas() {
+            borclariYenidenHesapla();
+            let ayar = veritabani.ayarlar || varsayilanAyarlar();
+            let musteriAdi = aktifFisMusteri || 'Müşteri';
+            let genelBakiye = Number((veritabani.borclar || {})[musteriAdi] || 0);
+            let seciliIndexler = Array.from(document.querySelectorAll('.fis-satir-checkbox:checked'))
+                .map(cb => Number(cb.dataset.index));
+            let seciliHareketler = seciliIndexler.map(idx => aktifFisIslemler[idx]).filter(Boolean);
+
+            let satirlar = [
+                `*${ayar.isletmeAdi}*`,
+                `Müşteri: *${musteriAdi}*`,
+                `Tarih: ${new Date().toLocaleDateString('tr-TR')}`,
+                `------------------------`
+            ];
+
+            if (seciliHareketler.length === 0) {
+                satirlar.push('Seçili hareket bulunmuyor.');
+            } else {
+                seciliHareketler.forEach(item => {
+                    let i = item.islem;
+                    let isTahsilat = tahsilatIslemMi(i);
+                    let prefix = isTahsilat ? '-' : '+';
+                    let kalemler = diziyeCevir(i.kalemler);
+                    satirlar.push(`• ${formatliTarihGoster(i.tarih)} - ${i.tip}: ${prefix}${Number(i.tutar || 0).toFixed(2)} ₺`);
+                    if (!isTahsilat && kalemler.length > 0) {
+                        kalemler.forEach(k => {
+                            satirlar.push(`  - ${k.tur}: ${k.miktar}x${k.fiyat} ₺ = ${Number(k.tutar || 0).toFixed(2)} ₺`);
+                        });
+                    }
+                    if (i.aciklama) {
+                        satirlar.push(`  Not: ${i.aciklama}`);
+                    }
+                });
+            }
+
+            satirlar.push(`------------------------`);
+            satirlar.push(`*Net Güncel Bakiye: ${genelBakiye.toFixed(2)} ₺*`);
+
+            let waUrl = `https://wa.me/?text=${encodeURIComponent(satirlar.join('\n'))}`;
+            window.open(waUrl, '_blank');
         }
 
         function fisPdfIndir() {
