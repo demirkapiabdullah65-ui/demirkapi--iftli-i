@@ -658,6 +658,23 @@
             veritabani.borclar = hesaplar;
         }
 
+        function islemsizMusterileriTemizle(adayMusteriler = []) {
+            let kalanMusteriler = new Set(
+                (veritabani.islemler || [])
+                    .map(i => (i.musteri || '').trim())
+                    .filter(Boolean)
+            );
+            adayMusteriler.forEach(m => {
+                let ad = (m || '').trim();
+                if (ad && !kalanMusteriler.has(ad) && Object.prototype.hasOwnProperty.call(veritabani.borclar || {}, ad)) {
+                    delete veritabani.borclar[ad];
+                }
+            });
+            if ((veritabani.islemler || []).length === 0) {
+                veritabani.borclar = {};
+            }
+        }
+
         function musteriDatalistGuncelle() {
             let datalist = document.getElementById('musteri-listesi-datalist');
             if(!datalist) return;
@@ -1629,9 +1646,11 @@
             let index = veritabani.islemler.findIndex(i => i.id === islemId);
             if(index === -1) return;
             let islem = veritabani.islemler[index];
+            let etkilenenMusteri = islem.musteri;
             islemStogunuIadeEt(islem);
             veritabani.islemler.splice(index, 1);
             borclariYenidenHesapla();
+            islemsizMusterileriTemizle([etkilenenMusteri]);
             kaydetVeri();
             alert('İşlem silindi ve bakiye güncellendi.');
             borclariListele();
@@ -1652,8 +1671,10 @@
             if (!confirm(`Seçilen ${seciliKutular.length} işlemi silmek istediğinize emin misiniz?`)) return;
 
             let silinecekIdSet = new Set(seciliKutular.map(cb => String(cb.value)));
+            let etkilenenMusteriler = [];
             veritabani.islemler = (veritabani.islemler || []).filter(i => {
                 if (silinecekIdSet.has(String(i.id))) {
+                    etkilenenMusteriler.push(i.musteri);
                     islemStogunuIadeEt(i);
                     return false;
                 }
@@ -1661,8 +1682,9 @@
             });
 
             borclariYenidenHesapla();
+            islemsizMusterileriTemizle(etkilenenMusteriler);
             kaydetVeri();
-            alert(`${seciliKutular.length} işlem silindi ve bakiye güncellendi.`);
+            alert(`${seciliKutular.length} işlem silindi ve bakiyeler güncellendi.`);
             borclariListele();
             gecmisiGoster();
         }
@@ -1676,9 +1698,11 @@
             if (!confirm(`TÜM işlem geçmişini (${islemler.length} kayıt) silmek istediğinize emin misiniz?`)) return;
             if (!confirm('Son onay: Bu işlem geri alınamaz. Tüm geçmişi silmek istiyor musunuz?')) return;
 
+            let etkilenenMusteriler = islemler.map(i => i.musteri);
             islemler.forEach(i => islemStogunuIadeEt(i));
             veritabani.islemler = [];
             borclariYenidenHesapla();
+            islemsizMusterileriTemizle(etkilenenMusteriler);
             kaydetVeri();
             alert('Tüm işlem geçmişi silindi ve bakiyeler sıfırlandı.');
             borclariListele();
