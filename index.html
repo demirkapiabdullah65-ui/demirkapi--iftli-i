@@ -701,13 +701,14 @@
             yerelVeriyiYaz(veritabani);
             bekleyenRozetGuncelle();
             const syncEl = document.getElementById('sync-indicator');
+            if (syncEl) syncEl.innerText = '⏳ Buluta Yazılıyor...';
             db.ref('demirkapi_ciftligi').set(veritabani).then(() => {
                 yerelVeriyiYaz(veritabani);
                 bekleyenRozetGuncelle();
                 if (syncEl) syncEl.innerText = '🔥 Canlı Bulut';
             }).catch(() => {
                 yerelVeriyiYaz(veritabani);
-                if (syncEl) syncEl.innerText = '💾 Yerel Kayıt';
+                if (syncEl) syncEl.innerText = '⚠️ Bulut İzni Kontrol Et';
             });
         }
 
@@ -1350,9 +1351,27 @@
             }
 
             borclariYenidenHesapla();
-            kaydetVeri();
-            alert(`${kaydedilenSatirSayisi} satır başarıyla kaydedildi!`);
-            goHome();
+            veritabani = veritabaniAlanlariniTamamla(veritabani);
+            yerelVeriyiYaz(veritabani);
+            bekleyenRozetGuncelle();
+
+            const syncEl = document.getElementById('sync-indicator');
+            if (syncEl) syncEl.innerText = '⏳ Buluta Aktarılıyor...';
+
+            db.ref('demirkapi_ciftligi').update({
+                islemler: veritabani.islemler,
+                borclar: veritabani.borclar,
+                stoklar: veritabani.stoklar
+            }).then(() => {
+                if (syncEl) syncEl.innerText = '🔥 Canlı Bulut';
+                aktifEkranlariYenile();
+                alert(`${kaydedilenSatirSayisi} satır buluta kaydedildi ve bakiyeler güncellendi!`);
+                goHome();
+            }).catch(() => {
+                kaydetVeri();
+                alert(`${kaydedilenSatirSayisi} satır kaydedildi (bulut bağlantısını kontrol edin).`);
+                goHome();
+            });
         }
 
         function urunSatiriEkle() {
