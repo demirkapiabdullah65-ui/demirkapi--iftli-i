@@ -67,6 +67,9 @@
         .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
         .auth-tab { padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: bold; cursor: pointer; }
         .auth-tab.active { background: #166534; color: white; border-color: #166534; }
+        .filtre-chip-grubu { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .filtre-chip { padding: 7px 11px; border-radius: 999px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .filtre-chip.active { background: #166534; color: #fff; border-color: #166534; }
 
         .fis-baslik { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
         .fis-musteri { font-size: 18px; font-weight: bold; }
@@ -354,7 +357,23 @@
             <div id="screen-musteriler" class="hidden">
                 <button class="btn-back" onclick="goHome()">⬅️ Ana Menüye Dön</button>
                 <div class="section-title">👥 Cari Müşteri Listesi & WhatsApp</div>
-                <div class="card"><div id="musteri-listesi">Kayıtlı müşteri yok.</div></div>
+                <div class="card">
+                    <div class="form-group">
+                        <label>Müşteri Ara</label>
+                        <input type="text" id="musteri-arama" oninput="musterileriGoster()" placeholder="Müşteri adı yazın...">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label>Bakiye Durumuna Göre Seç</label>
+                        <div class="filtre-chip-grubu" id="musteri-filtre-butonlari">
+                            <button type="button" class="filtre-chip active" data-filtre="tumu" onclick="musteriFiltresiSec('tumu')">Tümü</button>
+                            <button type="button" class="filtre-chip" data-filtre="borclu" onclick="musteriFiltresiSec('borclu')">Sadece Borçlular</button>
+                            <button type="button" class="filtre-chip" data-filtre="alacakli" onclick="musteriFiltresiSec('alacakli')">Alacaklılar</button>
+                            <button type="button" class="filtre-chip" data-filtre="kapali" onclick="musteriFiltresiSec('kapali')">Hesabı Kapalı</button>
+                        </div>
+                    </div>
+                    <div id="musteri-filtre-ozeti" style="font-size:12px; color:#475569; margin-bottom:10px; font-weight:600;"></div>
+                    <div id="musteri-listesi">Kayıtlı müşteri yok.</div>
+                </div>
             </div>
 
             <!-- 10. GÜNLÜK RAPOR -->
@@ -653,6 +672,7 @@
         let aktifKullanici = null;
         let kullaniciVeriRef = null;
         let authModu = 'giris';
+        let aktifMusteriFiltresi = 'tumu';
 
         function varsayilanAyarlar() {
             return {
@@ -1159,7 +1179,11 @@
             if(name === 'stok') stoklariGoster();
             if(name === 'sury') hayvanlariGoster();
             if(name === 'finans') gelismisFinansGoster();
-            if(name === 'musteriler') musterileriGoster();
+            if(name === 'musteriler') {
+                let aramaEl = document.getElementById('musteri-arama');
+                if (aramaEl) aramaEl.value = '';
+                musteriFiltresiSec(aktifMusteriFiltresi || 'tumu');
+            }
             if(name === 'gecmis') {
                 islemDuzenlemeyiIptal();
                 gecmisiGoster();
@@ -2475,15 +2499,65 @@
             document.getElementById('borc-detay-listesi').innerHTML = html;
         }
 
+        function musteriFiltresiSec(filtre) {
+            aktifMusteriFiltresi = filtre || 'tumu';
+            document.querySelectorAll('#musteri-filtre-butonlari .filtre-chip').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filtre === aktifMusteriFiltresi);
+            });
+            musterileriGoster();
+        }
+
         function musterileriGoster() {
             borclariYenidenHesapla();
             let isletme = (veritabani.ayarlar && veritabani.ayarlar.isletmeAdi) || 'İşletmemiz';
             let borclar = veritabani.borclar || {};
-            let keys = Object.keys(borclar);
-            if(keys.length === 0) { document.getElementById('musteri-listesi').innerHTML = '<p>Kayıtlı müşteri yok.</p>'; return; }
+            let arama = (document.getElementById('musteri-arama')?.value || '').trim().toLocaleLowerCase('tr-TR');
+
+            let tumKeys = Object.keys(borclar);
+            if(tumKeys.length === 0) {
+                let ozetEl = document.getElementById('musteri-filtre-ozeti');
+                if (ozetEl) ozetEl.innerText = '';
+                document.getElementById('musteri-listesi').innerHTML = '<p>Kayıtlı müşteri yok.</p>';
+                return;
+            }
+
+            let borcluSayisi = tumKeys.filter(k => Number(borclar[k] || 0) > 0).length;
+            let filtreliKeys = tumKeys.filter(k => {
+                let b = Number(borclar[k] || 0);
+                if (arama && !k.toLocaleLowerCase('tr-TR').includes(arama)) return false;
+                if (aktifMusteriFiltresi === 'borclu') return b > 0;
+                if (aktifMusteriFiltresi === 'alacakli') return b < 0;
+                if (aktifMusteriFiltresi === 'kapali') return Math.abs(b) < 0.005;
+                return true;
+            });
+
+            let seciliToplamBorc = filtreliKeys.reduce((acc, k) => {
+                let b = Number(borclar[k] || 0);
+                return acc + (b > 0 ? b : 0);
+            }, 0);
+
+            let ozetEl = document.getElementById('musteri-filtre-ozeti');
+            if (ozetEl) {
+                let filtreEtiketi = aktifMusteriFiltresi === 'borclu'
+                    ? 'Sadece Borçlular'
+                    : aktifMusteriFiltresi === 'alacakli'
+                        ? 'Alacaklılar'
+                        : aktifMusteriFiltresi === 'kapali'
+                            ? 'Hesabı Kapalı'
+                            : 'Tümü';
+                ozetEl.innerHTML = `Filtre: <b>${filtreEtiketi}</b> • Gösterilen: <b>${filtreliKeys.length}</b> / ${tumKeys.length} (Borçlu: <b>${borcluSayisi}</b>) • Toplam Borç: <b style="color:#dc2626;">${seciliToplamBorc.toFixed(2)} ₺</b>`;
+            }
+
+            if (filtreliKeys.length === 0) {
+                let bosMesaj = aktifMusteriFiltresi === 'borclu'
+                    ? 'Seçilen kriterlere uygun borçlu müşteri bulunmuyor.'
+                    : 'Seçilen filtreye uygun müşteri bulunamadı.';
+                document.getElementById('musteri-listesi').innerHTML = `<p style="color:#64748b; padding:10px 0;">${bosMesaj}</p>`;
+                return;
+            }
 
             let html = '<table><tr><th>Müşteri Adı</th><th>Net Bakiye</th><th>Excel / WP</th><th>Sil</th></tr>';
-            keys.forEach(k => {
+            filtreliKeys.forEach(k => {
                 let b = Number(borclar[k] || 0);
                 let mesaj = `Sayın ${k}, ${isletme} güncel net bakiye durumunuz: ${b.toFixed(2)} TL'dir.`;
                 let waUrl = `https://wa.me/?text=${encodeURIComponent(mesaj)}`;
